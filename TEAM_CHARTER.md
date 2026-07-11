@@ -11,7 +11,7 @@
 <h3><em>Small Cells. One Hive. One Mission.</em></h3>
 
 <img
-src="https://readme-typing-svg.demolab.com?font=Poppins&size=22&duration=3000&pause=1000&color=28B8A9&center=true&vCenter=true&width=700&lines=Working+Together+as+One+Team;Building+Better+Software+Together;One+Team.+One+Goal."
+src="https://readme-typing-svg.demolab.com?font=Poppins&size=22&duration=3000&pause=1000&color=28B8A9&center=true&vCenter=true&width=700&lines=Welcome+to+CyberHive;Working+Together+as+One+Team;Building+Better+Software+Together;One+Team.+One+Goal."
 alt="Cyber Hive animated introduction"
 />
 
@@ -21,15 +21,15 @@ alt="Cyber Hive animated introduction"
 
 ## 🐝 About Our Team
 
-We are **Cyber Hive**, a team of four members participating in the **ByteBloom Academy** training program. We came together with a shared passion for learning, collaboration, and gaining practical experience in software development through teamwork and real-world challenges.
-
-We believe that success begins with effective communication, mutual respect, and knowledge sharing. By supporting one another and working toward a common goal, we strive to grow both as individuals and as a team throughout our ByteBloom journey.
-
+## 🐝 Who We Are
+We are **Cyber Hive**, a team of four members participating in the **ByteBloom Academy** training program.
+United by a shared passion for technology and continuous learning, we collaborate to gain practical experience, strengthen our software development skills, and grow together through teamwork.
 ---
 
-## 🎯 Vision & Mission
+> ## 🎯 Our Mission
 
-> Our mission is to work as one team, learn from one another, and continuously develop our technical and collaboration skills through teamwork, practical experience, and knowledge sharing. We are committed to supporting each other, delivering high-quality work, and striving to become one of the top-performing teams in the **ByteBloom Academy** program.
+Our mission is to build a collaborative and supportive team environment where every member can learn, contribute, and grow together. By applying software engineering best practices, embracing responsibility, and working toward a common goal, we aim to become one of the top-performing teams in the **ByteBloom Academy** program.
+
 
 ---
 
