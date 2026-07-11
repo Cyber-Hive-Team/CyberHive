@@ -17,19 +17,20 @@ alt="Cyber Hive animated introduction"
 
 </div>
 
+
 ---
 
 ## 🐝 About Our Team
 
-## 🐝 Who We Are
 We are **Cyber Hive**, a team of four members participating in the **ByteBloom Academy** training program.
+
 United by a shared passion for technology and continuous learning, we collaborate to gain practical experience, strengthen our software development skills, and grow together through teamwork.
+
 ---
 
-> ## 🎯 Our Mission
+## 🎯 Our Mission
 
 Our mission is to build a collaborative and supportive team environment where every member can learn, contribute, and grow together. By applying software engineering best practices, embracing responsibility, and working toward a common goal, we aim to become one of the top-performing teams in the **ByteBloom Academy** program.
-
 
 ---
 
