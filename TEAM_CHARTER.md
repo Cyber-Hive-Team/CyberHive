@@ -170,7 +170,7 @@ To keep the commit history clear and consistent, the team follows these commit m
 | `test:` | Add or update tests |
 | `chore:` | Perform general maintenance tasks |
 
-<br><br><br>
+<br>
 
 ---
 <a id="clean-code"></a>
