@@ -175,12 +175,86 @@ To keep the commit history clear and consistent, the team follows these commit m
 ---
 <a id="clean-code"></a>
 
-## 💻 Clean Code Standards
+## 🧹 Clean Code Standards
 
 **Responsible Member:** Ghaydaa Alsaher  
-**Branch:** `feature/charter-ghaydaaalsaher`
+> ### "Leave the campground cleaner than you found it."
+>
+> *— Robert C. Martin, Clean Code*
 
-<!-- Ghaydaa writes and formats the Clean Code section here. -->
+
+
+---
+
+### 🧭 Our Clean Code Philosophy
+
+Our team is committed to writing clean, readable, and maintainable code to ensure consistency and make collaboration easier for everyone.
+
+---
+
+### 🏷️ Naming Standards
+
+To improve readability and maintain consistency, our team follows these naming principles:
+
+- Use meaningful and descriptive names.
+- Avoid misleading or unclear names.
+- Use nouns for class names.
+- Use verbs for function names.
+
+---
+
+### ⚙️ Function Standards
+
+Functions should be simple, focused, and easy to understand.
+
+Our team will:
+
+- Keep functions small and focused.
+- Ensure each function has a single responsibility.
+- Use clear and descriptive function names.
+- Make every function perform only the task described by its name.
+
+---
+
+### 💬 Comment Standards
+
+Comments should support the code, not replace clear and readable code.
+
+Our team will:
+
+- Prefer self-explanatory code.
+- Use comments only when they add value.
+- Explain *why*, not *what*.
+- Remove unnecessary or outdated comments.
+
+---
+
+### 📏 Formatting Standards
+
+Consistent formatting improves readability and makes collaboration easier across the project.
+
+Our team will:
+
+- Use consistent indentation.
+- Organize code in a logical structure.
+- Remove unused code and unnecessary imports.
+
+---
+
+### ✅ Clean Code Checklist
+
+Before creating a Pull Request, every team member should verify:
+
+- [ ] Meaningful names are used.
+- [ ] Functions have one responsibility.
+- [ ] Formatting follows the team standard.
+- [ ] Code is easy to read and understand.
+
+---
+
+### 🧹 Continuous Improvement
+
+Inspired by the *Boy Scout Rule*, every team member should leave the code a little better than they found it by making small improvements whenever they modify existing code.
 
 <br><br><br>
 
