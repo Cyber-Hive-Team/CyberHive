@@ -111,10 +111,103 @@ Choose a section below to explore each part of our Team Charter.
 
 ## 📡 Communication & SLAs
 
-**Responsible Member:** Tariq Zeyad  
-**Branch:** `feature/charter-tariqzeyad`
+**Responsible Member:** Tariq Zeyad
 
-<!-- Tariq writes and formats the Communication and SLA section here. -->
+<div align="center">
+
+# 👥 Communication & Service Level Agreements
+</div>
+
+---
+
+# 📡 Communication Channels
+
+<table>
+<tr>
+<th width="35%">Platform</th>
+<th>Description</th>
+</tr>
+
+<tr>
+<td>🐙 <b>GitHub</b></td>
+<td>
+
+- Task Management
+- Pull Requests
+- Code Reviews
+- Issue Tracking
+- Project Documentation
+
+</td>
+</tr>
+
+<tr>
+<td>💬 <b>WhatsApp</b></td>
+<td>
+
+- Daily Updates
+- Quick Questions
+- Team Notifications
+- Urgent Messages
+
+</td>
+</tr>
+
+<tr>
+<td>🎥 <b>Google Meet</b></td>
+<td>
+
+- Daily Meetings
+- Sprint Discussions
+- Technical Decisions
+
+</td>
+</tr>
+
+</table>
+
+---
+
+# 📅 Team Meeting Schedule
+
+<div align="center">
+
+| 📅 Meeting | 🕛 Time | 💻 Platform | 📌 Status |
+|------------|---------|------------|-----------|
+| Daily Meeting | **12:00 PM** | Google Meet | ✅ Saturday - Thursday |
+| Friday | — | — | 🌴 No Meeting |
+
+</div>
+
+---
+
+# 🚦 Pull Request SLA
+
+| Activity | Expected Time |
+|-----------|---------------|
+| 🚀 Create Pull Request | Same Day |
+| 👀 Review Pull Request | Within 24 Hours |
+| 💬 Respond to Review Comments | Within 24 Hours |
+| 🔀 Resolve Merge Conflicts | Before Merge |
+| ✅ Merge to Main | After 2 Approvals |
+
+---
+
+# 📜 Team Communication Rules
+
+- GitHub is the **official source of truth** for all project tasks and  code changes.
+- Maintain transparency, communicate clearly, and provide constructive feedback.
+- Prioritize quality and continuously improve through teamwork.
+- Every feature must be developed in its own branch.
+- Every branch must be merged through a Pull Request.
+- Direct commits to `main` are prohibited.
+- At least **two approvals** are required before merging.
+- Important meeting decisions must be documented on GitHub.
+- Members should notify the team before missing a daily meeting.
+---
+
+
+
 
 <br><br><br>
 
