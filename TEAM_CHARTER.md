@@ -175,14 +175,88 @@ To keep the commit history clear and consistent, the team follows these commit m
 ---
 <a id="clean-code"></a>
 
-## 💻 Clean Code Standards
+## 🧹 Clean Code Standards
 
 **Responsible Member:** Ghaydaa Alsaher  
-**Branch:** `feature/charter-ghaydaaalsaher`
+> ### "Leave the campground cleaner than you found it."
+>
+> *— Robert C. Martin, Clean Code*
 
-<!-- Ghaydaa writes and formats the Clean Code section here. -->
 
-<br><br><br>
+
+---
+
+### 🧭 Our Clean Code Philosophy
+
+Our team is committed to writing clean, readable, and maintainable code to ensure consistency and make collaboration easier for everyone.
+
+---
+
+### 🏷️ Naming Standards
+
+To improve readability and maintain consistency, our team follows these naming principles:
+
+- Use meaningful and descriptive names.
+- Avoid misleading or unclear names.
+- Use nouns for class names.
+- Use verbs for function names.
+
+---
+
+### ⚙️ Function Standards
+
+Functions should be simple, focused, and easy to understand.
+
+Our team will:
+
+- Keep functions small and focused.
+- Ensure each function has a single responsibility.
+- Use clear and descriptive function names.
+- Make every function perform only the task described by its name.
+
+---
+
+### 💬 Comment Standards
+
+Comments should support the code, not replace clear and readable code.
+
+Our team will:
+
+- Prefer self-explanatory code.
+- Use comments only when they add value.
+- Explain *why*, not *what*.
+- Remove unnecessary or outdated comments.
+
+---
+
+### 📏 Formatting Standards
+
+Consistent formatting improves readability and makes collaboration easier across the project.
+
+Our team will:
+
+- Use consistent indentation.
+- Organize code in a logical structure.
+- Remove unused code and unnecessary imports.
+
+---
+
+### ✅ Clean Code Checklist
+
+Before creating a Pull Request, every team member should verify:
+
+- [ ] Meaningful names are used.
+- [ ] Functions have one responsibility.
+- [ ] Formatting follows the team standard.
+- [ ] Code is easy to read and understand.
+
+---
+
+### 🧹 Continuous Improvement
+
+Inspired by the *Boy Scout Rule*, every team member should leave the code a little better than they found it by making small improvements whenever they modify existing code.
+
+<br><br>
 
 ---
 
@@ -195,7 +269,7 @@ To keep the commit history clear and consistent, the team follows these commit m
 
 <!-- Tariq writes and formats the Communication and SLA section here. -->
 
-<br><br><br>
+<br><br>
 
 ---
 
@@ -204,11 +278,64 @@ To keep the commit history clear and consistent, the team follows these commit m
 ## 🏗️ Architecture & `.gitignore`
 
 **Responsible Member:** Amna Abou Alhaj  
-**Branch:** `feature/charter-amnaaboualhaj`
 
-<!-- Amna writes and formats the Architecture and .gitignore section here. -->
+---
 
-<br><br><br>
+### 📁 Repository Structure
+
+The repository follows a simple and organized structure to keep project files clear and easy to manage.
+
+```text
+CyberHive/
+│
+├── assets/              # Images and visual resources
+├── gradle/              # Gradle wrapper files
+├── src/main/kotlin/     # Kotlin source code
+├── .gitignore
+├── build.gradle.kts
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+├── README.md
+└── TEAM_CHARTER.md
+```
+
+---
+
+### 📂 Directory Guidelines
+
+- Store source code inside the `src/main/kotlin` directory.
+- Store images and visual resources inside the `assets` directory.
+- Keep documentation files in the project root.
+- Keep Gradle configuration files in their default locations.
+- Follow the agreed repository structure when adding new files.
+
+---
+
+### 🚫 `.gitignore` Rules
+
+The `.gitignore` file excludes generated and local development files from the repository.
+
+```text
+.idea/
+.gradle/
+build/
+out/
+*.iml
+```
+
+These files are automatically generated or contain local IDE settings and should not be committed.
+
+---
+
+### 📦 Repository Organization
+
+- Keep the repository clean and well organized.
+- Commit only project-related source code and documentation.
+- Remove unnecessary generated files before committing.
+- Keep build configuration files valid and up to date.
+- Follow the agreed repository structure throughout the project.
 
 ---
 
