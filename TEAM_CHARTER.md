@@ -85,23 +85,176 @@ Choose a section below to explore each part of our Team Charter.
 
 ## 🔄 Workflow
 
-**Responsible Member:** Sondos Albayyouk  
-**Branch:** `feature/charter-sondosalbayyouk`
-
-<!-- Sondos writes and formats the Workflow section here. -->
-
-<br><br><br>
+**Responsible Member:** Sondos Albayyouk
 
 ---
 
+### 👥 Team Roles
+
+| Team Member | Role | Responsibilities |
+|-------------|------|------------------|
+| **Sondos Albayyouk** | Workflow | Organizes the team workflow, branch management, and the Push, Pull Request, and Merge process. |
+| **Ghaydaa Alsaher** | Clean Code Standards | Defines coding standards, naming conventions, and Clean Code practices. |
+| **Tariq Zeyad** | Communication & SLAs | Organizes team communication, response times, and peer review guidelines. |
+| **Amna Abou Alhaj** | Architecture & `.gitignore` | Organizes the project structure and defines the `.gitignore` rules. |
+---
+
+### 🔀 Branching Model
+
+Our team follows the **Feature Branch Workflow**.
+
+Each member works on a separate feature branch for their assigned task. After completing the work, the member pushes the changes and creates a Pull Request. Once the required approvals are received, the Pull Request author merges the changes into the `main` branch.
+
+---
+
+### 👨‍💻 Team Workflow
+
+```mermaid
+flowchart TB
+
+    S["Sondos Branch<br/>feature/charter-sondosalbayyouk"]
+    G["Ghaydaa Branch<br/>feature/charter-ghaydaaalsaher"]
+    T["Tariq Branch<br/>feature/charter-tariqzeyad"]
+    A["Amna Branch<br/>feature/charter-amnaaboualhaj"]
+
+    P["Push Changes"]
+    PR["Open Pull Request"]
+    R["Team Review"]
+    AP["Receive Two Approvals"]
+    M["Pull Request Author Merges to main"]
+
+    S --> P
+    G --> P
+    T --> P
+    A --> P
+
+    P --> PR
+    PR --> R
+    R --> AP
+    AP --> M
+```
+
+---
+
+### 📋 Workflow Rules
+
+To keep our development process organized and consistent, the team follows these rules:
+
+- Each member works on their own feature branch.
+- No direct commits are allowed to the `main` branch.
+- Every change must be submitted through a Pull Request.
+- At least two team members must approve the Pull Request before merging.
+- After receiving the approvals, the Pull Request author performs the merge.
+- Resolve merge conflicts collaboratively before merging changes into the `main` branch.
+- Keep your feature branch up to date before opening a Pull Request.
+- Use clear and meaningful commit messages.
+---
+
+### 💬 Commit Message Convention
+
+To keep the commit history clear and consistent, the team follows these commit message conventions:
+
+- Use short and meaningful commit messages.
+- Start each commit message with a standard prefix.
+- Write commit messages in English.
+
+**Common prefixes:**
+
+| Prefix | Purpose |
+|--------|---------|
+| `feat:` | Add a new feature |
+| `fix:` | Fix a bug or issue |
+| `docs:` | Update documentation |
+| `style:` | Improve formatting or styling |
+| `refactor:` | Improve code without changing functionality |
+| `test:` | Add or update tests |
+| `chore:` | Perform general maintenance tasks |
+
+<br>
+
+---
 <a id="clean-code"></a>
 
-## 💻 Clean Code Standards
+## 🧹 Clean Code Standards
 
 **Responsible Member:** Ghaydaa Alsaher  
-**Branch:** `feature/charter-ghaydaaalsaher`
+> ### "Leave the campground cleaner than you found it."
+>
+> *— Robert C. Martin, Clean Code*
 
-<!-- Ghaydaa writes and formats the Clean Code section here. -->
+
+
+---
+
+### 🧭 Our Clean Code Philosophy
+
+Our team is committed to writing clean, readable, and maintainable code to ensure consistency and make collaboration easier for everyone.
+
+---
+
+### 🏷️ Naming Standards
+
+To improve readability and maintain consistency, our team follows these naming principles:
+
+- Use meaningful and descriptive names.
+- Avoid misleading or unclear names.
+- Use nouns for class names.
+- Use verbs for function names.
+
+---
+
+### ⚙️ Function Standards
+
+Functions should be simple, focused, and easy to understand.
+
+Our team will:
+
+- Keep functions small and focused.
+- Ensure each function has a single responsibility.
+- Use clear and descriptive function names.
+- Make every function perform only the task described by its name.
+
+---
+
+### 💬 Comment Standards
+
+Comments should support the code, not replace clear and readable code.
+
+Our team will:
+
+- Prefer self-explanatory code.
+- Use comments only when they add value.
+- Explain *why*, not *what*.
+- Remove unnecessary or outdated comments.
+
+---
+
+### 📏 Formatting Standards
+
+Consistent formatting improves readability and makes collaboration easier across the project.
+
+Our team will:
+
+- Use consistent indentation.
+- Organize code in a logical structure.
+- Remove unused code and unnecessary imports.
+
+---
+
+### ✅ Clean Code Checklist
+
+Before creating a Pull Request, every team member should verify:
+
+- [ ] Meaningful names are used.
+- [ ] Functions have one responsibility.
+- [ ] Formatting follows the team standard.
+- [ ] Code is easy to read and understand.
+
+---
+
+### 🧹 Continuous Improvement
+
+Inspired by the *Boy Scout Rule*, every team member should leave the code a little better than they found it by making small improvements whenever they modify existing code.
 
 <br><br><br>
 
