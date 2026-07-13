@@ -83,7 +83,7 @@ Choose a section below to explore each part of our Team Charter.
 
 <a id="workflow"></a>
 
-## 🔄 Workflow
+# 🔄 Workflow
 
 **Responsible Member:** Sondos Albayyouk
 
@@ -170,14 +170,16 @@ To keep the commit history clear and consistent, the team follows these commit m
 | `test:` | Add or update tests |
 | `chore:` | Perform general maintenance tasks |
 
-<br>
+<br><br>
 
 ---
+
 <a id="clean-code"></a>
 
-## 🧹 Clean Code Standards
+# 🧹 Clean Code Standards
 
 **Responsible Member:** Ghaydaa Alsaher  
+
 > ### "Leave the campground cleaner than you found it."
 >
 > *— Robert C. Martin, Clean Code*
@@ -258,24 +260,19 @@ Before creating a Pull Request, every team member should verify:
 
 Inspired by the *Boy Scout Rule*, every team member should leave the code a little better than they found it by making small improvements whenever they modify existing code.
 
-<br><br><br>
+<br><br>
 
 ---
 
 <a id="communication"></a>
 
-## 📡 Communication & SLAs
+# 📡 Communication & SLAs
 
 **Responsible Member:** Tariq Zeyad
 
-<div align="center">
-
-# 👥 Communication & Service Level Agreements
-</div>
-
 ---
 
-# 📡 Communication Channels
+### 📡 Communication Channels
 
 <table>
 <tr>
@@ -323,20 +320,18 @@ Inspired by the *Boy Scout Rule*, every team member should leave the code a litt
 
 ---
 
-# 📅 Team Meeting Schedule
+### 📅 Team Meeting Schedule
 
-<div align="center">
 
 | 📅 Meeting | 🕛 Time | 💻 Platform | 📌 Status |
 |------------|---------|------------|-----------|
 | Daily Meeting | **12:00 PM** | Google Meet | ✅ Saturday - Thursday |
 | Friday | — | — | 🌴 No Meeting |
 
-</div>
 
 ---
 
-# 🚦 Pull Request SLA
+### 🚦 Pull Request SLA
 
 | Activity | Expected Time |
 |-----------|---------------|
@@ -348,7 +343,7 @@ Inspired by the *Boy Scout Rule*, every team member should leave the code a litt
 
 ---
 
-# 📜 Team Communication Rules
+### 📜 Team Communication Rules
 
 - GitHub is the **official source of truth** for all project tasks and  code changes.
 - Maintain transparency, communicate clearly, and provide constructive feedback.
@@ -359,10 +354,6 @@ Inspired by the *Boy Scout Rule*, every team member should leave the code a litt
 - At least **two approvals** are required before merging.
 - Important meeting decisions must be documented on GitHub.
 - Members should notify the team before missing a daily meeting.
----
-
-
-
 
 <br><br>
 
@@ -370,7 +361,7 @@ Inspired by the *Boy Scout Rule*, every team member should leave the code a litt
 
 <a id="architecture"></a>
 
-## 🏗️ Architecture & `.gitignore`
+# 🏗️ Architecture & `.gitignore`
 
 **Responsible Member:** Amna Abou Alhaj  
 **Branch:** `feature/charter-amnaaboualhaj`
