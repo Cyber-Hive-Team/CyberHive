@@ -248,7 +248,7 @@ Before creating a Pull Request, every team member should verify:
 - [ ] Meaningful names are used.
 - [ ] Functions have one responsibility.
 - [ ] Formatting follows the team standard.
-- [ ] Code is easy to read and understand.
+- [ ] Code is easy to read and understand .
 
 ---
 
