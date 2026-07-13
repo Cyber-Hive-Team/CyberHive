@@ -183,7 +183,6 @@ To keep the commit history clear and consistent, the team follows these commit m
 > *— Robert C. Martin, Clean Code*
 
 
-
 ---
 
 ### 🧭 Our Clean Code Philosophy
@@ -213,6 +212,8 @@ Our team will:
 - Ensure each function has a single responsibility.
 - Use clear and descriptive function names.
 - Make every function perform only the task described by its name.
+- Keep the number of function parameters as small as possible.
+- Use clear and meaningful parameter names.
 
 ---
 
@@ -238,6 +239,7 @@ Our team will:
 - Use consistent indentation.
 - Organize code in a logical structure.
 - Remove unused code and unnecessary imports.
+- Follow a consistent coding style throughout the project.
 
 ---
 
