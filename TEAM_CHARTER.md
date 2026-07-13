@@ -248,7 +248,7 @@ Before creating a Pull Request, every team member should verify:
 - [ ] Meaningful names are used.
 - [ ] Functions have one responsibility.
 - [ ] Formatting follows the team standard.
-- [ ] Code is easy to read and understand .
+- [ ] Code is easy to read and understand.
 
 ---
 
@@ -256,7 +256,7 @@ Before creating a Pull Request, every team member should verify:
 
 Inspired by the *Boy Scout Rule*, every team member should leave the code a little better than they found it by making small improvements whenever they modify existing code.
 
-<br><br>
+<br><br><br>
 
 ---
 
