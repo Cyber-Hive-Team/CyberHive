@@ -374,17 +374,31 @@ The repository follows a simple and organized structure to keep project files cl
 ```text
 CyberHive/
 │
-├── assets/              # Images and visual resources
-├── gradle/              # Gradle wrapper files
-├── src/main/kotlin/     # Kotlin source code
-├── .gitignore
-├── build.gradle.kts
-├── gradle.properties
-├── gradlew
-├── gradlew.bat
-├── settings.gradle.kts
-├── README.md
-└── TEAM_CHARTER.md
+├── assets/                  # Images, logos, and icons used in the project
+├── gradle/                  # Files needed to run and build the project automatically
+│
+├── src/main/kotlin/com/cyberhive/
+│   │
+│   ├── domain/              # The core logic of the application (Independent layer)
+│   │   ├── model/           # Data objects (e.g., User, Account)
+│   │   └── usecase/         # Actions the app can do (e.g., LoginUser, SaveData)
+│   │
+│   ├── data/                # Layer responsible for managing and fetching data
+│   │   ├── repository/      # Connects the data sources with the domain logic
+│   │   └── datasource/      # Gets data from the internet (API) or local database
+│   │
+│   └── presentation/        # Layer responsible for what the user sees on screen
+│       ├── ui/              # User interface components (Screens, buttons, layouts)
+│       └── viewmodel/       # Manages the screen state and holds data for the UI
+│
+├── .gitignore               # Tells Git which files to ignore (like local IDE settings)
+├── build.gradle.kts         # Script to configure project libraries and dependencies
+├── gradle.properties        # Configuration settings for the Gradle build tool
+├── gradlew                  # Script to run Gradle on Linux / macOS
+├── gradlew.bat              # Script to run Gradle on Windows
+├── settings.gradle.kts      # Defines the project name and its structure
+├── README.md                # Main documentation file for the project
+└── TEAM_CHARTER.md          # Our team agreement and documentation file
 ```
 
 ---
@@ -448,23 +462,3 @@ We are committed to:
 **One Team • One Repository • One Standard**
 
 </div>
-
-## 📁 Section 4: Target Directory Model & Git Exclusions (By: Amna)
-
-### 1. Target Directory Model
-To enforce high cohesion, low coupling, and strict compliance with **Clean Architecture** principles, the Kotlin project structure under `src/main/kotlin/com/cyberhive/` is designed as follows:
-
-```text
-src/main/kotlin/com/cyberhive/
-│
-├── domain/                  # Core Business Logic & Rules (Pure Kotlin, Independent)
-│   ├── model/               # Business Entities / Data Models
-│   └── usecase/             # Application Specific Actions (e.g., ProcessDataUseCase.kt)
-│
-├── data/                    # Data Layer (Frameworks, Drivers & Implementations)
-│   ├── repository/          # Implementation of domain repository interfaces
-│   └── datasource/          # Remote (API) and Local (Database) data sources
-│
-└── presentation/            # Delivery Layer (User Interface / Controllers / ViewModels)
-    ├── ui/                  # View components and layout managers
-    └── viewmodel/           # UI State holders and presenters
