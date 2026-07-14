@@ -448,3 +448,23 @@ We are committed to:
 **One Team • One Repository • One Standard**
 
 </div>
+
+## 📁 Section 4: Target Directory Model & Git Exclusions (By: Amna)
+
+### 1. Target Directory Model
+To enforce high cohesion, low coupling, and strict compliance with **Clean Architecture** principles, the Kotlin project structure under `src/main/kotlin/com/cyberhive/` is designed as follows:
+
+```text
+src/main/kotlin/com/cyberhive/
+│
+├── domain/                  # Core Business Logic & Rules (Pure Kotlin, Independent)
+│   ├── model/               # Business Entities / Data Models
+│   └── usecase/             # Application Specific Actions (e.g., ProcessDataUseCase.kt)
+│
+├── data/                    # Data Layer (Frameworks, Drivers & Implementations)
+│   ├── repository/          # Implementation of domain repository interfaces
+│   └── datasource/          # Remote (API) and Local (Database) data sources
+│
+└── presentation/            # Delivery Layer (User Interface / Controllers / ViewModels)
+    ├── ui/                  # View components and layout managers
+    └── viewmodel/           # UI State holders and presenters
