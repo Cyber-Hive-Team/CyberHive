@@ -14,7 +14,7 @@
 src="https://readme-typing-svg.demolab.com?font=Poppins&size=22&duration=3000&pause=1000&color=28B8A9&center=true&vCenter=true&width=700&lines=Welcome+to+CyberHive;Working+Together+as+One+Team;Building+Better+Software+Together;One+Team.+One+Goal."
 alt="Cyber Hive animated introduction"
 />
-
+    
 </div>
 
 
@@ -362,7 +362,7 @@ Inspired by the *Boy Scout Rule*, every team member should leave the code a litt
 
 
 
-<br><br><br>
+<br><br>
 
 ---
 
