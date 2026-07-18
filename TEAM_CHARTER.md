@@ -364,11 +364,64 @@ Inspired by the *Boy Scout Rule*, every team member should leave the code a litt
 # 🏗️ Architecture & `.gitignore`
 
 **Responsible Member:** Amna Abou Alhaj  
-**Branch:** `feature/charter-amnaaboualhaj`
 
-<!-- Amna writes and formats the Architecture and .gitignore section here. -->
+---
 
-<br><br><br>
+### 📁 Repository Structure
+
+The repository follows a simple and organized structure to keep project files clear and easy to manage.
+
+```text
+CyberHive/
+│
+├── assets/              # Images and visual resources
+├── gradle/              # Gradle wrapper files
+├── src/main/kotlin/     # Kotlin source code
+├── .gitignore
+├── build.gradle.kts
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── settings.gradle.kts
+├── README.md
+└── TEAM_CHARTER.md
+```
+
+---
+
+### 📂 Directory Guidelines
+
+- Store source code inside the `src/main/kotlin` directory.
+- Store images and visual resources inside the `assets` directory.
+- Keep documentation files in the project root.
+- Keep Gradle configuration files in their default locations.
+- Follow the agreed repository structure when adding new files.
+
+---
+
+### 🚫 `.gitignore` Rules
+
+The `.gitignore` file excludes generated and local development files from the repository.
+
+```text
+.idea/
+.gradle/
+build/
+out/
+*.iml
+```
+
+These files are automatically generated or contain local IDE settings and should not be committed.
+
+---
+
+### 📦 Repository Organization
+
+- Keep the repository clean and well organized.
+- Commit only project-related source code and documentation.
+- Remove unnecessary generated files before committing.
+- Keep build configuration files valid and up to date.
+- Follow the agreed repository structure throughout the project.
 
 ---
 
