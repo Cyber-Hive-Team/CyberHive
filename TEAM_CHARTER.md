@@ -14,7 +14,7 @@
 src="https://readme-typing-svg.demolab.com?font=Poppins&size=22&duration=3000&pause=1000&color=28B8A9&center=true&vCenter=true&width=700&lines=Welcome+to+CyberHive;Working+Together+as+One+Team;Building+Better+Software+Together;One+Team.+One+Goal."
 alt="Cyber Hive animated introduction"
 />
-
+    
 </div>
 
 
@@ -252,7 +252,7 @@ Before creating a Pull Request, every team member should verify:
 - [ ] Meaningful names are used.
 - [ ] Functions have one responsibility.
 - [ ] Formatting follows the team standard.
-- [ ] Code is easy to read and understand.
+- [ ] Code is easy to read and understand .
 
 ---
 
