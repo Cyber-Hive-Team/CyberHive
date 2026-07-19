@@ -6,7 +6,6 @@ fun parsePackages(): List<PackageRaw> {
 
     for (index in 1 until lines.size) {
         val packageItem = parsePackageLine(lines[index])
-
         if (packageItem != null) {
             packages.add(packageItem)
         } }
