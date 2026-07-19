@@ -2,6 +2,10 @@ package org.example
 
 fun main() {
     val routes = parseRoutes()
+    println("=================================================================================")
+    val routesCount = routes.size
+    println("Successfully parsed routes, the number of routes is: $routesCount")
+    println("=================================================================================")
     println("\nFinal routes:")
     for (route in routes) {
         println(
@@ -87,8 +91,6 @@ fun cleanId(idBeforeCleaning: String): String {
 
 fun cleanDistance(distanceBeforeCleaning: String): Double {
     val distanceAfterCleaning = distanceBeforeCleaning.replace("km", "", ignoreCase = true).trim()
-
-
     if (
         distanceAfterCleaning.isBlank() ||
         distanceAfterCleaning.equals("N/A", ignoreCase = true) ||
