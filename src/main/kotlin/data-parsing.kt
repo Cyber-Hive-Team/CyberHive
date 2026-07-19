@@ -6,29 +6,40 @@ fun parseWarehouses(filePath: String): List<WareHouse> {
 
     val warehouses = mutableListOf<WareHouse>()
 
-    val lines = File(filePath).readLines()
+    val csvLines = File(filePath).readLines()
 
-    for (index in 1 until lines.size) {
+    for (rowIndex  in 1 until csvLines.size) {
 
-        val line = lines[index]
+        val currentLine  = csvLines[rowIndex]
 
-        if (line.isBlank()) {
+        if (currentLine.isBlank()) {
             continue
         }
 
-        val columns = line.split(",")
+        val columnValues  = currentLine.split(",")
 
-        if (columns.size != 3) {
-            println("Warning: Row ${index + 1} skipped - invalid columns")
+        if (columnValues.size != 3) {
+            println("Warning: Row ${rowIndex + 1} skipped - invalid columns")
             continue
         }
 
-        val id = columns[0].trim()
-        val name = columns[1].trim()
-        val regionalZone = columns[2].trim()
+        val id = columnValues[0].trim()
+        val name = columnValues[1].trim()
+        val zoneText = columnValues[2].trim()
 
         if (id.isBlank()) {
-            println("Warning: Row ${index + 1} skipped - missing id")
+            println("Warning: Row ${rowIndex + 1} skipped - missing id")
+            continue
+        }
+        if (name.isBlank()) {
+            println("Warning: Row ${rowIndex + 1} skipped - missing name")
+            continue
+        }
+        val zone = RegionalZone.entries.find{
+            it.name.equals(zoneText, ignoreCase = true)
+        }
+        if (zone==null) {
+            println("Warning: Row ${rowIndex + 1} skipped - invalid zone")
             continue
         }
 
@@ -36,7 +47,7 @@ fun parseWarehouses(filePath: String): List<WareHouse> {
             WareHouse(
                 id = id,
                 name = name,
-                regionalZone = regionalZone
+                regionalZone =zone
             )
         )
     }
