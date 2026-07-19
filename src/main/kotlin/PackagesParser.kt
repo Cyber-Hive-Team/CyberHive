@@ -1,7 +1,7 @@
 package org.example
 
-fun parsePackages(): List<Package> {
-    val packages = mutableListOf<Package>()
+fun parsePackages(): List<PackageRaw> {
+    val packages = mutableListOf< PackageRaw>()
     val lines = readPackageLines()
 
     for (index in 1 until lines.size) {
@@ -16,18 +16,14 @@ fun parsePackages(): List<Package> {
 fun readPackageLines(): List<String> {
     val inputStream =
         object {}.javaClass.getResourceAsStream("/packages.csv")
-
     if (inputStream == null) {
         println("Warning: packages.csv was not found.")
         return emptyList()
     }
-
-    return inputStream
-        .bufferedReader()
-        .use { reader -> reader.readLines() }
+    return inputStream.bufferedReader().use { reader -> reader.readLines() }
 }
 
-fun parsePackageLine(line: String): Package? {
+fun parsePackageLine(line: String): PackageRaw? {
     val expectedColumnCount = 4
 
     if (line.isBlank()) {
@@ -51,7 +47,7 @@ fun parsePackageLine(line: String): Package? {
         return null
     }
 
-    return Package(
+    return PackageRaw(
         id = id.uppercase(),
         weight = weight,
         destinationHubId = destinationHubId.uppercase(),
@@ -65,10 +61,7 @@ fun splitAndCleanColumns(line: String): List<String> {
         .map { column -> column.trim() }
 }
 
-fun parseWeight(
-    value: String,
-    originalLine: String
-): Double {
+fun parseWeight(value: String, originalLine: String): Double {
     val invalidWeight = -1.0
     val weight = value.toDoubleOrNull()
 
