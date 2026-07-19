@@ -24,6 +24,7 @@ fun parseWarehouses(filePath: String): List<WareHouse> {
             continue
         }
 
+
         val id = columnValues[0].trim()
         val name = columnValues[1].trim()
         val zoneText = columnValues[2].trim()
