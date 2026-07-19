@@ -2,9 +2,9 @@ package org.example
 
 import java.io.File
 
-fun parseWarehouses(filePath: String): List<WareHouse> {
+fun parseWarehouses(filePath: String): List<WareHouseRaw> {
 
-    val warehouses = mutableListOf<WareHouse>()
+    val warehouses = mutableListOf<WareHouseRaw>()
 
     val csvLines = File(filePath).readLines()
 
@@ -46,7 +46,7 @@ fun parseWarehouses(filePath: String): List<WareHouse> {
         }
 
         warehouses.add(
-            WareHouse(
+            WareHouseRaw(
                 id = id,
                 name = name,
                 regionalZone =zone

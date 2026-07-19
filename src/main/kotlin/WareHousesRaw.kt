@@ -1,5 +1,5 @@
 package org.example
-data class WareHouse(
+data class WareHouseRaw(
     val id: String,
     val name: String,
     val regionalZone: RegionalZone
