@@ -86,9 +86,8 @@ fun cleanId(idBeforeCleaning: String): String {
 }
 
 fun cleanDistance(distanceBeforeCleaning: String): Double {
-    val distanceAfterCleaning = distanceBeforeCleaning
-        .trim()
-        .replace("km", "", ignoreCase = true).trim()
+    val distanceAfterCleaning = distanceBeforeCleaning.replace("km", "", ignoreCase = true).trim()
+
 
     if (
         distanceAfterCleaning.isBlank() ||
