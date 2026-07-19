@@ -1,5 +1,5 @@
 package org.example
-data class Package(
+data class PackageRaw(
     val id: String,
     val weight: Double,
     val destinationHubId: String,
