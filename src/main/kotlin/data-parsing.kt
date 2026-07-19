@@ -16,6 +16,7 @@ fun parseWarehouses(filePath: String): List<WareHouse> {
             continue
         }
 
+
         val columnValues  = currentLine.split(",")
 
         if (columnValues.size != 3) {
