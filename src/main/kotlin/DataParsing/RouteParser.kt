@@ -1,7 +1,5 @@
 package org.example.DataParsing
-
 import org.example.Data.RouteRaw
-
 fun main() {
     val routes = parseRoutes()
     println("=================================================================================")
@@ -19,11 +17,9 @@ fun main() {
         )
     }
 }
-
 fun parseRoutes(): List<RouteRaw> {
     val routes = mutableListOf<RouteRaw>()
     val lines = readRouteLines()
-
     for (index in 1 until lines.size) {
         val currentRouteLine = lines[index]
         val csvLineNumber = index + 1
@@ -40,12 +36,9 @@ fun parseRoutes(): List<RouteRaw> {
             )
             continue
         }
-
-
         val id = cleanId(routeColumns[0])
         val originHubId = cleanId(routeColumns[1])
         val destinationHubId = cleanId(routeColumns[2])
-
         if (id.isBlank()) {
             println(
                 "Warning: route row $csvLineNumber was skipped " +
@@ -61,7 +54,6 @@ fun parseRoutes(): List<RouteRaw> {
             )
             continue
         }
-
         if (destinationHubId.isBlank()) {
             println(
                 "Warning: route row $csvLineNumber was skipped " +
@@ -69,7 +61,6 @@ fun parseRoutes(): List<RouteRaw> {
             )
             continue
         }
-
         val distanceKm = cleanDistance(routeColumns[3])
         val typicalDelayMin = cleanDelay(routeColumns[4])
 
@@ -80,13 +71,11 @@ fun parseRoutes(): List<RouteRaw> {
             distanceKm = distanceKm,
             typicalDelayMin = typicalDelayMin
         )
-
         routes.add(route)
     }
 
     return routes
 }
-
 fun cleanId(idBeforeCleaning: String): String {
     return idBeforeCleaning.trim().uppercase()
 }
@@ -100,10 +89,8 @@ fun cleanDistance(distanceBeforeCleaning: String): Double {
     ) {
         return -1.0
     }
-
     return  distanceAfterCleaning.toDoubleOrNull() ?: -1.0
 }
-
 fun cleanDelay(delayBeforeCleaning: String): Int {
     val delayAfterCleaning = delayBeforeCleaning.trim()
 
@@ -120,7 +107,6 @@ fun cleanDelay(delayBeforeCleaning: String): Int {
 fun readRouteLines(): List<String> {
     val inputStream =
         object {}.javaClass.getResourceAsStream("/routes.csv")
-
     if (inputStream == null) {
         println("Warning: routes.csv was not found.")
         return emptyList()
