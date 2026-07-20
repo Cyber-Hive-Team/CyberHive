@@ -1,7 +1,8 @@
-package org.example
-
+package org.example.DataParsing
+import org.example.Data.PackageRaw
+import org.example.Data.Priority
 fun parsePackages(): List<PackageRaw> {
-    val packages = mutableListOf< PackageRaw>()
+    val packages = mutableListOf<PackageRaw>()
     val lines = readPackageLines()
     for (index in 1 until lines.size) {
         val packageItem = parsePackageLine(lines[index])
@@ -10,7 +11,6 @@ fun parsePackages(): List<PackageRaw> {
         } }
     return packages
 }
-
 fun readPackageLines(): List<String> {
     val inputStream =
         object {}.javaClass.getResourceAsStream("/packages.csv")
@@ -19,7 +19,6 @@ fun readPackageLines(): List<String> {
         return emptyList() }
     return inputStream.bufferedReader().use { reader -> reader.readLines() }
 }
-
 fun parsePackageLine(line: String): PackageRaw? {
     if (line.isBlank()) {
         return null }
