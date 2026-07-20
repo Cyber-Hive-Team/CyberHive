@@ -1,16 +1,24 @@
 package org.example
+import org.example.selectionSortPackages
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+const val TOP_PACKAGES_COUNT = 3
 fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, " + name + "!")
+    val parsedPackages = parsePackages()
+    val sortedPackages = selectionSortPackages(parsedPackages)
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
-    }
+    println("Successfully parsed records: ${parsedPackages.size}")
+    printTopPriorityPackages(sortedPackages)
+}
+fun printTopPriorityPackages(sortedPackages: List<PackageRaw>) {
+    var packageIndex = 0
+    while (packageIndex < TOP_PACKAGES_COUNT && packageIndex < sortedPackages.size) {
+        printPackageDetails(sortedPackages[packageIndex])
+        packageIndex++
+    } }
+fun printPackageDetails(packageItem: PackageRaw) {
+    println("ID: ${packageItem.id}")
+    println("Weight: ${packageItem.weight}")
+    println("Destination Hub ID: ${packageItem.destinationHubId}")
+    println("Priority: ${packageItem.priority}")
+    println()
 }
