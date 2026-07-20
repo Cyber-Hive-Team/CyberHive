@@ -1,5 +1,6 @@
-package org.example
+package org.example.DataParsing
 
+import org.example.Data.FleetRaw
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -7,20 +8,20 @@ class FleetParser {
 // إنشاء قائمة فارغة لتخزين البيانات
     fun parseFleet(): List<FleetRaw> {
         val fleetList = mutableListOf<FleetRaw>()
-        
+
 // قراءة ملف fleet.csv من مجلد resources
         val inputStream = javaClass.classLoader.getResourceAsStream("fleet.csv")
             ?: throw IllegalArgumentException("File fleet.csv not found in resources!")
-            
+
         BufferedReader(InputStreamReader(inputStream)).use { reader ->
 // قراءة السطر الأول (Header) وتخطيه حتى لا يسبب خطأ في البيانات
-            val header = reader.readLine() 
-            
+            val header = reader.readLine()
+
             var line: String? = reader.readLine()
             while (line != null) {
 //الدوران سطر بسطر وتقسيم البيانات (الـ Loop)
                 val tokens = line.split(",")
-                
+
                 if (tokens.size >= 4) {
 //تحويل السطر إلى كائن (Object) وحفظه
                     val fleetRaw = FleetRaw(

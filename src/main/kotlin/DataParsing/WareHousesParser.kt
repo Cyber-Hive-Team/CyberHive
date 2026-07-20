@@ -1,5 +1,7 @@
-package org.example
+package org.example.DataParsing
 
+import org.example.Data.WareHouseRaw
+import org.example.Data.RegionalZone
 import java.io.File
 private const val FIRST_DATA_ROW_INDEX = 1
 private const val REQUIRED_COLUMNS_COUNT = 3

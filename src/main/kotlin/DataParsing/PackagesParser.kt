@@ -1,7 +1,10 @@
-package org.example
+package org.example.DataParsing
+
+import org.example.Data.PackageRaw
+import org.example.Data.Priority
 
 fun parsePackages(): List<PackageRaw> {
-    val packages = mutableListOf< PackageRaw>()
+    val packages = mutableListOf<PackageRaw>()
     val lines = readPackageLines()
     for (index in 1 until lines.size) {
         val packageItem = parsePackageLine(lines[index])

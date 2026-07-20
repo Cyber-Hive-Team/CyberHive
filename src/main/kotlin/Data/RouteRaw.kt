@@ -1,4 +1,4 @@
-package org.example
+package org.example.Data
 
 data class RouteRaw(
     val id: String,

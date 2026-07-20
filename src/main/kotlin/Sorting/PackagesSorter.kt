@@ -1,4 +1,7 @@
-package org.example
+package org.example.Sorting
+
+import org.example.Data.PackageRaw
+import org.example.Data.Priority
 
 fun getPriorityRank(priority: Priority): Int {
     return when (priority) {

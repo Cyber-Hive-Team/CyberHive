@@ -1,4 +1,6 @@
-package org.example
+package org.example.DataParsing
+
+import org.example.Data.RouteRaw
 
 fun main() {
     val routes = parseRoutes()

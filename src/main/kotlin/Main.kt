@@ -1,6 +1,7 @@
 package org.example
-import org.example.selectionSortPackages
-
+import org.example.Data.PackageRaw
+import org.example.DataParsing.parsePackages
+import org.example.Sorting.selectionSortPackages
 const val TOP_PACKAGES_COUNT = 3
 fun main() {
     val parsedPackages = parsePackages()
