@@ -374,31 +374,28 @@ The repository follows a simple and organized structure to keep project files cl
 ```text
 CyberHive/
 │
-├── assets/                  # Images, logos, and icons used in the project
-├── gradle/                  # Files needed to run and build the project automatically
+├── assets/                          
+├── build/                           
+├── gradle/                          
 │
-├── src/main/kotlin/com/cyberhive/
-│   │
-│   ├── domain/              # The core logic of the application (Independent layer)
-│   │   ├── model/           # Data objects (e.g., User, Account)
-│   │   └── usecase/         # Actions the app can do (e.g., LoginUser, SaveData)
-│   │
-│   ├── data/                # Layer responsible for managing and fetching data
-│   │   ├── repository/      # Connects the data sources with the domain logic
-│   │   └── datasource/      # Gets data from the internet (API) or local database
-│   │
-│   └── presentation/        # Layer responsible for what the user sees on screen
-│       ├── ui/              # User interface components (Screens, buttons, layouts)
-│       └── viewmodel/       # Manages the screen state and holds data for the UI
+├── src/
+│   └── main/
+│       ├── kotlin/
+│       │   ├── Data/                
+│       │   ├── DataParsing/         
+│       │   ├── Sorting/             
+│       │   └── Main.kt             
+│       │
+│       └── resources/              
 │
-├── .gitignore               # Tells Git which files to ignore (like local IDE settings)
-├── build.gradle.kts         # Script to configure project libraries and dependencies
-├── gradle.properties        # Configuration settings for the Gradle build tool
-├── gradlew                  # Script to run Gradle on Linux / macOS
-├── gradlew.bat              # Script to run Gradle on Windows
-├── settings.gradle.kts      # Defines the project name and its structure
-├── README.md                # Main documentation file for the project
-└── TEAM_CHARTER.md          # Our team agreement and documentation file
+├── .gitignore                       
+├── build.gradle.kts                 
+├── gradle.properties               
+├── gradlew                          
+├── gradlew.bat                      
+├── settings.gradle.kts              
+├── README.md                        
+└── TEAM_CHARTER.md                  
 ```
 
 ---
