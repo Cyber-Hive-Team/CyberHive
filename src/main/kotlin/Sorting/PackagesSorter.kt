@@ -19,9 +19,11 @@ fun comparePackageWeight(firstPackage: PackageRaw, secondPackage: PackageRaw): B
 fun sortPackagesByPriorityAndWeight(packages: List<PackageRaw>): List<PackageRaw> {
     val unsortedPackages = packages.toMutableList()
     val sortedPackages = mutableListOf<PackageRaw>()
+    val firstPackageIndex = 0
+    val nextPackageIndex = firstPackageIndex + 1
     while (unsortedPackages.isNotEmpty()) {
-        var bestPackageIndex = 0
-        for (currentPackageIndex in 1 until unsortedPackages.size) {
+        var bestPackageIndex = firstPackageIndex
+        for (currentPackageIndex in nextPackageIndex until unsortedPackages.size) {
             val currentPackage = unsortedPackages[currentPackageIndex]
             val selectedPackage = unsortedPackages[bestPackageIndex]
             if (comparePackagePriority(currentPackage, selectedPackage)) {
