@@ -42,10 +42,11 @@ fun parseRoutes(): List<RouteRaw> {
     return routes
 }
 fun cleanId(id: String, fieldName: String, csvLineNumber: Int): String {
+    val cleanedId = id.trim().uppercase()
     if (id.isBlank()) {
         println("Warning: route row $csvLineNumber was skipped because $fieldName is missing.")
     }
-    return id
+    return cleanedId
 }
 fun cleanDistance(distanceBeforeCleaning: String): Double {
     val distanceAfterCleaning = distanceBeforeCleaning.replace("km", "", ignoreCase = true).trim()
