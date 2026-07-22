@@ -1,6 +1,7 @@
 package org.example.DataParsing
 import org.example.Data.PackageRaw
 import org.example.Data.Priority
+import java.io.File
 fun parsePackages(): List<PackageRaw> {
     val packages = mutableListOf<PackageRaw>()
     val lines = readPackageLines()
@@ -12,13 +13,13 @@ fun parsePackages(): List<PackageRaw> {
     return packages
 }
 fun readPackageLines(): List<String> {
-    val inputStream =
-        object {}.javaClass.getResourceAsStream("/packages.csv")
-    if (inputStream == null) {
-        println("Warning: packages.csv was not found.")
-        return emptyList() }
-    return inputStream.bufferedReader().use { reader -> reader.readLines() }
-}
+        val packagesFile = File("src/main/resources/packages.csv")
+        if (!packagesFile.exists()) {
+            println("Warning: the file was not found.")
+            return emptyList()
+        }
+        return packagesFile.readLines()
+    }
 fun parsePackageLine(line: String): PackageRaw? {
     if (line.isBlank()) {
         return null }
@@ -31,7 +32,6 @@ fun parsePackageLine(line: String): PackageRaw? {
     if (hasMissingRequiredFields(columns)) {
         println("Warning: package row has missing required fields: $line")
         return null }
-
     return createPackageFromColumns(columns)
 }
 

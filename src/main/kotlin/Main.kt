@@ -13,6 +13,7 @@ fun main() {
 fun printTopPriorityPackages(sortedPackages: List<PackageRaw>) {
     var packageIndex = 0
     while (packageIndex < TOP_PACKAGES_COUNT && packageIndex < sortedPackages.size) {
+        println("The Top 3 Priority packages")
         printPackageDetails(sortedPackages[packageIndex])
         packageIndex++
     } }
