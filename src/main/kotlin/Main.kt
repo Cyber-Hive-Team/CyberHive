@@ -1,11 +1,11 @@
 package org.example
 import org.example.Data.PackageRaw
 import org.example.DataParsing.parsePackages
-import org.example.Sorting.selectionSortPackages
+import org.example.Sorting.sortPackagesByPriorityAndWeight
 const val TOP_PACKAGES_COUNT = 3
 fun main() {
     val parsedPackages = parsePackages()
-    val sortedPackages = selectionSortPackages(parsedPackages)
+    val sortedPackages = sortPackagesByPriorityAndWeight(parsedPackages)
 
     println("Successfully parsed records: ${parsedPackages.size}")
     printTopPriorityPackages(sortedPackages)
