@@ -1,36 +1,67 @@
 package org.example.DataParsing
 import org.example.Data.FleetRaw
-import java.io.BufferedReader
-import java.io.InputStreamReader
-class FleetParser {
-// إنشاء قائمة فارغة لتخزين البيانات
-    fun parseFleet(): List<FleetRaw> {
-        val fleetList = mutableListOf<FleetRaw>()
-// قراءة ملف fleet.csv من مجلد resources
-        val inputStream = javaClass.classLoader.getResourceAsStream("fleet.csv")
-            ?: throw IllegalArgumentException("File fleet.csv not found in resources!")
-        BufferedReader(InputStreamReader(inputStream)).use { reader ->
-// قراءة السطر الأول (Header) وتخطيه حتى لا يسبب خطأ في البيانات
-            val header = reader.readLine()
-            var line: String? = reader.readLine()
-            while (line != null) {
-//الدوران سطر بسطر وتقسيم البيانات (الـ Loop)
-                val tokens = line.split(",")
-                if (tokens.size >= 4) {
-//تحويل السطر إلى كائن (Object) وحفظه
-                    val fleetRaw = FleetRaw(
-                        vehicleId = tokens[0].trim(),
-                        currentHubId = tokens[1].trim(),
-// معالجة القيم الفارغة إذا كانت مسموحة
-                        maxCapacityKg = tokens[2].trim().ifEmpty { null },
-                        costPerKm = tokens[3].trim().ifEmpty { null }
-                    )
-                    fleetList.add(fleetRaw)
-                }
-                line = reader.readLine()
-            }
-        }
-// إرجاع النتيجة النهائية
-        return fleetList
+import kotlin.io.path.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readLines
+fun readFleetLines(): List<String> {
+    val fleetFilePath = Path("src/main/resources/fleet.csv")
+    if (!fleetFilePath.exists()) {
+        println("Warning: fleet.csv was not found.")
+        return emptyList()
     }
+    return fleetFilePath.readLines()
+}
+fun parseFleet(): List<FleetRaw> {
+    val fleet = mutableListOf<FleetRaw>()
+    val fleetLines = readFleetLines()
+    val firstDataLineIndex = 1
+    val totalExpectedColumns = 4
+    // Start from index 1 to skip the CSV header row
+    for (lineIndex in firstDataLineIndex until fleetLines.size) {
+        val currentFleetLine = fleetLines[lineIndex]
+        val csvLineNumber = lineIndex + 1     // Add 1 to get the exact line position in the CSV file
+        if (currentFleetLine.isBlank()) {
+            continue
+        }
+        val fleetColumns = currentFleetLine.split(",")
+        if (fleetColumns.size != totalExpectedColumns) {
+            println(
+                "Warning: fleet row $csvLineNumber was skipped because the number of columns is invalid.")
+            continue
+        }
+        val vehicleId = cleanFleetId(fleetColumns[0], "vehicle ID", csvLineNumber)
+        val currentHubId = cleanFleetId(fleetColumns[1], "current hub ID", csvLineNumber)
+        if (vehicleId.isBlank() || currentHubId.isBlank()) {
+            continue
+        }
+        val maxCapacityKg = cleanFleetCapacity(fleetColumns[2])
+        val costPerKm = cleanFleetCost(fleetColumns[3])
+        fleet.add(FleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm))
+    }
+    return fleet
+}
+
+fun cleanFleetId(id: String, fieldName: String, csvLineNumber: Int): String {
+    val cleanedId = id.trim().uppercase()
+    if (cleanedId.isBlank()) {
+        println("Warning: fleet row $csvLineNumber was skipped because $fieldName is missing.")
+    }
+    return cleanedId
+}
+fun cleanFleetCapacity(capacityBeforeCleaning: String): Double {
+    val capacityAfterCleaning = capacityBeforeCleaning.trim()
+    if (
+        capacityAfterCleaning.isBlank() || capacityAfterCleaning.equals("N/A", ignoreCase = true) ||
+        capacityAfterCleaning.equals("null", ignoreCase = true)) {
+        return -1.0
+    }
+    return capacityAfterCleaning.toDoubleOrNull() ?: -1.0
+}
+fun cleanFleetCost(costBeforeCleaning: String): Double {
+    val costAfterCleaning = costBeforeCleaning.trim()
+    if (costAfterCleaning.isBlank() || costAfterCleaning.equals("N/A", ignoreCase = true) ||
+        costAfterCleaning.equals("null", ignoreCase = true)) {
+        return -1.0
+    }
+    return costAfterCleaning.toDoubleOrNull() ?: -1.0
 }
