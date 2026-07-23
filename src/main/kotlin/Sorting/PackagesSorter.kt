@@ -1,6 +1,9 @@
 package org.example.Sorting
 import org.example.Data.PackageRaw
 import org.example.Data.Priority
+
+
+
 fun getPriorityRank(priority: Priority): Int {
     return when (priority) {
         Priority.URGENT -> 3
@@ -8,15 +11,33 @@ fun getPriorityRank(priority: Priority): Int {
         Priority.LOW -> 1
     }
 }
-fun comparePackagePriority(firstPackage: PackageRaw, secondPackage: PackageRaw): Boolean {
+fun hasHigherPriority(firstPackage: PackageRaw, secondPackage: PackageRaw): Boolean {
     val firstPriorityRank = getPriorityRank(firstPackage.priority)
     val secondPriorityRank = getPriorityRank(secondPackage.priority)
     return firstPriorityRank > secondPriorityRank
 }
-fun comparePackageWeight(firstPackage: PackageRaw, secondPackage: PackageRaw): Boolean {
+fun hasHigherWeight(firstPackage: PackageRaw, secondPackage: PackageRaw): Boolean {
     return firstPackage.weight > secondPackage.weight
 }
-fun sortPackagesByPriorityAndWeight(packages: List<PackageRaw>): List<PackageRaw> {
+fun selectByPriority(packages: List<PackageRaw>, currentPackageIndex: Int, bestPackageIndex: Int): Int {
+    val currentPackage = packages[currentPackageIndex]
+    val selectedPackage = packages[bestPackageIndex]
+    if (hasHigherPriority(currentPackage, selectedPackage)) {
+        return currentPackageIndex
+    }
+    return bestPackageIndex
+}
+fun selectByWeight(packages: List<PackageRaw>, currentPackageIndex: Int, bestPackageIndex: Int): Int {
+    val currentPackage = packages[currentPackageIndex]
+    val selectedPackage = packages[bestPackageIndex]
+    if (currentPackage.priority == selectedPackage.priority && hasHigherWeight(currentPackage, selectedPackage)) {
+        return currentPackageIndex
+    }
+    return bestPackageIndex
+}
+
+fun selectionSort(packages: List<PackageRaw>): List<PackageRaw> {
+
     val unsortedPackages = packages.toMutableList()
     val sortedPackages = mutableListOf<PackageRaw>()
     val firstPackageIndex = 0
@@ -24,13 +45,8 @@ fun sortPackagesByPriorityAndWeight(packages: List<PackageRaw>): List<PackageRaw
     while (unsortedPackages.isNotEmpty()) {
         var bestPackageIndex = firstPackageIndex
         for (currentPackageIndex in nextPackageIndex until unsortedPackages.size) {
-            val currentPackage = unsortedPackages[currentPackageIndex]
-            val selectedPackage = unsortedPackages[bestPackageIndex]
-            if (comparePackagePriority(currentPackage, selectedPackage)) {
-                bestPackageIndex = currentPackageIndex
-            } else if (currentPackage.priority == selectedPackage.priority && comparePackageWeight(currentPackage, selectedPackage)) {
-                bestPackageIndex = currentPackageIndex
-            }
+            bestPackageIndex = selectByPriority(unsortedPackages, currentPackageIndex, bestPackageIndex)
+            bestPackageIndex = selectByWeight(unsortedPackages, currentPackageIndex, bestPackageIndex)
         }
         sortedPackages.add(unsortedPackages[bestPackageIndex])
         unsortedPackages.removeAt(bestPackageIndex)
