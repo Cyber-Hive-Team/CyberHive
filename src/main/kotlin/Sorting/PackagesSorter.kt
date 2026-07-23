@@ -37,7 +37,6 @@ fun selectByWeight(packages: List<PackageRaw>, currentPackageIndex: Int, bestPac
 }
 
 fun selectionSort(packages: List<PackageRaw>): List<PackageRaw> {
-
     val unsortedPackages = packages.toMutableList()
     val sortedPackages = mutableListOf<PackageRaw>()
     val firstPackageIndex = 0
