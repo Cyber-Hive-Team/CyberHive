@@ -3,6 +3,8 @@ import org.example.data.dataHolder.RouteRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
+
+
 fun readRouteLines(): List<String> {
     val routeFilePath = Path("src/main/resources/routes.csv")
     if (!routeFilePath.exists()) {

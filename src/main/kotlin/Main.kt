@@ -2,6 +2,9 @@ package org.example
 import org.example.data.dataHolder.PackageRaw
 import org.example.DataParsing.parsePackages
 import org.example.Sorting.sortPackagesByPriorityAndWeight
+
+
+
 const val TOP_PACKAGES_COUNT = 3
 fun main() {
     val parsedPackages = parsePackages()

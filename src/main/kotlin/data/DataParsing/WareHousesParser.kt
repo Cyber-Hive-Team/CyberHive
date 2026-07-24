@@ -2,12 +2,16 @@ package org.example.DataParsing
 import org.example.data.dataHolder.WareHouseRaw
 import org.example.data.dataHolder.RegionalZone
 import java.io.File
+
+
 private const val FIRST_DATA_ROW_INDEX = 1
 private const val REQUIRED_COLUMNS_COUNT = 3
 private const val USER_ROW_NUMBER_OFFSET = 1
 private const val ID_COLUMN_INDEX = 0
 private const val NAME_COLUMN_INDEX = 1
 private const val ZONE_COLUMN_INDEX = 2
+
+
 // Reads the file and starts processing the rows.
 fun parseWarehouse(filePath: String): List<WareHouseRaw> {
     val rows = readFile(filePath)

@@ -2,6 +2,8 @@ package org.example.DataParsing
 import org.example.data.dataHolder.PackageRaw
 import org.example.data.dataHolder.Priority
 import java.io.File
+
+
 fun parsePackages(): List<PackageRaw> {
     val packages = mutableListOf<PackageRaw>()
     val lines = readPackageLines()
