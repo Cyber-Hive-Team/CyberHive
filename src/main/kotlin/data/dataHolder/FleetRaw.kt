@@ -1,4 +1,5 @@
-package org.example.Data
+package org.example.data.dataHolder
+
 data class FleetRaw(
     val vehicleId: String,
     val currentHubId: String,

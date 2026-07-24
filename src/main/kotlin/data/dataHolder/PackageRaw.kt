@@ -1,6 +1,6 @@
-package org.example.Data
+package org.example.data.dataHolder
 
-import org.example.Data.Priority
+import org.example.data.dataHolder.Priority
 
 data class PackageRaw(
     val id: String,

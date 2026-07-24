@@ -374,19 +374,25 @@ The repository follows a simple and organized structure to keep project files cl
 ```text
 CyberHive/
 │
-├── assets/                          
-├── build/                           
-├── gradle/                          
+├── assets/
+├── build/
+├── gradle/
 │
 ├── src/
 │   └── main/
 │       ├── kotlin/
-│       │   ├── Data/                
-│       │   ├── DataParsing/         
-│       │   ├── Sorting/             
-│       │   └── Main.kt             
+│       │   ├── data/
+│       │   │   ├── dataHolder/
+│       │   │   └── dataParsing/
+│       │   │
+│       │   ├── sorting/
+│       │   └── Main.kt
 │       │
-│       └── resources/              
+│       └── resources/
+│           ├── fleet.csv
+│           ├── packages.csv
+│           ├── routes.csv
+│           └── warehouses.csv             
 │
 ├── .gitignore                       
 ├── build.gradle.kts                 
