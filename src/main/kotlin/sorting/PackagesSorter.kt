@@ -1,6 +1,6 @@
 package org.example.Sorting
-import org.example.Data.PackageRaw
-import org.example.Data.Priority
+import org.example.data.dataHolder.PackageRaw
+import org.example.data.dataHolder.Priority
 
 
 

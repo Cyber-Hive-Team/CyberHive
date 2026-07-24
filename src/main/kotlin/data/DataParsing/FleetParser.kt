@@ -1,8 +1,10 @@
 package org.example.DataParsing
-import org.example.Data.FleetRaw
+import org.example.data.dataHolder.FleetRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
+
+
 fun readFleetLines(): List<String> {
     val fleetFilePath = Path("src/main/resources/fleet.csv")
     if (!fleetFilePath.exists()) {

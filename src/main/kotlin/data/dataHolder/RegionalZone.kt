@@ -1,4 +1,5 @@
-package org.example.Data
+package org.example.data.dataHolder
+
 enum class RegionalZone {
     NORTH,
     CENTRAL,

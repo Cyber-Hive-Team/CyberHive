@@ -1,5 +1,5 @@
-package org.example.Data
-import org.example.Data.RegionalZone
+package org.example.data.dataHolder
+
 data class WareHouseRaw(
     val id: String,
     val name: String,
