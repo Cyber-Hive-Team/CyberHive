@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.4.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.5"
 }
 
 group = "org.example"
