@@ -1,6 +1,6 @@
 package org.example.data.dataparsing.PackagesParser
-import org.example.data.dataHolder.PackageRaw
-import org.example.data.dataHolder.Priority
+import org.example.data.dataholder.PackageRaw
+import org.example.data.dataholder.Priority
 import java.io.File
 
 fun parsePackages(): List<PackageRaw> {
@@ -25,20 +25,21 @@ fun readPackageLines(): List<String> {
 }
 
 fun parsePackageLine(line: String): PackageRaw? {
-    if (line.isBlank()) {
-        return null }
-    val columns = splitAndCleanColumns(line)
+    var packageItem: PackageRaw? = null
 
-    if (!hasValidColumnCount(columns)) {
-        println("Warning: invalid package row skipped: $line")
-        return null
-    }
-    if (hasMissingRequiredFields(columns)) {
-        println("Warning: package row has missing required fields: $line")
-        return null
-    }
+    if (!line.isBlank()) {
+        val columns = splitAndCleanColumns(line)
 
-    return createPackageFromColumns(columns)
+        if (!hasValidColumnCount(columns)) {
+            println("Warning: invalid package row skipped: $line")
+        } else if (hasMissingRequiredFields(columns)) {
+            println("Warning: package row has missing required fields: $line")
+        } else {
+            packageItem = createPackageFromColumns(columns)
+        } }
+
+    return packageItem
+
 }
 
 fun hasValidColumnCount(columns: List<String>): Boolean {
