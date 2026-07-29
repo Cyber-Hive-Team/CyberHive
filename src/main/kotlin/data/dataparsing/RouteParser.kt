@@ -20,30 +20,28 @@ fun parseRoutes(): List<RouteRaw> {
     val routes = mutableListOf<RouteRaw>()
     val linesRoutes = readRouteLines()
     val firstLine = 1
+    val totalExpectedColumns = 5
     for (line in firstLine until linesRoutes.size) {
         val currentRouteLine = linesRoutes[line]
-        val csvLineNumber = line + 1       // Add 1 to get the exact line position in the CSV file
-        if (currentRouteLine.isBlank()) {
-            continue
+        val csvLineNumber = line + 1
+        if (currentRouteLine.isNotBlank()) {
+            val routeColumns = currentRouteLine.split(",")
+            if (routeColumns.size == totalExpectedColumns) {
+                val id = cleanId(routeColumns[0], "route ID", csvLineNumber)
+                val originHubId = cleanId(routeColumns[1], "origin hub ID", csvLineNumber)
+                val destinationHubId = cleanId(routeColumns[2], "destination hub ID", csvLineNumber)
+                if (id.isNotBlank() && originHubId.isNotBlank() && destinationHubId.isNotBlank()) {
+                    val distanceKm = cleanDistance(routeColumns[3])
+                    val typicalDelayMin = cleanDelay(routeColumns[4])
+                    routes.add(RouteRaw(id, originHubId, destinationHubId, distanceKm, typicalDelayMin))
+                }
+            } else {
+                println("Warning: route row $csvLineNumber was skipped because the number of columns is invalid.")
+            }
         }
-        val routeColumns = currentRouteLine.split(",")
-        val totalExpectedColumns = 5
-        if (routeColumns.size != totalExpectedColumns) {
-            println("Warning: route row $csvLineNumber was skipped because the number of columns is invalid.")
-            continue
-        }
-        val id = cleanId(routeColumns[0], "route ID", csvLineNumber)
-        val originHubId = cleanId(routeColumns[1], "origin hub ID", csvLineNumber)
-        val destinationHubId = cleanId(routeColumns[2], "destination hub ID", csvLineNumber)
-        if (id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()) {
-            continue
-        }
-        val distanceKm = cleanDistance(routeColumns[3])
-        val typicalDelayMin = cleanDelay(routeColumns[4])
-        routes.add(RouteRaw(id, originHubId, destinationHubId, distanceKm, typicalDelayMin))
     }
-    return routes
 
+    return routes
 }
 fun cleanId(id: String, fieldName: String, csvLineNumber: Int): String {
     val cleanedId = id.trim().uppercase()
@@ -82,4 +80,11 @@ fun cleanDelay(delayBeforeCleaning: String): Int {
     }
     return validatedDelay
 
+}
+fun main() {
+    val routes = parseRoutes()
+
+    for (route in routes) {
+        println(route)
+    }
 }
