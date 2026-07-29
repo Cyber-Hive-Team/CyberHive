@@ -1,5 +1,5 @@
 package org.example
-import org.example.data.dataparsing.PackagesParser.parsePackages
+import org.example.data.dataparsing.parsePackages
 import org.example.sorting.selectionSort
 import org.example.data.dataholder.PackageRaw
 
