@@ -1,4 +1,4 @@
-package org.example.data.dataHolder
+package org.example.data.dataholder
 
 data class RouteRaw(
     val id: String,
