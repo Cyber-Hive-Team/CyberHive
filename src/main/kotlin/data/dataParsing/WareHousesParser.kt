@@ -1,15 +1,17 @@
-package org.example.DataParsing
-import org.example.data.dataHolder.WareHouseRaw
-import org.example.data.dataHolder.RegionalZone
+package data.dataParsing
+import data.dataHolder.WareHouseRaw
+import data.dataHolder.RegionalZone
 import java.io.File
 
 
 private const val FIRST_DATA_ROW_INDEX = 1
-private const val REQUIRED_COLUMNS_COUNT = 3
+private const val REQUIRED_COLUMNS_COUNT = 5
 private const val USER_ROW_NUMBER_OFFSET = 1
 private const val ID_COLUMN_INDEX = 0
 private const val NAME_COLUMN_INDEX = 1
 private const val ZONE_COLUMN_INDEX = 2
+private const val LATITUDE_COLUMN_INDEX = 3
+private const val LONGITUDE_COLUMN_INDEX = 4
 
 
 // Reads the file and starts processing the rows.
@@ -44,14 +46,8 @@ fun getWarehouseFromRow(row: String, rowIndex: Int): WareHouseRaw? {
     if (!hasRequiredColumns(columns, rowIndex)) {
         return null
     }
-    val zone = convertZone(
-        columns[ZONE_COLUMN_INDEX].trim(),
-        rowIndex
-    ) ?: return null
-    val warehouse = extractData(
-        columns,
-        zone
-    )
+    val zone = convertZone(columns[ZONE_COLUMN_INDEX].trim(), rowIndex) ?: return null
+    val warehouse = extractData(columns, zone)
     if (!isValidData(warehouse, rowIndex)) {
         return null
     }
@@ -68,11 +64,14 @@ fun hasRequiredColumns(columns: List<String>, rowIndex: Int): Boolean {
     return true
 }
 // Creates warehouse data from columns.
+// Creates warehouse data from columns.
 fun extractData(columns: List<String>, zone: RegionalZone): WareHouseRaw {
     return WareHouseRaw(
         id = columns[ID_COLUMN_INDEX].trim(),
         name = columns[NAME_COLUMN_INDEX].trim(),
-        regionalZone = zone
+        regionalZone = zone,
+        latitude = convertCoordinate(columns[LATITUDE_COLUMN_INDEX]),
+        longitude = convertCoordinate(columns[LONGITUDE_COLUMN_INDEX])
     )
 }
 // Validates required warehouse fields.
@@ -112,4 +111,26 @@ fun convertZone(
 // Converts internal index into user row number.
 fun getUserRowNumber(rowIndex: Int): Int {
     return rowIndex + USER_ROW_NUMBER_OFFSET
+}
+// Converts latitude/longitude values.
+// Missing values become -1.0.
+fun convertCoordinate(value: String): Double {
+    val cleanedValue = value.trim()
+
+    return if (
+        cleanedValue.isBlank() || cleanedValue.equals("null", ignoreCase = true) || cleanedValue.equals("N/A", ignoreCase = true)) { -1.0
+    } else {
+        cleanedValue.toDouble()
+    }
+}
+
+fun main() {
+    val filePath = "src/main/resources/warehouses.csv"
+
+    val rows = readFile(filePath)
+    val warehouses = processRows(rows)
+
+    println("Total rows: ${rows.size - 1}") // بدون الهيدر
+    println("Valid warehouses: ${warehouses.size}")
+    println("Skipped rows: ${(rows.size - 1) - warehouses.size}")
 }
