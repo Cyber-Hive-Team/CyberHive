@@ -1,5 +1,5 @@
 package org.example.data.dataparsing
-import org.example.data.dataHolder.FleetRaw
+import org.example.data.dataholder.FleetRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines

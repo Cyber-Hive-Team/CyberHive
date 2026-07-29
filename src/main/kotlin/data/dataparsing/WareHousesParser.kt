@@ -1,6 +1,6 @@
 package org.example.dataparsing
-import org.example.data.dataHolder.WareHouseRaw
-import org.example.data.dataHolder.RegionalZone
+import org.example.data.dataholder.WareHouseRaw
+import org.example.data.dataholder.RegionalZone
 import java.io.File
 
 

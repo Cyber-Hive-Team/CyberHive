@@ -1,16 +1,15 @@
-package org.example.Sorting
-import org.example.data.dataHolder.PackageRaw
-import org.example.data.dataHolder.Priority
-
-
+package org.example.sorting
+import org.example.data.dataholder.PackageRaw
+import org.example.data.dataholder.Priority
 
 fun getPriorityRank(priority: Priority): Int {
     return when (priority) {
-        Priority.URGENT -> 3
-        Priority.STANDARD -> 2
-        Priority.LOW -> 1
+        Priority.LOW -> {1}
+        Priority.STANDARD -> {2}
+        Priority.URGENT -> {3}
     }
 }
+
 fun hasHigherPriority(firstPackage: PackageRaw, secondPackage: PackageRaw): Boolean {
     val firstPriorityRank = getPriorityRank(firstPackage.priority)
     val secondPriorityRank = getPriorityRank(secondPackage.priority)
