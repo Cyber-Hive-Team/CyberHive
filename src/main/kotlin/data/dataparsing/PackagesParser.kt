@@ -1,4 +1,4 @@
-package org.example.data.dataparsing.PackagesParser
+package org.example.data.dataparsing
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.Priority
 import java.io.File
