@@ -1,5 +1,5 @@
 package org.example.dataparsing
-import org.example.data.dataHolder.RouteRaw
+import org.example.data.dataholder.RouteRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
