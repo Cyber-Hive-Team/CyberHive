@@ -7,11 +7,13 @@ import kotlin.io.path.readLines
 
 fun readRouteLines(): List<String> {
     val routeFilePath = Path("src/main/resources/routes.csv")
+    val routeLines: List<String>
     if (!routeFilePath.exists()) {
         println("Warning: routes.csv was not found.")
-        return emptyList()}
+        routeLines = emptyList()}
     else{
-        return routeFilePath.readLines()}
+        routeLines= routeFilePath.readLines()}
+    return routeLines
 
 }
 fun parseRoutes(): List<RouteRaw> {
@@ -38,9 +40,7 @@ fun parseRoutes(): List<RouteRaw> {
         }
         val distanceKm = cleanDistance(routeColumns[3])
         val typicalDelayMin = cleanDelay(routeColumns[4])
-        routes.add(
-            RouteRaw(id, originHubId, destinationHubId, distanceKm, typicalDelayMin)
-        )
+        routes.add(RouteRaw(id, originHubId, destinationHubId, distanceKm, typicalDelayMin))
     }
     return routes
 
@@ -55,25 +55,31 @@ fun cleanId(id: String, fieldName: String, csvLineNumber: Int): String {
 }
 fun cleanDistance(distanceBeforeCleaning: String): Double {
     val distanceAfterCleaning = distanceBeforeCleaning.replace("km", "", ignoreCase = true).trim()
+    val validatedDistance: Double
     if (
         distanceAfterCleaning.isBlank() ||
         distanceAfterCleaning.equals("N/A", ignoreCase = true) ||
         distanceAfterCleaning.equals("null", ignoreCase = true)
     ) {
-        return -1.0
+        validatedDistance = -1.0
+    } else {
+        validatedDistance = distanceAfterCleaning.toDoubleOrNull() ?: -1.0
     }
-    return distanceAfterCleaning.toDoubleOrNull() ?: -1.0
+    return validatedDistance
 
 }
 fun cleanDelay(delayBeforeCleaning: String): Int {
     val delayAfterCleaning = delayBeforeCleaning.trim()
+    val validatedDelay: Int
     if (
         delayAfterCleaning.isBlank() ||
         delayAfterCleaning.equals("N/A", ignoreCase = true) ||
         delayAfterCleaning.equals("null", ignoreCase = true)
     ) {
-        return -1
+        validatedDelay = -1
+    } else {
+        validatedDelay = delayAfterCleaning.toIntOrNull() ?: -1
     }
-    return delayAfterCleaning.toIntOrNull() ?: -1
+    return validatedDelay
 
 }
