@@ -1,4 +1,4 @@
-package org.example.DataParsing
+package org.example.dataparsing
 import org.example.data.dataHolder.RouteRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
@@ -12,6 +12,7 @@ fun readRouteLines(): List<String> {
         return emptyList()}
     else{
         return routeFilePath.readLines()}
+
 }
 fun parseRoutes(): List<RouteRaw> {
     val routes = mutableListOf<RouteRaw>()
@@ -42,6 +43,7 @@ fun parseRoutes(): List<RouteRaw> {
         )
     }
     return routes
+
 }
 fun cleanId(id: String, fieldName: String, csvLineNumber: Int): String {
     val cleanedId = id.trim().uppercase()
@@ -49,6 +51,7 @@ fun cleanId(id: String, fieldName: String, csvLineNumber: Int): String {
         println("Warning: route row $csvLineNumber was skipped because $fieldName is missing.")
     }
     return cleanedId
+
 }
 fun cleanDistance(distanceBeforeCleaning: String): Double {
     val distanceAfterCleaning = distanceBeforeCleaning.replace("km", "", ignoreCase = true).trim()
@@ -60,6 +63,7 @@ fun cleanDistance(distanceBeforeCleaning: String): Double {
         return -1.0
     }
     return distanceAfterCleaning.toDoubleOrNull() ?: -1.0
+
 }
 fun cleanDelay(delayBeforeCleaning: String): Int {
     val delayAfterCleaning = delayBeforeCleaning.trim()
@@ -71,4 +75,5 @@ fun cleanDelay(delayBeforeCleaning: String): Int {
         return -1
     }
     return delayAfterCleaning.toIntOrNull() ?: -1
+
 }

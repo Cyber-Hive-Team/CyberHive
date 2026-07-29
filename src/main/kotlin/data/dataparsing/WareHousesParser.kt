@@ -1,4 +1,4 @@
-package org.example.DataParsing
+package org.example.dataparsing
 import org.example.data.dataHolder.WareHouseRaw
 import org.example.data.dataHolder.RegionalZone
 import java.io.File

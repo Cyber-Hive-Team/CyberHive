@@ -1,12 +1,12 @@
-package org.example.DataParsing
+package org.example.data.dataparsing.PackagesParser
 import org.example.data.dataHolder.PackageRaw
 import org.example.data.dataHolder.Priority
 import java.io.File
 
-
 fun parsePackages(): List<PackageRaw> {
     val packages = mutableListOf<PackageRaw>()
     val lines = readPackageLines()
+
     for (index in 1 until lines.size) {
         val packageItem = parsePackageLine(lines[index])
         if (packageItem != null) {
@@ -14,14 +14,16 @@ fun parsePackages(): List<PackageRaw> {
         } }
     return packages
 }
+
 fun readPackageLines(): List<String> {
-        val packagesFile = File("src/main/resources/packages.csv")
-        if (!packagesFile.exists()) {
-            println("Warning: the file was not found.")
-            return emptyList()
-        }
-        return packagesFile.readLines()
-    }
+    val packagesFile = File("src/main/resources/packages.csv")
+
+    if (!packagesFile.exists()) {
+        println("Warning: the file was not found.")
+        return emptyList() }
+    return packagesFile.readLines()
+}
+
 fun parsePackageLine(line: String): PackageRaw? {
     if (line.isBlank()) {
         return null }
@@ -29,46 +31,57 @@ fun parsePackageLine(line: String): PackageRaw? {
 
     if (!hasValidColumnCount(columns)) {
         println("Warning: invalid package row skipped: $line")
-        return null }
-
+        return null
+    }
     if (hasMissingRequiredFields(columns)) {
         println("Warning: package row has missing required fields: $line")
-        return null }
+        return null
+    }
+
     return createPackageFromColumns(columns)
 }
 
 fun hasValidColumnCount(columns: List<String>): Boolean {
-    val expectedColumnCount = 4
+    val expectedColumnCount = 5
     return columns.size == expectedColumnCount
 }
 
 fun hasMissingRequiredFields(columns: List<String>): Boolean {
     val id = columns[0]
-    val destinationHubId = columns[2]
-    return id.isBlank() || destinationHubId.isBlank()
+    val originHubId = columns[2]
+    val destinationHubId = columns[3]
+
+    return id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()
 }
 
 fun createPackageFromColumns(columns: List<String>): PackageRaw {
     val id = columns[0]
     val weight = parseWeight(columns[1])
-    val destinationHubId = columns[2]
-    val priority = parsePriority(columns[3])
+    val originHubId = columns[2]
+    val destinationHubId = columns[3]
+    val priority = parsePriority(columns[4])
 
     return PackageRaw(
         id = id.uppercase(),
         weight = weight,
+        originHubId = originHubId.uppercase(),
         destinationHubId = destinationHubId.uppercase(),
-        priority = priority)
+        priority = priority
+    )
 }
+
 fun splitAndCleanColumns(line: String): List<String> {
     return line
         .split(",")
         .map { column -> column.trim() }
 }
+
 fun parseWeight(value: String): Double {
     val invalidWeight = -1.0
     return value.toDoubleOrNull() ?: invalidWeight
+
 }
+
 fun parsePriority(value: String): Priority {
     return when (value.uppercase()) {
         "URGENT" -> Priority.URGENT
@@ -76,4 +89,5 @@ fun parsePriority(value: String): Priority {
         "LOW" -> Priority.LOW
         else -> Priority.LOW
     }
+
 }
