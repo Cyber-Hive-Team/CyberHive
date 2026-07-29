@@ -1,4 +1,4 @@
-package org.example.DataParsing
+package org.example.data.dataparsing
 import org.example.data.dataHolder.FleetRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
