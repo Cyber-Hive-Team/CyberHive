@@ -121,13 +121,11 @@ fun getUserRowNumber(rowIndex: Int): Int {
 fun convertCoordinate(value: String): Double {
     val cleanedValue = value.trim()
 
-    return if (
-        cleanedValue.isBlank() ||
+    // Explicitly handle missing, "null", and "N/A" cases.
+    if (cleanedValue.isBlank() ||
         cleanedValue.equals("null", ignoreCase = true) ||
-        cleanedValue.equals("N/A", ignoreCase = true)
-    ) {
-        -1.0
-    } else {
-        cleanedValue.toDouble()
+        cleanedValue.equals("N/A", ignoreCase = true)) {
+        return -1.0
     }
+    return cleanedValue.toDoubleOrNull() ?: -1.0
 }
