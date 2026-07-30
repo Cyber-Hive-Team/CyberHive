@@ -3,8 +3,6 @@ import org.example.data.dataholder.FleetRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
-
-
 fun readFleetLines(): List<String> {
     val fleetFilePath = Path("src/main/resources/fleet.csv")
     if (!fleetFilePath.exists()) {
@@ -36,8 +34,8 @@ fun parseFleet(): List<FleetRaw> {
         if (vehicleId.isBlank() || currentHubId.isBlank()) {
             continue
         }
-        val maxCapacityKg = cleanFleetCapacity(fleetColumns[2])
-        val costPerKm = cleanFleetCost(fleetColumns[3])
+        val maxCapacityKg = cleanNumericField(fleetColumns[2])
+        val costPerKm = cleanNumericField(fleetColumns[3])
         fleet.add(FleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm))
     }
     return fleet
@@ -50,20 +48,12 @@ fun cleanFleetId(id: String, fieldName: String, csvLineNumber: Int): String {
     }
     return cleanedId
 }
-fun cleanFleetCapacity(capacityBeforeCleaning: String): Double {
-    val capacityAfterCleaning = capacityBeforeCleaning.trim()
-    if (
-        capacityAfterCleaning.isBlank() || capacityAfterCleaning.equals("N/A", ignoreCase = true) ||
-        capacityAfterCleaning.equals("null", ignoreCase = true)) {
+fun cleanNumericField(value: String): Double {
+    val cleaned = value.trim()
+    if (cleaned.isBlank() || cleaned.equals("N/A", ignoreCase = true) || cleaned.equals("null", ignoreCase = true)) {
         return -1.0
     }
-    return capacityAfterCleaning.toDoubleOrNull() ?: -1.0
+    return cleaned.toDoubleOrNull() ?: -1.0
 }
-fun cleanFleetCost(costBeforeCleaning: String): Double {
-    val costAfterCleaning = costBeforeCleaning.trim()
-    if (costAfterCleaning.isBlank() || costAfterCleaning.equals("N/A", ignoreCase = true) ||
-        costAfterCleaning.equals("null", ignoreCase = true)) {
-        return -1.0
-    }
-    return costAfterCleaning.toDoubleOrNull() ?: -1.0
-}
+
+
