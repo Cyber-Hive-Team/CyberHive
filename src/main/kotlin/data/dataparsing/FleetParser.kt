@@ -1,9 +1,9 @@
 package org.example.data.dataparsing
+
 import org.example.data.dataholder.FleetRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
-
 
 fun readFleetLines(): List<String> {
     val fleetFilePath = Path("src/main/resources/fleet.csv")
@@ -13,34 +13,43 @@ fun readFleetLines(): List<String> {
     }
     return fleetFilePath.readLines()
 }
+
 fun parseFleet(): List<FleetRaw> {
-    val fleet = mutableListOf<FleetRaw>()
     val fleetLines = readFleetLines()
     val firstDataLineIndex = 1
-    val totalExpectedColumns = 4
-    // Start from index 1 to skip the CSV header row
-    for (lineIndex in firstDataLineIndex until fleetLines.size) {
-        val currentFleetLine = fleetLines[lineIndex]
-        val csvLineNumber = lineIndex + 1     // Add 1 to get the exact line position in the CSV file
-        if (currentFleetLine.isBlank()) {
-            continue
-        }
-        val fleetColumns = currentFleetLine.split(",")
-        if (fleetColumns.size != totalExpectedColumns) {
-            println(
-                "Warning: fleet row $csvLineNumber was skipped because the number of columns is invalid.")
-            continue
-        }
-        val vehicleId = cleanFleetId(fleetColumns[0], "vehicle ID", csvLineNumber)
-        val currentHubId = cleanFleetId(fleetColumns[1], "current hub ID", csvLineNumber)
-        if (vehicleId.isBlank() || currentHubId.isBlank()) {
-            continue
-        }
-        val maxCapacityKg = cleanFleetCapacity(fleetColumns[2])
-        val costPerKm = cleanFleetCost(fleetColumns[3])
-        fleet.add(FleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm))
+
+    if (fleetLines.size <= firstDataLineIndex) {
+        return emptyList()
     }
-    return fleet
+
+    return fleetLines.subList(firstDataLineIndex, fleetLines.size)
+        .mapIndexedNotNull { index, line -> parseFleetRow(line, firstDataLineIndex + index + 1) }
+}
+
+private fun parseFleetRow(line: String, csvLineNumber: Int): FleetRaw? {
+    val totalExpectedColumns = 4
+
+    if (line.isBlank()) {
+        return null
+    }
+
+    val columns = line.split(",")
+    if (columns.size != totalExpectedColumns) {
+        println("Warning: fleet row $csvLineNumber was skipped because the number of columns is invalid.")
+        return null
+    }
+
+    val vehicleId = cleanFleetId(columns[0], "vehicle ID", csvLineNumber)
+    val currentHubId = cleanFleetId(columns[1], "current hub ID", csvLineNumber)
+
+    if (vehicleId.isBlank() || currentHubId.isBlank()) {
+        return null
+    }
+
+    val maxCapacityKg = cleanNumericField(columns[2])
+    val costPerKm = cleanNumericField(columns[3])
+
+    return FleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm)
 }
 
 fun cleanFleetId(id: String, fieldName: String, csvLineNumber: Int): String {
@@ -50,20 +59,11 @@ fun cleanFleetId(id: String, fieldName: String, csvLineNumber: Int): String {
     }
     return cleanedId
 }
-fun cleanFleetCapacity(capacityBeforeCleaning: String): Double {
-    val capacityAfterCleaning = capacityBeforeCleaning.trim()
-    if (
-        capacityAfterCleaning.isBlank() || capacityAfterCleaning.equals("N/A", ignoreCase = true) ||
-        capacityAfterCleaning.equals("null", ignoreCase = true)) {
+
+fun cleanNumericField(value: String): Double {
+    val cleaned = value.trim()
+    if (cleaned.isBlank() || cleaned.equals("N/A", ignoreCase = true) || cleaned.equals("null", ignoreCase = true)) {
         return -1.0
     }
-    return capacityAfterCleaning.toDoubleOrNull() ?: -1.0
-}
-fun cleanFleetCost(costBeforeCleaning: String): Double {
-    val costAfterCleaning = costBeforeCleaning.trim()
-    if (costAfterCleaning.isBlank() || costAfterCleaning.equals("N/A", ignoreCase = true) ||
-        costAfterCleaning.equals("null", ignoreCase = true)) {
-        return -1.0
-    }
-    return costAfterCleaning.toDoubleOrNull() ?: -1.0
+    return cleaned.toDoubleOrNull() ?: -1.0
 }
