@@ -5,12 +5,13 @@ import java.io.File
 
 
 private const val FIRST_DATA_ROW_INDEX = 1
-private const val REQUIRED_COLUMNS_COUNT = 3
+private const val REQUIRED_COLUMNS_COUNT = 5
 private const val USER_ROW_NUMBER_OFFSET = 1
 private const val ID_COLUMN_INDEX = 0
 private const val NAME_COLUMN_INDEX = 1
 private const val ZONE_COLUMN_INDEX = 2
-
+private const val LATITUDE_COLUMN_INDEX = 3
+private const val LONGITUDE_COLUMN_INDEX = 4
 
 // Reads the file and starts processing the rows.
 fun parseWarehouse(filePath: String): List<WareHouseRaw> {
@@ -72,7 +73,9 @@ fun extractData(columns: List<String>, zone: RegionalZone): WareHouseRaw {
     return WareHouseRaw(
         id = columns[ID_COLUMN_INDEX].trim(),
         name = columns[NAME_COLUMN_INDEX].trim(),
-        regionalZone = zone
+        regionalZone = zone,
+        latitude = convertCoordinate(columns[LATITUDE_COLUMN_INDEX]),
+        longitude = convertCoordinate(columns[LONGITUDE_COLUMN_INDEX])
     )
 }
 // Validates required warehouse fields.
@@ -112,4 +115,17 @@ fun convertZone(
 // Converts internal index into user row number.
 fun getUserRowNumber(rowIndex: Int): Int {
     return rowIndex + USER_ROW_NUMBER_OFFSET
+}
+// Converts latitude/longitude values.
+// Missing values become -1.0.
+fun convertCoordinate(value: String): Double {
+    val cleanedValue = value.trim()
+
+    // Explicitly handle missing, "null", and "N/A" cases.
+    if (cleanedValue.isBlank() ||
+        cleanedValue.equals("null", ignoreCase = true) ||
+        cleanedValue.equals("N/A", ignoreCase = true)) {
+        return -1.0
+    }
+    return cleanedValue.toDoubleOrNull() ?: -1.0
 }
