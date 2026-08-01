@@ -21,7 +21,8 @@ fun parseCSVFiles (){
     buildObjectGraph(warehouseList,packageList,routeList,vehicleList)
 
 }
-fun buildObjectGraph(warehouseList: List<WareHouseRaw>, packageList: List<PackageRaw>, routeRawList: List<RouteRaw>, vehicleList: List<FleetRaw>): List<Warehouse> {
+fun buildObjectGraph(warehouseList: List<WareHouseRaw>, packageList: List<PackageRaw>,
+                     routeRawList: List<RouteRaw>, vehicleList: List<FleetRaw>): List<Warehouse> {
     val warehousesById = warehouseList.associateBy(
         keySelector = { warehouseRaw -> warehouseRaw.id },
         valueTransform = { warehouseRaw -> Warehouse(warehouseRaw.id, warehouseRaw.name, warehouseRaw.regionalZone) })
@@ -43,26 +44,31 @@ private fun addVehiclesToWarehouse(warehouse: Warehouse, vehicleRawList: List<Fl
     }
 }
 
-private fun addPackagesToWarehouse(warehouse: Warehouse, packageRawList: List<PackageRaw>, warehousesById: Map<String, Warehouse>){
+private fun addPackagesToWarehouse(warehouse: Warehouse, packageRawList: List<PackageRaw>,
+                                   warehousesById: Map<String, Warehouse>){
     packageRawList.forEach { packageRaw ->
         val destinationWarehouse = warehousesById[packageRaw.destinationHubId]
         if (destinationWarehouse != null) {
             val packageItem = Package(packageRaw.id, packageRaw.weight, packageRaw.priority, warehouse, destinationWarehouse)
             warehouse.addPackage(packageItem)
         } else {
-            println("Warning: destination warehouse ${packageRaw.destinationHubId} was not found for package ${packageRaw.id}.")
+            println("Warning: destination warehouse ${packageRaw.destinationHubId}" +
+                    " was not found for package ${packageRaw.id}.")
         }
     }
 }
 
-private fun addRoutesToWarehouse(warehouse: Warehouse, routeRawList: List<RouteRaw>, warehousesById: Map<String, Warehouse>){
+private fun addRoutesToWarehouse(warehouse: Warehouse, routeRawList: List<RouteRaw>,
+                                 warehousesById: Map<String, Warehouse>){
     routeRawList.forEach { routeRaw ->
         val destinationWarehouse = warehousesById[routeRaw.destinationHubId]
         if (destinationWarehouse != null) {
-            val route = Route(routeRaw.id, routeRaw.distanceKm, routeRaw.typicalDelayMin, warehouse, destinationWarehouse)
+            val route = Route(routeRaw.id, routeRaw.distanceKm, routeRaw.typicalDelayMin,
+                warehouse, destinationWarehouse)
             warehouse.addRoute(route)
         } else {
-            println("Warning: destination warehouse ${routeRaw.destinationHubId} was not found for route ${routeRaw.id}.")
+            println("Warning: destination warehouse ${routeRaw.destinationHubId} " +
+                    "was not found for route ${routeRaw.id}.")
         }
     }
 }
