@@ -49,7 +49,8 @@ private fun addPackagesToWarehouse(warehouse: Warehouse, packageRawList: List<Pa
     packageRawList.forEach { packageRaw ->
         val destinationWarehouse = warehousesById[packageRaw.destinationHubId]
         if (destinationWarehouse != null) {
-            val packageItem = Package(packageRaw.id, packageRaw.weight, packageRaw.priority, warehouse, destinationWarehouse)
+            val packageItem = Package(packageRaw.id, packageRaw.weight, packageRaw.priority,
+                warehouse, destinationWarehouse)
             warehouse.addPackage(packageItem)
         } else {
             println("Warning: destination warehouse ${packageRaw.destinationHubId}" +
