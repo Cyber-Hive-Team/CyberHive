@@ -1,12 +1,16 @@
 package org.example.domain.builder
 
-import org.example.data.dataholder.*
-import org.example.domain.model.*
+import org.example.data.dataholder.FleetRaw
+import org.example.data.dataholder.PackageRaw
+import org.example.data.dataholder.RouteRaw
+import org.example.data.dataholder.WareHouseRaw
+import org.example.domain.model.Package
+import org.example.domain.model.Route
+import org.example.domain.model.Vehicle
+import org.example.domain.model.Warehouse
 
 class DomainGraphBuilder {
-    /**
-     * Builds a fully connected domain graph from raw DTOs using O(1) hash-map lookups.
-     */
+
     fun buildConnectedDomainGraph(
         rawWarehouseDtos: List<WareHouseRaw>,
         rawPackageDtos: List<PackageRaw>,
@@ -18,16 +22,27 @@ class DomainGraphBuilder {
         }
         val warehouseByIdLookup = warehouses.associateBy { it.id }
 
-        val packageEntities = constructPackagesFromRaw(rawPackageDtos, warehouseByIdLookup)
-        val vehicleEntities = constructVehiclesFromRaw(rawFleetDtos, warehouseByIdLookup)
-        val routeEntities = constructRoutesFromRaw(rawRouteDtos, warehouseByIdLookup)
+        val packageEntities = constructPackagesFromRaw(
+            rawPackageDtos,
+            warehouseByIdLookup
+        )
+        val vehicleEntities = constructVehiclesFromRaw(
+            rawFleetDtos,
+            warehouseByIdLookup
+        )
+        val routeEntities = constructRoutesFromRaw(
+            rawRouteDtos,
+            warehouseByIdLookup
+        )
 
-        synchronizeBidirectionalLinks(warehouses, packageEntities, vehicleEntities, routeEntities)
+        synchronizeBidirectionalLinks(
+            packageEntities,
+            vehicleEntities,
+            routeEntities
+        )
 
         return warehouses
     }
-
-    // ==================== Private builders ====================
 
     private fun constructPackagesFromRaw(
         rawPackages: List<PackageRaw>,
@@ -36,13 +51,20 @@ class DomainGraphBuilder {
         return rawPackages.mapNotNull { rawPackageDto ->
             val originWarehouse = warehouseLookup[rawPackageDto.originHubId]
             if (originWarehouse == null) {
-                println("Warning: Skipping package ${rawPackageDto.id} - Origin hub '${rawPackageDto.originHubId}' not found")
+                println(
+                    "Warning: Skipping package ${rawPackageDto.id} - " +
+                            "Origin hub '${rawPackageDto.originHubId}' not found"
+                )
                 return@mapNotNull null
             }
 
-            val destinationWarehouse = warehouseLookup[rawPackageDto.destinationHubId]
+            val destinationWarehouse =
+                warehouseLookup[rawPackageDto.destinationHubId]
             if (destinationWarehouse == null) {
-                println("Warning: Skipping package ${rawPackageDto.id} - Destination hub '${rawPackageDto.destinationHubId}' not found")
+                println(
+                    "Warning: Skipping package ${rawPackageDto.id} - " +
+                            "Destination hub '${rawPackageDto.destinationHubId}' not found"
+                )
                 return@mapNotNull null
             }
 
@@ -61,9 +83,13 @@ class DomainGraphBuilder {
         warehouseLookup: Map<String, Warehouse>
     ): List<Vehicle> {
         return rawVehicles.mapNotNull { rawVehicleDto ->
-            val currentHubWarehouse = warehouseLookup[rawVehicleDto.currentHubId]
+            val currentHubWarehouse =
+                warehouseLookup[rawVehicleDto.currentHubId]
             if (currentHubWarehouse == null) {
-                println("Warning: Skipping vehicle ${rawVehicleDto.vehicleId} - Hub '${rawVehicleDto.currentHubId}' not found")
+                println(
+                    "Warning: Skipping vehicle ${rawVehicleDto.vehicleId} - " +
+                            "Hub '${rawVehicleDto.currentHubId}' not found"
+                )
                 return@mapNotNull null
             }
 
@@ -83,13 +109,20 @@ class DomainGraphBuilder {
         return rawRoutes.mapNotNull { rawRouteDto ->
             val originWarehouse = warehouseLookup[rawRouteDto.originHubId]
             if (originWarehouse == null) {
-                println("Warning: Skipping route ${rawRouteDto.id} - Origin hub '${rawRouteDto.originHubId}' not found")
+                println(
+                    "Warning: Skipping route ${rawRouteDto.id} - " +
+                            "Origin hub '${rawRouteDto.originHubId}' not found"
+                )
                 return@mapNotNull null
             }
 
-            val destinationWarehouse = warehouseLookup[rawRouteDto.destinationHubId]
+            val destinationWarehouse =
+                warehouseLookup[rawRouteDto.destinationHubId]
             if (destinationWarehouse == null) {
-                println("Warning: Skipping route ${rawRouteDto.id} - Destination hub '${rawRouteDto.destinationHubId}' not found")
+                println(
+                    "Warning: Skipping route ${rawRouteDto.id} - " +
+                            "Destination hub '${rawRouteDto.destinationHubId}' not found"
+                )
                 return@mapNotNull null
             }
 
@@ -103,16 +136,13 @@ class DomainGraphBuilder {
         }
     }
 
-    // ==================== Link synchronizer ====================
-
     private fun synchronizeBidirectionalLinks(
-        warehouses: List<Warehouse>,
         packages: List<Package>,
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.forEach { packageEntity -> packageEntity.origin.addPackage(packageEntity) }
-        vehicles.forEach { vehicle -> vehicle.currentHub.addVehicle(vehicle) }
-        routes.forEach { route -> route.origin.addRoute(route) }
+        packages.forEach { it.origin.addPackage(it) }
+        vehicles.forEach { it.currentHub.addVehicle(it) }
+        routes.forEach { it.origin.addRoute(it) }
     }
 }
