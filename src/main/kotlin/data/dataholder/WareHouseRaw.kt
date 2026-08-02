@@ -1,4 +1,7 @@
 package org.example.data.dataholder
+
+import org.example.domain.model.RegionalZone
+
 data class WareHouseRaw(
     val id: String,
     val name: String,
