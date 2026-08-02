@@ -1,8 +1,8 @@
 package org.example.domain.builder
 
-import org.example.data.dataholder.FleetRaw
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RouteRaw
+import org.example.data.dataholder.VehicleRaw
 import org.example.data.dataholder.WareHouseRaw
 import org.example.domain.model.Package
 import org.example.domain.model.Route
@@ -14,7 +14,7 @@ class DomainGraphBuilder {
     fun buildConnectedDomainGraph(
         rawWarehouseDtos: List<WareHouseRaw>,
         rawPackageDtos: List<PackageRaw>,
-        rawFleetDtos: List<FleetRaw>,
+        rawVehicleDtos: List<VehicleRaw>,
         rawRouteDtos: List<RouteRaw>
     ): List<Warehouse> {
         val warehouses = rawWarehouseDtos.map {
@@ -27,7 +27,7 @@ class DomainGraphBuilder {
             warehouseByIdLookup
         )
         val vehicleEntities = constructVehiclesFromRaw(
-            rawFleetDtos,
+            rawVehicleDtos,
             warehouseByIdLookup
         )
         val routeEntities = constructRoutesFromRaw(
@@ -79,7 +79,7 @@ class DomainGraphBuilder {
     }
 
     private fun constructVehiclesFromRaw(
-        rawVehicles: List<FleetRaw>,
+        rawVehicles: List<VehicleRaw>,
         warehouseLookup: Map<String, Warehouse>
     ): List<Vehicle> {
         return rawVehicles.mapNotNull { rawVehicleDto ->
@@ -87,14 +87,14 @@ class DomainGraphBuilder {
                 warehouseLookup[rawVehicleDto.currentHubId]
             if (currentHubWarehouse == null) {
                 println(
-                    "Warning: Skipping vehicle ${rawVehicleDto.vehicleId} - " +
+                    "Warning: Skipping vehicle ${rawVehicleDto.id} - " +
                             "Hub '${rawVehicleDto.currentHubId}' not found"
                 )
                 return@mapNotNull null
             }
 
             Vehicle(
-                vehicleId = rawVehicleDto.vehicleId,
+                id = rawVehicleDto.id,
                 maxCapacityKg = rawVehicleDto.maxCapacityKg,
                 costPerKm = rawVehicleDto.costPerKm,
                 currentHub = currentHubWarehouse
@@ -127,7 +127,7 @@ class DomainGraphBuilder {
             }
 
             Route(
-                routeId = rawRouteDto.id,
+                id = rawRouteDto.id,
                 distanceKm = rawRouteDto.distanceKm,
                 typicalDelayMin = rawRouteDto.typicalDelayMin,
                 origin = originWarehouse,
