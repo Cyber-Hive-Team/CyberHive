@@ -48,7 +48,11 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     }
 
     if (!originHubId.startsWith("WH-") || !destinationHubId.startsWith("WH-")) {
-        println("Warning: package row $lineNumber has invalid hub ID → Origin: '$originHubId', Dest: '$destinationHubId'")
+        println(
+            "Warning: package row" + "$lineNumber " +
+                    "has invalid hub ID → Origin: " + "'$originHubId'," +
+                    " Dest: '$destinationHubId'"
+        )
         return null
     }
 
