@@ -19,10 +19,12 @@ fun parsePackages(): List<PackageRaw> {
 
 fun readPackageLines(): List<String> {
     val packagesFile = File("src/main/resources/packages.csv")
+
     if (!packagesFile.exists()) {
         println("Warning: packages.csv was not found.")
         return emptyList()
     }
+
     return packagesFile.readLines()
 }
 
@@ -32,7 +34,10 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     val columns = splitAndCleanColumns(line)
 
     if (columns.size < 5) {
-        println("Warning: invalid package row $lineNumber skipped (columns = ${columns.size}): $line")
+        println(
+            "Warning: invalid package row $lineNumber skipped " +
+                    "(columns = ${columns.size}): $line"
+        )
         return null
     }
 
@@ -42,18 +47,10 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     val destinationHubId = columns[3].uppercase()
     val priority = parsePriority(columns[4])
 
-    if (id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()) {
-        println("Warning: package row $lineNumber has missing required fields")
+    if (!validatePackageFields(id, originHubId, destinationHubId, lineNumber)) {
         return null
     }
-    if (!originHubId.startsWith("WH-") || !destinationHubId.startsWith("WH-")) {
-        println(
-            "Warning: package row" + "$lineNumber " +
-                    "has invalid hub ID → Origin: " + "'$originHubId'," +
-                    " Dest: '$destinationHubId'"
-        )
-        return null
-    }
+
     return PackageRaw(
         id = id,
         weight = weight,
@@ -62,11 +59,37 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
         priority = priority
     )
 }
+
+fun validatePackageFields(
+    id: String,
+    originHubId: String,
+    destinationHubId: String,
+    lineNumber: Int
+): Boolean {
+    if (id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()) {
+        println("Warning: package row $lineNumber has missing required fields")
+        return false
+    }
+
+    if (!originHubId.startsWith("WH-") ||
+        !destinationHubId.startsWith("WH-")
+    ) {
+        println(
+            "Warning: package row $lineNumber has invalid hub ID → " +
+                    "Origin: '$originHubId', Dest: '$destinationHubId'"
+        )
+        return false
+    }
+
+    return true
+}
+
 fun splitAndCleanColumns(line: String): List<String> {
     return line
         .split(",")
         .map { it.trim() }
 }
+
 fun parseWeight(value: String): Double {
     val invalidWeight = -1.0
 
@@ -77,6 +100,7 @@ fun parseWeight(value: String): Double {
 
     return cleaned.toDoubleOrNull() ?: invalidWeight
 }
+
 fun parsePriority(value: String): Priority {
     return when (value.trim().uppercase()) {
         "URGENT" -> Priority.URGENT
