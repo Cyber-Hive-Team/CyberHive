@@ -67,7 +67,6 @@ fun splitAndCleanColumns(line: String): List<String> {
         .split(",")
         .map { it.trim() }
 }
-
 fun parseWeight(value: String): Double {
     val invalidWeight = -1.0
 
@@ -78,7 +77,6 @@ fun parseWeight(value: String): Double {
 
     return cleaned.toDoubleOrNull() ?: invalidWeight
 }
-
 fun parsePriority(value: String): Priority {
     return when (value.trim().uppercase()) {
         "URGENT" -> Priority.URGENT
