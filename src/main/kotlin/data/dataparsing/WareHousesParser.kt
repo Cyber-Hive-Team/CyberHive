@@ -1,6 +1,6 @@
-package org.example.dataparsing
+package org.example.data.dataparsing
 import org.example.data.dataholder.WareHouseRaw
-import org.example.data.dataholder.RegionalZone
+import org.example.domain.model.RegionalZone
 import java.io.File
 
 
@@ -20,7 +20,12 @@ fun parseWarehouse(filePath: String): List<WareHouseRaw> {
 }
 // Reads all file lines.
 fun readFile(filePath: String): List<String> {
-    return File(filePath).readLines()
+    val file = File(filePath)
+    if (!file.exists()) {
+        println("Warning: warehouses.csv was not found at path: $filePath")
+        return emptyList()
+    }
+    return file.readLines()
 }
 // Processes each row and keeps only valid warehouses.
 fun processRows(rows: List<String>): List<WareHouseRaw> {
