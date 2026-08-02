@@ -1,7 +1,7 @@
 package org.example.domain.pricing
 
 import org.example.domain.model.Package
-import org.example.data.dataholder.Priority
+import org.example.domain.model.Priority
 import org.example.domain.model.Route
 
 interface DispatchStrategy {
