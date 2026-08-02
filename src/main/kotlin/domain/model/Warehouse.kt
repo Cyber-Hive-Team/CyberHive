@@ -1,5 +1,6 @@
 package org.example.domain.model
-import org.example.data.dataholder.RegionalZone
+
+import org.example.domain.model.RegionalZone
 
 class Warehouse(
     val id: String,
@@ -10,7 +11,7 @@ class Warehouse(
     private val outgoingRoutes = mutableListOf<Route>()
     private val stationedVehicles = mutableListOf<Vehicle>()
 
-    fun addPackage(packageItem: Package) {
+    fun addPackage(packageItem: Package) {  
         cargoQueue.add(packageItem)
     }
 

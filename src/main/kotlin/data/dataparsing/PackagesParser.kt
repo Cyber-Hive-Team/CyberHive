@@ -1,6 +1,7 @@
 package org.example.data.dataparsing
+
 import org.example.data.dataholder.PackageRaw
-import org.example.data.dataholder.Priority
+import org.example.domain.model.Priority
 import java.io.File
 
 fun parsePackages(): List<PackageRaw> {
@@ -8,10 +9,11 @@ fun parsePackages(): List<PackageRaw> {
     val lines = readPackageLines()
 
     for (index in 1 until lines.size) {
-        val packageItem = parsePackageLine(lines[index])
+        val packageItem = parsePackageLine(lines[index], index + 1)
         if (packageItem != null) {
             packages.add(packageItem)
-        } }
+        }
+    }
     return packages
 }
 
@@ -19,76 +21,91 @@ fun readPackageLines(): List<String> {
     val packagesFile = File("src/main/resources/packages.csv")
 
     if (!packagesFile.exists()) {
-        println("Warning: the file was not found.")
-        return emptyList() }
+        println("Warning: packages.csv was not found.")
+        return emptyList()
+    }
+
     return packagesFile.readLines()
 }
 
-fun parsePackageLine(line: String): PackageRaw? {
-    var packageItem: PackageRaw? = null
+fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
+    if (line.isBlank()) return null
 
-    if (!line.isBlank()) {
-        val columns = splitAndCleanColumns(line)
+    val columns = splitAndCleanColumns(line)
 
-        if (!hasValidColumnCount(columns)) {
-            println("Warning: invalid package row skipped: $line")
-        } else if (hasMissingRequiredFields(columns)) {
-            println("Warning: package row has missing required fields: $line")
-        } else {
-            packageItem = createPackageFromColumns(columns)
-        } }
+    if (columns.size < 5) {
+        println(
+            "Warning: invalid package row $lineNumber skipped " +
+                    "(columns = ${columns.size}): $line"
+        )
+        return null
+    }
 
-    return packageItem
-
-}
-
-fun hasValidColumnCount(columns: List<String>): Boolean {
-    val expectedColumnCount = 5
-    return columns.size == expectedColumnCount
-}
-
-fun hasMissingRequiredFields(columns: List<String>): Boolean {
-    val id = columns[0]
-    val originHubId = columns[2]
-    val destinationHubId = columns[3]
-
-    return id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()
-}
-
-fun createPackageFromColumns(columns: List<String>): PackageRaw {
-    val id = columns[0]
+    val id = columns[0].uppercase()
     val weight = parseWeight(columns[1])
-    val originHubId = columns[2]
-    val destinationHubId = columns[3]
+    val originHubId = columns[2].uppercase()
+    val destinationHubId = columns[3].uppercase()
     val priority = parsePriority(columns[4])
 
+    if (!validatePackageFields(id, originHubId, destinationHubId, lineNumber)) {
+        return null
+    }
+
     return PackageRaw(
-        id = id.uppercase(),
+        id = id,
         weight = weight,
-        originHubId = originHubId.uppercase(),
-        destinationHubId = destinationHubId.uppercase(),
+        originHubId = originHubId,
+        destinationHubId = destinationHubId,
         priority = priority
     )
+}
+
+fun validatePackageFields(
+    id: String,
+    originHubId: String,
+    destinationHubId: String,
+    lineNumber: Int
+): Boolean {
+    if (id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()) {
+        println("Warning: package row $lineNumber has missing required fields")
+        return false
+    }
+
+    if (!originHubId.startsWith("WH-") ||
+        !destinationHubId.startsWith("WH-")
+    ) {
+        println(
+            "Warning: package row $lineNumber has invalid hub ID → " +
+                    "Origin: '$originHubId', Dest: '$destinationHubId'"
+        )
+        return false
+    }
+
+    return true
 }
 
 fun splitAndCleanColumns(line: String): List<String> {
     return line
         .split(",")
-        .map { column -> column.trim() }
+        .map { it.trim() }
 }
 
 fun parseWeight(value: String): Double {
     val invalidWeight = -1.0
-    return value.toDoubleOrNull() ?: invalidWeight
 
+    val cleaned = value
+        .replace("kg", "", ignoreCase = true)
+        .replace(" ", "")
+        .trim()
+
+    return cleaned.toDoubleOrNull() ?: invalidWeight
 }
 
 fun parsePriority(value: String): Priority {
-    return when (value.uppercase()) {
+    return when (value.trim().uppercase()) {
         "URGENT" -> Priority.URGENT
         "STANDARD" -> Priority.STANDARD
         "LOW" -> Priority.LOW
         else -> Priority.LOW
     }
-
 }

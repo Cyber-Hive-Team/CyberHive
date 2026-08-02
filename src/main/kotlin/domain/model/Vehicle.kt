@@ -1,6 +1,6 @@
 package org.example.domain.model
 
-class Vehicle(
+data class Vehicle(
     val vehicleId: String,
     val maxCapacityKg: Double,
     val costPerKm: Double,

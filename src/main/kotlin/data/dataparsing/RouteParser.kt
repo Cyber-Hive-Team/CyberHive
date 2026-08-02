@@ -1,4 +1,4 @@
-package org.example.dataparsing
+package org.example.data.dataparsing
 
 import org.example.data.dataholder.RouteRaw
 import kotlin.io.path.Path

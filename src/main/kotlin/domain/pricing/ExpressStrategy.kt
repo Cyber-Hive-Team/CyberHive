@@ -1,14 +1,16 @@
 package org.example.domain.pricing
 
 import org.example.domain.model.Package
-import org.example.data.dataholder.Priority
+import org.example.domain.model.Priority
 import org.example.domain.model.Route
 
-
 class ExpressStrategy : DispatchStrategy {
-    override fun calculateTransitCost(pkg: Package, distanceKm: Route): Double {
-        return (pkg.weight * 1.5) + (distanceKm.distanceKm * 0.8)
+    private val weightMultiplier = 1.5
+    private val distanceMultiplier = 0.8
+    private val priorityMultiplier = 2.0
+    override fun calculateTransitCost(pkg: Package, route: Route): Double {
+        return (pkg.weight * weightMultiplier) + (route.distanceKm * distanceMultiplier)
     }
-    override fun getPriorityMultiplier(priority: Priority): Double =2.0
 
+    override fun getPriorityMultiplier(priority: Priority): Double = priorityMultiplier
 }

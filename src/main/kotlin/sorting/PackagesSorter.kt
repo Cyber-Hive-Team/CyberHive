@@ -1,6 +1,6 @@
 package org.example.sorting
 import org.example.data.dataholder.PackageRaw
-import org.example.data.dataholder.Priority
+import org.example.domain.model.Priority
 
 fun getPriorityRank(priority: Priority): Int {
     return when (priority) {
