@@ -5,7 +5,9 @@ import org.example.sorting.sortCargoQueueByWeightDescending
 class Warehouse(
     val id: String,
     val name: String,
-    val regionalZone: RegionalZone
+    val regionalZone: RegionalZone,
+    val latitude: Double,
+    val longitude: Double
 ) {
     private val cargoQueue = mutableListOf<Package>()
     private val outgoingRoutes = mutableListOf<Route>()
