@@ -46,7 +46,6 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
         println("Warning: package row $lineNumber has missing required fields")
         return null
     }
-
     if (!originHubId.startsWith("WH-") || !destinationHubId.startsWith("WH-")) {
         println(
             "Warning: package row" + "$lineNumber " +
@@ -55,7 +54,6 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
         )
         return null
     }
-
     return PackageRaw(
         id = id,
         weight = weight,
@@ -64,7 +62,6 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
         priority = priority
     )
 }
-
 fun splitAndCleanColumns(line: String): List<String> {
     return line
         .split(",")
