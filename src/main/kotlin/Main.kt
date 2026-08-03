@@ -17,31 +17,32 @@ import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.sorting.sortCargoQueueByWeightDescending
 
+// Data class to hold all raw data with explicit types – eliminates need for casting and destructuring
+private data class RawData(
+    val warehouses: List<WareHouseRaw>,
+    val packages: List<PackageRaw>,
+    val vehicles: List<VehicleRaw>,
+    val routes: List<RouteRaw>
+)
+
 fun main() {
     println("=== Cyber Hive ===")
 
-    // 1. Load Data
-    val (warehouseRaw, packageRaw, vehicleRaw, routeRaw) = loadRawData()
+    val rawData = loadRawData()
 
-    if (warehouseRaw.isEmpty()) {
+    if (rawData.warehouses.isEmpty()) {
         println("ERROR: No warehouses found. Cannot build the domain graph.")
         return
     }
-    // 2. Build Graph
-    val connectedWarehouses = buildDomainGraph(warehouseRaw, packageRaw, vehicleRaw, routeRaw)
-    // 3. Test Pricing
+
+    val connectedWarehouses = buildDomainGraph(rawData)
+
     testPricing(connectedWarehouses)
-
-    // 4. Test Sorting
     testSorting(connectedWarehouses)
-
-    // 5. Verify Graph
     verifyGraph(connectedWarehouses)
 }
 
-// ==================== Helper Functions ====================
-
-private fun loadRawData(): List<List<*>> {
+private fun loadRawData(): RawData {
     val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
     val packageRaw = parsePackages()
     val vehicleRaw = parseFleet()
@@ -53,22 +54,17 @@ private fun loadRawData(): List<List<*>> {
     println("Vehicles: ${vehicleRaw.size}")
     println("Routes: ${routeRaw.size}")
 
-    return listOf(warehouseRaw, packageRaw, vehicleRaw, routeRaw)
+    return RawData(warehouseRaw, packageRaw, vehicleRaw, routeRaw)
 }
 
-private fun buildDomainGraph(
-    warehouseRaw: List<*>,
-    packageRaw: List<*>,
-    vehicleRaw: List<*>,
-    routeRaw: List<*>
-): List<Warehouse> {
+private fun buildDomainGraph(rawData: RawData): List<Warehouse> {
     println("\n=== Building Domain Graph ===")
     val builder = DomainGraphBuilder()
     val connectedWarehouses = builder.buildConnectedDomainGraph(
-        rawWarehouse = warehouseRaw as List<WareHouseRaw>,
-        rawPackage = packageRaw as List<PackageRaw>,
-        rawVehicle = vehicleRaw as List<VehicleRaw>,
-        rawRoute = routeRaw as List<RouteRaw>
+        rawWarehouse = rawData.warehouses,
+        rawPackage = rawData.packages,
+        rawVehicle = rawData.vehicles,
+        rawRoute = rawData.routes
     )
     println("Connected hubs: ${connectedWarehouses.size}")
     return connectedWarehouses
