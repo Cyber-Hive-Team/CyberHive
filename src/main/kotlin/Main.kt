@@ -1,12 +1,16 @@
-
 package org.example
 
+import org.example.data.dataholder.PackageRaw
+import org.example.data.dataholder.RouteRaw
+import org.example.data.dataholder.VehicleRaw
+import org.example.data.dataholder.WareHouseRaw
 import org.example.data.dataparsing.parseFleet
 import org.example.data.dataparsing.parsePackages
 import org.example.data.dataparsing.parseRoutes
 import org.example.data.dataparsing.parseWarehouse
 import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.model.Package
+import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy
 import org.example.domain.pricing.ExpressStrategy
 import org.example.domain.pricing.FragileStrategy
@@ -16,6 +20,28 @@ import org.example.sorting.sortCargoQueueByWeightDescending
 fun main() {
     println("=== Cyber Hive ===")
 
+    // 1. Load Data
+    val (warehouseRaw, packageRaw, vehicleRaw, routeRaw) = loadRawData()
+
+    if (warehouseRaw.isEmpty()) {
+        println("ERROR: No warehouses found. Cannot build the domain graph.")
+        return
+    }
+    // 2. Build Graph
+    val connectedWarehouses = buildDomainGraph(warehouseRaw, packageRaw, vehicleRaw, routeRaw)
+    // 3. Test Pricing
+    testPricing(connectedWarehouses)
+
+    // 4. Test Sorting
+    testSorting(connectedWarehouses)
+
+    // 5. Verify Graph
+    verifyGraph(connectedWarehouses)
+}
+
+// ==================== Helper Functions ====================
+
+private fun loadRawData(): List<List<*>> {
     val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
     val packageRaw = parsePackages()
     val vehicleRaw = parseFleet()
@@ -27,23 +53,29 @@ fun main() {
     println("Vehicles: ${vehicleRaw.size}")
     println("Routes: ${routeRaw.size}")
 
-    if (warehouseRaw.isEmpty()) {
-        println("ERROR: No warehouses found. Cannot build the domain graph.")
-        return
-    }
+    return listOf(warehouseRaw, packageRaw, vehicleRaw, routeRaw)
+}
 
+private fun buildDomainGraph(
+    warehouseRaw: List<*>,
+    packageRaw: List<*>,
+    vehicleRaw: List<*>,
+    routeRaw: List<*>
+): List<Warehouse> {
     println("\n=== Building Domain Graph ===")
     val builder = DomainGraphBuilder()
     val connectedWarehouses = builder.buildConnectedDomainGraph(
-        rawWarehouse = warehouseRaw,
-        rawPackage = packageRaw,
-        rawVehicle = vehicleRaw,
-        rawRoute = routeRaw
+        rawWarehouse = warehouseRaw as List<WareHouseRaw>,
+        rawPackage = packageRaw as List<PackageRaw>,
+        rawVehicle = vehicleRaw as List<VehicleRaw>,
+        rawRoute = routeRaw as List<RouteRaw>
     )
-
     println("Connected hubs: ${connectedWarehouses.size}")
+    return connectedWarehouses
+}
 
-    println("\n===  Strategy Pattern Pricing ===")
+private fun testPricing(connectedWarehouses: List<Warehouse>) {
+    println("\n=== Strategy Pattern Pricing ===")
 
     val sampleHub = connectedWarehouses.firstOrNull()
     val samplePackage = sampleHub?.getCargoQueue()?.firstOrNull()
@@ -61,8 +93,10 @@ fun main() {
     } else {
         println("No package or route available to test pricing.")
     }
+}
 
-    println("\n===  Manual Quicksort (Descending by Weight) ===")
+private fun testSorting(connectedWarehouses: List<Warehouse>) {
+    println("\n=== Manual Quicksort (Descending by Weight) ===")
 
     if (connectedWarehouses.isNotEmpty()) {
         val firstHub = connectedWarehouses.first()
@@ -84,7 +118,9 @@ fun main() {
             println("First hub has no packages to sort.")
         }
     }
+}
 
+private fun verifyGraph(connectedWarehouses: List<Warehouse>) {
     println("\n=== Quick Verification ===")
     val firstHub = connectedWarehouses.firstOrNull()
     if (firstHub != null) {
