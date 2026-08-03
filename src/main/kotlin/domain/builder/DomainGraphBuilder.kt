@@ -18,10 +18,9 @@ class DomainGraphBuilder {
         rawRoute: List<RouteRaw>
     ): List<Warehouse> {
         val warehouses = rawWarehouse.map {
-            Warehouse(it.id.trim().uppercase(), it.name, it.regionalZone)
+            Warehouse(it.id.trim().uppercase(), it.name, it.regionalZone, it.latitude, it.longitude)
         }
         val warehouseByIdLookup = warehouses.associateBy { it.id }
-
         val packageEntities = constructPackagesFromRaw(
             rawPackage,
             warehouseByIdLookup
