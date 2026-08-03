@@ -1,8 +1,8 @@
 package org.example.domain.builder
 
-import org.example.data.dataholder.FleetRaw
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RouteRaw
+import org.example.data.dataholder.VehicleRaw
 import org.example.data.dataholder.WareHouseRaw
 import org.example.domain.model.Package
 import org.example.domain.model.Route
@@ -12,26 +12,26 @@ import org.example.domain.model.Warehouse
 class DomainGraphBuilder {
 
     fun buildConnectedDomainGraph(
-        rawWarehouseDtos: List<WareHouseRaw>,
-        rawPackageDtos: List<PackageRaw>,
-        rawFleetDtos: List<FleetRaw>,
-        rawRouteDtos: List<RouteRaw>
+        rawWarehouse: List<WareHouseRaw>,
+        rawPackage: List<PackageRaw>,
+        rawVehicle: List<VehicleRaw>,
+        rawRoute: List<RouteRaw>
     ): List<Warehouse> {
-        val warehouses = rawWarehouseDtos.map {
+        val warehouses = rawWarehouse.map {
             Warehouse(it.id.trim().uppercase(), it.name, it.regionalZone)
         }
         val warehouseByIdLookup = warehouses.associateBy { it.id }
 
         val packageEntities = constructPackagesFromRaw(
-            rawPackageDtos,
+            rawPackage,
             warehouseByIdLookup
         )
         val vehicleEntities = constructVehiclesFromRaw(
-            rawFleetDtos,
+            rawVehicle,
             warehouseByIdLookup
         )
         val routeEntities = constructRoutesFromRaw(
-            rawRouteDtos,
+            rawRoute,
             warehouseByIdLookup
         )
 
@@ -72,14 +72,14 @@ class DomainGraphBuilder {
                 id = rawPackageDto.id,
                 weight = rawPackageDto.weight,
                 priority = rawPackageDto.priority,
-                origin = originWarehouse,
-                destination = destinationWarehouse
+                originWarehouse = originWarehouse,
+                destinationWarehouse = destinationWarehouse
             )
         }
     }
 
     private fun constructVehiclesFromRaw(
-        rawVehicles: List<FleetRaw>,
+        rawVehicles: List<VehicleRaw>,
         warehouseLookup: Map<String, Warehouse>
     ): List<Vehicle> {
         return rawVehicles.mapNotNull { rawVehicleDto ->
@@ -87,14 +87,14 @@ class DomainGraphBuilder {
                 warehouseLookup[rawVehicleDto.currentHubId]
             if (currentHubWarehouse == null) {
                 println(
-                    "Warning: Skipping vehicle ${rawVehicleDto.vehicleId} - " +
+                    "Warning: Skipping vehicle ${rawVehicleDto.id} - " +
                             "Hub '${rawVehicleDto.currentHubId}' not found"
                 )
                 return@mapNotNull null
             }
 
             Vehicle(
-                vehicleId = rawVehicleDto.vehicleId,
+                id = rawVehicleDto.id,
                 maxCapacityKg = rawVehicleDto.maxCapacityKg,
                 costPerKm = rawVehicleDto.costPerKm,
                 currentHub = currentHubWarehouse
@@ -127,11 +127,11 @@ class DomainGraphBuilder {
             }
 
             Route(
-                routeId = rawRouteDto.id,
+                id = rawRouteDto.id,
                 distanceKm = rawRouteDto.distanceKm,
                 typicalDelayMin = rawRouteDto.typicalDelayMin,
-                origin = originWarehouse,
-                destination = destinationWarehouse
+                originWarehouse = originWarehouse,
+                destinationWarehouse = destinationWarehouse
             )
         }
     }
@@ -141,8 +141,8 @@ class DomainGraphBuilder {
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.forEach { it.origin.addPackage(it) }
+        packages.forEach { it.originWarehouse.addPackage(it) }
         vehicles.forEach { it.currentHub.addVehicle(it) }
-        routes.forEach { it.origin.addRoute(it) }
+        routes.forEach { it.originWarehouse.addRoute(it) }
     }
 }
