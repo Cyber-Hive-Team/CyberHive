@@ -1,7 +1,7 @@
 package org.example.data.dataholder
 
-data class FleetRaw(
-    val vehicleId: String,
+data class VehicleRaw(
+    val id: String,
     val currentHubId: String,
     val maxCapacityKg: Double,
     val costPerKm: Double

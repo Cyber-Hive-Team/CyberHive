@@ -1,6 +1,6 @@
 package org.example.data.dataparsing
 
-import org.example.data.dataholder.FleetRaw
+import org.example.data.dataholder.VehicleRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
@@ -14,7 +14,7 @@ fun readFleetLines(): List<String> {
     return fleetFilePath.readLines()
 }
 
-fun parseFleet(): List<FleetRaw> {
+fun parseFleet(): List<VehicleRaw> {
     val fleetLines = readFleetLines()
     val firstDataLineIndex = 1
 
@@ -26,7 +26,7 @@ fun parseFleet(): List<FleetRaw> {
         .mapIndexedNotNull { index, line -> parseFleetRow(line, firstDataLineIndex + index + 1) }
 }
 
-private fun parseFleetRow(line: String, csvLineNumber: Int): FleetRaw? {
+private fun parseFleetRow(line: String, csvLineNumber: Int): VehicleRaw? {
     val totalExpectedColumns = 4
 
     if (line.isBlank()) {
@@ -49,7 +49,7 @@ private fun parseFleetRow(line: String, csvLineNumber: Int): FleetRaw? {
     val maxCapacityKg = cleanNumericField(columns[2])
     val costPerKm = cleanNumericField(columns[3])
 
-    return FleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm)
+    return VehicleRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm)
 }
 
 fun cleanFleetId(id: String, fieldName: String, csvLineNumber: Int): String {
