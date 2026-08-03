@@ -21,7 +21,6 @@ class DomainGraphBuilder {
             Warehouse(it.id.trim().uppercase(), it.name, it.regionalZone, it.latitude, it.longitude)
         }
         val warehouseByIdLookup = warehouses.associateBy { it.id }
-
         val packageEntities = constructPackagesFromRaw(
             rawPackage,
             warehouseByIdLookup
