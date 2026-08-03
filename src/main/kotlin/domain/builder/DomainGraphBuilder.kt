@@ -72,8 +72,8 @@ class DomainGraphBuilder {
                 id = rawPackageDto.id,
                 weight = rawPackageDto.weight,
                 priority = rawPackageDto.priority,
-                origin = originWarehouse,
-                destination = destinationWarehouse
+                originWarehouse = originWarehouse,
+                destinationWarehouse = destinationWarehouse
             )
         }
     }
@@ -141,7 +141,7 @@ class DomainGraphBuilder {
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.forEach { it.origin.addPackage(it) }
+        packages.forEach { it.originWarehouse.addPackage(it) }
         vehicles.forEach { it.currentHub.addVehicle(it) }
         routes.forEach { it.originWarehouse.addRoute(it) }
     }
