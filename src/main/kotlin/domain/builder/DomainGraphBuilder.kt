@@ -12,26 +12,26 @@ import org.example.domain.model.Warehouse
 class DomainGraphBuilder {
 
     fun buildConnectedDomainGraph(
-        rawWarehouseDtos: List<WareHouseRaw>,
-        rawPackageDtos: List<PackageRaw>,
-        rawVehicleDtos: List<VehicleRaw>,
-        rawRouteDtos: List<RouteRaw>
+        rawWarehouse: List<WareHouseRaw>,
+        rawPackage: List<PackageRaw>,
+        rawVehicle: List<VehicleRaw>,
+        rawRoute: List<RouteRaw>
     ): List<Warehouse> {
-        val warehouses = rawWarehouseDtos.map {
+        val warehouses = rawWarehouse.map {
             Warehouse(it.id.trim().uppercase(), it.name, it.regionalZone)
         }
         val warehouseByIdLookup = warehouses.associateBy { it.id }
 
         val packageEntities = constructPackagesFromRaw(
-            rawPackageDtos,
+            rawPackage,
             warehouseByIdLookup
         )
         val vehicleEntities = constructVehiclesFromRaw(
-            rawVehicleDtos,
+            rawVehicle,
             warehouseByIdLookup
         )
         val routeEntities = constructRoutesFromRaw(
-            rawRouteDtos,
+            rawRoute,
             warehouseByIdLookup
         )
 
@@ -130,8 +130,8 @@ class DomainGraphBuilder {
                 id = rawRouteDto.id,
                 distanceKm = rawRouteDto.distanceKm,
                 typicalDelayMin = rawRouteDto.typicalDelayMin,
-                origin = originWarehouse,
-                destination = destinationWarehouse
+                originWarehouse = originWarehouse,
+                destinationWarehouse = destinationWarehouse
             )
         }
     }
@@ -143,6 +143,6 @@ class DomainGraphBuilder {
     ) {
         packages.forEach { it.origin.addPackage(it) }
         vehicles.forEach { it.currentHub.addVehicle(it) }
-        routes.forEach { it.origin.addRoute(it) }
+        routes.forEach { it.originWarehouse.addRoute(it) }
     }
 }
