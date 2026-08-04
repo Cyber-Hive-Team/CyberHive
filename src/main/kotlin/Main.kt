@@ -1,5 +1,6 @@
 package org.example
 
+import domain.sorting.sortCargoQueueDescendingByWeight
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RouteRaw
 import org.example.data.dataholder.VehicleRaw
@@ -16,7 +17,6 @@ import org.example.domain.pricing.EcoStrategy
 import org.example.domain.pricing.ExpressStrategy
 import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
-import org.example.sorting.sortPackagesByPriorityThenWeight
 
 private data class RawData(
     val warehouses: List<WareHouseRaw>,
@@ -137,7 +137,7 @@ private fun testSorting(connectedWarehouses: List<Warehouse>) {
                     "(Priority: ${packageItem.priority}, " + "Weight: ${packageItem.weight}kg)"
         )
     }
-    sortPackagesByPriorityThenWeight(cargoList)
+    sortCargoQueueDescendingByWeight(cargoList)
     println("\n--- After Sorting (${firstHub.id}) ---")
     cargoList.forEachIndexed { index, packageItem ->
         println(
