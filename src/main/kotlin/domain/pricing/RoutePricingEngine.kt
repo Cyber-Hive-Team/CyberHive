@@ -9,9 +9,9 @@ class RoutePricingEngine(private var strategy: DispatchStrategy) {
         this.strategy = newStrategy
     }
 
-    fun calculatePrice(pkg: Package, route: Route): Double {
-        val transitCost = strategy.calculateTransitCost(pkg, route)
-        val priorityMultiplier = strategy.getPriorityMultiplier(pkg.priority)
+    fun calculatePrice(cargoPackage: Package, route: Route): Double {
+        val transitCost = strategy.calculateTransitCost(cargoPackage, route)
+        val priorityMultiplier = strategy.getPriorityMultiplier(cargoPackage.priority)
         return transitCost * priorityMultiplier
     }
 }

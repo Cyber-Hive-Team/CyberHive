@@ -11,8 +11,8 @@ class FragileStrategy : DispatchStrategy {
     private val safetyFee = 25.0
     private val priorityMultiplier = 1.3
 
-    override fun calculateTransitCost(pkg: Package, route: Route): Double {
-        return (pkg.weight * weightMultiplier) +
+    override fun calculateTransitCost(cargoPackage: Package, route: Route): Double {
+        return (cargoPackage.weight * weightMultiplier) +
                 (route.distanceKm * distanceMultiplier)+
                safetyFee
     }

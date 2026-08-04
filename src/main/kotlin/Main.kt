@@ -8,6 +8,7 @@ import org.example.data.dataparsing.parseFleet
 import org.example.data.dataparsing.parsePackages
 import org.example.data.dataparsing.parseRoutes
 import org.example.data.dataparsing.parseWarehouse
+import org.example.domain.builder.BuildResult
 import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.model.Package
 import org.example.domain.model.Warehouse
@@ -15,9 +16,8 @@ import org.example.domain.pricing.EcoStrategy
 import org.example.domain.pricing.ExpressStrategy
 import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
-import org.example.sorting.sortCargoQueueByWeightDescending
+import org.example.sorting.sortPackagesByPriorityThenWeight
 
-// Data class to hold all raw data with explicit types – eliminates need for casting and destructuring
 private data class RawData(
     val warehouses: List<WareHouseRaw>,
     val packages: List<PackageRaw>,
@@ -35,7 +35,15 @@ fun main() {
         return
     }
 
-    val connectedWarehouses = buildDomainGraph(rawData)
+    val buildResult = buildDomainGraph(rawData)
+
+    if (buildResult.errors.isNotEmpty()) {
+        println("ERROR: Domain graph building failed with the following errors:")
+        buildResult.errors.forEach { println("  - $it") }
+        return
+    }
+
+    val connectedWarehouses = buildResult.success
 
     testPricing(connectedWarehouses)
     testSorting(connectedWarehouses)
@@ -57,17 +65,19 @@ private fun loadRawData(): RawData {
     return RawData(warehouseRaw, packageRaw, vehicleRaw, routeRaw)
 }
 
-private fun buildDomainGraph(rawData: RawData): List<Warehouse> {
+private fun buildDomainGraph(rawData: RawData): BuildResult {
     println("\n=== Building Domain Graph ===")
     val builder = DomainGraphBuilder()
-    val connectedWarehouses = builder.buildConnectedDomainGraph(
+    val result = builder.buildConnectedDomainGraph(
         rawWarehouse = rawData.warehouses,
         rawPackage = rawData.packages,
         rawVehicle = rawData.vehicles,
         rawRoute = rawData.routes
     )
-    println("Connected hubs: ${connectedWarehouses.size}")
-    return connectedWarehouses
+    if (result.errors.isEmpty()) {
+        println("Connected hubs: ${result.success.size}")
+    }
+    return result
 }
 
 private fun testPricing(connectedWarehouses: List<Warehouse>) {
@@ -92,7 +102,7 @@ private fun testPricing(connectedWarehouses: List<Warehouse>) {
 }
 
 private fun testSorting(connectedWarehouses: List<Warehouse>) {
-    println("\n=== Manual Quicksort (Descending by Weight) ===")
+    println("\n=== Selection Sort (Priority then Weight) ===")
 
     if (connectedWarehouses.isNotEmpty()) {
         val firstHub = connectedWarehouses.first()
@@ -101,14 +111,14 @@ private fun testSorting(connectedWarehouses: List<Warehouse>) {
         if (cargoList != null && cargoList.isNotEmpty()) {
             println("\n--- Before Sorting (${firstHub.id}) ---")
             cargoList.forEachIndexed { i, pkg ->
-                println("  $i: ${pkg.id} (${pkg.weight}kg)")
+                println("  $i: ${pkg.id} (Priority: ${pkg.priority}, Weight: ${pkg.weight}kg)")
             }
 
-            sortCargoQueueByWeightDescending(cargoList)
+            sortPackagesByPriorityThenWeight(cargoList)
 
             println("\n--- After Sorting (${firstHub.id}) ---")
             cargoList.forEachIndexed { i, pkg ->
-                println("  $i: ${pkg.id} (${pkg.weight}kg)")
+                println("  $i: ${pkg.id} (Priority: ${pkg.priority}, Weight: ${pkg.weight}kg)")
             }
         } else {
             println("First hub has no packages to sort.")
