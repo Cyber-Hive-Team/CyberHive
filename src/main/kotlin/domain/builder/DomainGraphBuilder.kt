@@ -52,13 +52,19 @@ class DomainGraphBuilder {
 
             val originWarehouse = warehouseIndex[rawPackage.originHubId]
             if (originWarehouse == null) {
-                errorMessages.add("Missing origin hub '${rawPackage.originHubId}' for package '${rawPackage.id}'")
+                errorMessages.add(
+                    "Missing origin hub '${rawPackage.originHubId}' " +
+                            "for package '${rawPackage.id}'"
+                )
                 hasError = true
             }
 
             val destinationWarehouse = warehouseIndex[rawPackage.destinationHubId]
             if (destinationWarehouse == null) {
-                errorMessages.add("Missing destination hub '${rawPackage.destinationHubId}' for package '${rawPackage.id}'")
+                errorMessages.add(
+                    "Missing destination hub '${rawPackage.destinationHubId}' " +
+                            "for package '${rawPackage.id}'"
+                )
                 hasError = true
             }
 
@@ -95,7 +101,10 @@ class DomainGraphBuilder {
                     )
                 )
             } else {
-                errorMessages.add("Missing hub '${rawVehicle.currentHubId}' for vehicle '${rawVehicle.id}'")
+                errorMessages.add(
+                    "Missing hub '${rawVehicle.currentHubId}' " +
+                            "for vehicle '${rawVehicle.id}'"
+                )
             }
         }
         return vehicles
@@ -112,13 +121,19 @@ class DomainGraphBuilder {
 
             val originWarehouse = warehouseIndex[rawRoute.originHubId]
             if (originWarehouse == null) {
-                errorMessages.add("Missing origin hub '${rawRoute.originHubId}' for route '${rawRoute.id}'")
+                errorMessages.add(
+                    "Missing origin hub '${rawRoute.originHubId}' " +
+                            "for route '${rawRoute.id}'"
+                )
                 hasError = true
             }
 
             val destinationWarehouse = warehouseIndex[rawRoute.destinationHubId]
             if (destinationWarehouse == null) {
-                errorMessages.add("Missing destination hub '${rawRoute.destinationHubId}' for route '${rawRoute.id}'")
+                errorMessages.add(
+                    "Missing destination hub '${rawRoute.destinationHubId}' " +
+                            "for route '${rawRoute.id}'"
+                )
                 hasError = true
             }
 
