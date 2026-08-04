@@ -6,7 +6,7 @@ private const val START_INDEX = 0
 private const val INDEX_STEP = 1
 private const val MIDDLE_DIVISOR = 2
 
-fun sortCargoQueueByWeightDescending(cargoQueue: MutableList<Package>) {
+fun sortCargoQueueDescendingByWeight(cargoQueue: MutableList<Package>) {
     if (cargoQueue.isEmpty()) return
     val lastPackageIndex = cargoQueue.lastIndex
     quickSort(cargoQueue, START_INDEX, lastPackageIndex)
