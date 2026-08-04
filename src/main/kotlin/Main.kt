@@ -37,10 +37,13 @@ fun main() {
 
     val buildResult = buildDomainGraph(rawData)
 
-    if (buildResult.errors.isNotEmpty()) {
-        println("ERROR: Domain graph building failed with the following errors:")
-        buildResult.errors.forEach { println("  - $it") }
+    if (buildResult.success.isEmpty()) {
+        println("ERROR: No warehouses built at all. Cannot continue.")
         return
+    }
+
+    if (buildResult.errors.isNotEmpty()) {
+        println("WARNING: Domain graph built with some skipped items (${buildResult.errors.size} errors).")
     }
 
     val connectedWarehouses = buildResult.success
@@ -53,8 +56,21 @@ fun main() {
 private fun loadRawData(): RawData {
     val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
     val packageRaw = parsePackages()
+        .map {
+            it.copy(
+                originHubId = it.originHubId.uppercase(),
+                destinationHubId = it.destinationHubId.uppercase()
+            )
+        }
     val vehicleRaw = parseFleet()
+        .map { it.copy(currentHubId = it.currentHubId.uppercase()) }
     val routeRaw = parseRoutes()
+        .map {
+            it.copy(
+                originHubId = it.originHubId.uppercase(),
+                destinationHubId = it.destinationHubId.uppercase()
+            )
+        }
 
     println("=== Parsing Results ===")
     println("Warehouses: ${warehouseRaw.size}")

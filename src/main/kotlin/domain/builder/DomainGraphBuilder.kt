@@ -33,17 +33,21 @@ class DomainGraphBuilder {
         val vehicleEntities = buildVehicles(rawVehicleList, warehouseIndex, errorMessages)
         val routeEntities = buildRoutes(rawRouteList, warehouseIndex, errorMessages)
 
+        // بدل ما نوقف، نطبع تحذير ونكمل
         if (errorMessages.isNotEmpty()) {
-            return BuildResult(emptyList(), errorMessages)
+            println("WARNING: Some items were skipped because of missing hubs:")
+            errorMessages.forEach { println("  - $it") }
         }
 
         linkBidirectionalRelationships(packageEntities, vehicleEntities, routeEntities)
-        return BuildResult(warehouses, emptyList())
+        return BuildResult(warehouses, errorMessages)
     }
 
-    // ============================
-    // بناء الطرود
-    // ============================
+    private fun findWarehouse(
+        warehouseId: String,
+        warehouseIndex: Map<String, Warehouse>
+    ): Warehouse? = warehouseIndex[warehouseId.trim().uppercase()]
+
 
     private fun buildPackages(
         rawPackages: List<PackageRaw>,
@@ -65,19 +69,15 @@ class DomainGraphBuilder {
         warehouseIndex: Map<String, Warehouse>,
         errorMessages: MutableList<String>
     ): Package? {
-        val originWarehouse = warehouseIndex[rawPackage.originHubId]
+        val originWarehouse = findWarehouse(rawPackage.originHubId, warehouseIndex)
         if (originWarehouse == null) {
-            errorMessages.add(
-                "Missing origin hub '${rawPackage.originHubId}' for package '${rawPackage.id}'"
-            )
+            errorMessages.add("Missing origin hub '${rawPackage.originHubId}' for package '${rawPackage.id}'")
             return null
         }
 
-        val destinationWarehouse = warehouseIndex[rawPackage.destinationHubId]
+        val destinationWarehouse = findWarehouse(rawPackage.destinationHubId, warehouseIndex)
         if (destinationWarehouse == null) {
-            errorMessages.add(
-                "Missing destination hub '${rawPackage.destinationHubId}' for package '${rawPackage.id}'"
-            )
+            errorMessages.add("Missing destination hub '${rawPackage.destinationHubId}' for package '${rawPackage.id}'")
             return null
         }
 
@@ -110,11 +110,9 @@ class DomainGraphBuilder {
         warehouseIndex: Map<String, Warehouse>,
         errorMessages: MutableList<String>
     ): Vehicle? {
-        val hubWarehouse = warehouseIndex[rawVehicle.currentHubId]
+        val hubWarehouse = findWarehouse(rawVehicle.currentHubId, warehouseIndex)
         if (hubWarehouse == null) {
-            errorMessages.add(
-                "Missing hub '${rawVehicle.currentHubId}' for vehicle '${rawVehicle.id}'"
-            )
+            errorMessages.add("Missing hub '${rawVehicle.currentHubId}' for vehicle '${rawVehicle.id}'")
             return null
         }
 
@@ -125,7 +123,6 @@ class DomainGraphBuilder {
             currentHub = hubWarehouse
         )
     }
-
 
     private fun buildRoutes(
         rawRoutes: List<RouteRaw>,
@@ -147,19 +144,15 @@ class DomainGraphBuilder {
         warehouseIndex: Map<String, Warehouse>,
         errorMessages: MutableList<String>
     ): Route? {
-        val originWarehouse = warehouseIndex[rawRoute.originHubId]
+        val originWarehouse = findWarehouse(rawRoute.originHubId, warehouseIndex)
         if (originWarehouse == null) {
-            errorMessages.add(
-                "Missing origin hub '${rawRoute.originHubId}' for route '${rawRoute.id}'"
-            )
+            errorMessages.add("Missing origin hub '${rawRoute.originHubId}' for route '${rawRoute.id}'")
             return null
         }
 
-        val destinationWarehouse = warehouseIndex[rawRoute.destinationHubId]
+        val destinationWarehouse = findWarehouse(rawRoute.destinationHubId, warehouseIndex)
         if (destinationWarehouse == null) {
-            errorMessages.add(
-                "Missing destination hub '${rawRoute.destinationHubId}' for route '${rawRoute.id}'"
-            )
+            errorMessages.add("Missing destination hub '${rawRoute.destinationHubId}' for route '${rawRoute.id}'")
             return null
         }
 
@@ -172,20 +165,13 @@ class DomainGraphBuilder {
         )
     }
 
-
     private fun linkBidirectionalRelationships(
         packages: List<Package>,
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.forEach { packageEntity ->
-            packageEntity.originWarehouse.addPackage(packageEntity)
-        }
-        vehicles.forEach { vehicleEntity ->
-            vehicleEntity.currentHub.addVehicle(vehicleEntity)
-        }
-        routes.forEach { routeEntity ->
-            routeEntity.originWarehouse.addRoute(routeEntity)
-        }
+        packages.forEach { pkg -> pkg.originWarehouse.addPackage(pkg) }
+        vehicles.forEach { vehicle -> vehicle.currentHub.addVehicle(vehicle) }
+        routes.forEach { route -> route.originWarehouse.addRoute(route) }
     }
 }
