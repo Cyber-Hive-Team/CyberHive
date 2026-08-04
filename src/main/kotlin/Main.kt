@@ -104,9 +104,7 @@ private fun testPricing(connectedWarehouses: List<Warehouse>) {
         engine.setStrategy(ExpressStrategy())
         println(
             "ExpressStrategy price: $${
-                engine.calculatePrice(
-                    samplePackage, sampleRoute
-                )
+                engine.calculatePrice(samplePackage, sampleRoute)
             }"
         )
         engine.setStrategy(FragileStrategy())
