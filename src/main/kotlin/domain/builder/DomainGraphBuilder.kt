@@ -12,44 +12,32 @@ import org.example.domain.model.Warehouse
 class DomainGraphBuilder {
 
     fun buildConnectedDomainGraph(
-        rawWarehouseList: List<WareHouseRaw>,
-        rawPackageList: List<PackageRaw>,
-        rawVehicleList: List<VehicleRaw>,
-        rawRouteList: List<RouteRaw>
+        rawWarehouseList: List<WareHouseRaw>, rawPackageList: List<PackageRaw>,
+        rawVehicleList: List<VehicleRaw>, rawRouteList: List<RouteRaw>
     ): BuildResult {
         val warehouses = createWarehouses(rawWarehouseList)
-
         val warehouseIndex =
             warehouses.associateBy { warehouse ->
                 warehouse.id
             }
-
         val warningMessages = mutableListOf<String>()
-
         val packageEntities = buildPackages(
             rawPackages = rawPackageList,
-            warehouseIndex = warehouseIndex,
-            warningMessages = warningMessages
+            warehouseIndex = warehouseIndex, warningMessages = warningMessages
         )
-
         val vehicleEntities = buildVehicles(
             rawVehicles = rawVehicleList,
-            warehouseIndex = warehouseIndex,
-            warningMessages = warningMessages
+            warehouseIndex = warehouseIndex, warningMessages = warningMessages
         )
-
         val routeEntities = buildRoutes(
             rawRoutes = rawRouteList,
-            warehouseIndex = warehouseIndex,
-            warningMessages = warningMessages
+            warehouseIndex = warehouseIndex, warningMessages = warningMessages
         )
-
         linkBidirectionalRelationships(
             packages = packageEntities,
             vehicles = vehicleEntities,
             routes = routeEntities
         )
-
         return BuildResult(
             success = warehouses,
             warnings = warningMessages
