@@ -98,9 +98,7 @@ private fun testPricing(connectedWarehouses: List<Warehouse>) {
         val engine = RoutePricingEngine(EcoStrategy())
         println(
             "EcoStrategy price: $${
-                engine.calculatePrice(
-                    samplePackage, sampleRoute
-                )
+                engine.calculatePrice(samplePackage, sampleRoute)
             }"
         )
         engine.setStrategy(ExpressStrategy())
@@ -114,9 +112,7 @@ private fun testPricing(connectedWarehouses: List<Warehouse>) {
         engine.setStrategy(FragileStrategy())
         println(
             "FragileStrategy price: $${
-                engine.calculatePrice(
-                    samplePackage, sampleRoute
-                )
+                engine.calculatePrice(samplePackage, sampleRoute)
             }"
         )
     } else {
