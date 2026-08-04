@@ -385,7 +385,7 @@ CyberHive/
 │       │   │   ├── dataHolder/
 │       │   │   └── dataParsing/
 │       │   │
-│       │   ├── sorting/
+│       │   ├── domain.sorting/
 │       │   └── Main.kt
 │       │
 │       └── resources/

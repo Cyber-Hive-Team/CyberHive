@@ -1,6 +1,7 @@
 package org.example.domain.model
 
-import org.example.sorting.sortCargoQueueByWeightDescending
+import domain.sorting.sortCargoQueueByWeightDescending
+import org.example.sorting.sortPackagesByPriorityThenWeight
 
 class Warehouse(
     val id: String,
@@ -38,5 +39,9 @@ class Warehouse(
     }
     fun sortCargoQueue() {
         sortCargoQueueByWeightDescending(cargoQueue)
+    }
+
+    fun sortCargoByPriorityThenWeight() {
+        sortPackagesByPriorityThenWeight(cargoQueue)
     }
 }

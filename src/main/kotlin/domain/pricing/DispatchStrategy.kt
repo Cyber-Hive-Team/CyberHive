@@ -5,6 +5,6 @@ import org.example.domain.model.Priority
 import org.example.domain.model.Route
 
 interface DispatchStrategy {
-    fun calculateTransitCost(pkg: Package, route: Route): Double
+    fun calculateTransitCost(cargoPackage: Package, route: Route): Double
     fun getPriorityMultiplier(priority: Priority): Double
 }
