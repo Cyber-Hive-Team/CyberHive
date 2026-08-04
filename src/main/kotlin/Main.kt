@@ -69,10 +69,10 @@ private fun buildDomainGraph(rawData: RawData): BuildResult {
     println("\n=== Building Domain Graph ===")
     val builder = DomainGraphBuilder()
     val result = builder.buildConnectedDomainGraph(
-        rawWarehouse = rawData.warehouses,
-        rawPackage = rawData.packages,
-        rawVehicle = rawData.vehicles,
-        rawRoute = rawData.routes
+        rawWarehouseList = rawData.warehouses,
+        rawPackageList = rawData.packages,
+        rawVehicleList = rawData.vehicles,
+        rawRouteList = rawData.routes
     )
     if (result.errors.isEmpty()) {
         println("Connected hubs: ${result.success.size}")
