@@ -12,72 +12,98 @@ import org.example.domain.model.Warehouse
 class DomainGraphBuilder {
 
     fun buildConnectedDomainGraph(
-        rawWarehouseList: List<WareHouseRaw>,
-        rawPackageList: List<PackageRaw>,
-        rawVehicleList: List<VehicleRaw>,
-        rawRouteList: List<RouteRaw>
+        rawWarehouseList: List<WareHouseRaw>, rawPackageList: List<PackageRaw>,
+        rawVehicleList: List<VehicleRaw>, rawRouteList: List<RouteRaw>
     ): BuildResult {
-        val warehouses = rawWarehouseList.map {
-            Warehouse(
-                id = it.id.trim().uppercase(),
-                name = it.name,
-                regionalZone = it.regionalZone,
-                latitude = it.latitude,
-                longitude = it.longitude
-            )
-        }
-        val warehouseIndex = warehouses.associateBy { it.id }
-        val errorMessages = mutableListOf<String>()
-
-        val packageEntities = buildPackages(rawPackageList, warehouseIndex, errorMessages)
-        val vehicleEntities = buildVehicles(rawVehicleList, warehouseIndex, errorMessages)
-        val routeEntities = buildRoutes(rawRouteList, warehouseIndex, errorMessages)
-
-        // بدل ما نوقف، نطبع تحذير ونكمل
-        if (errorMessages.isNotEmpty()) {
-            println("WARNING: Some items were skipped because of missing hubs:")
-            errorMessages.forEach { println("  - $it") }
-        }
-
-        linkBidirectionalRelationships(packageEntities, vehicleEntities, routeEntities)
-        return BuildResult(warehouses, errorMessages)
+        val warehouses = createWarehouses(rawWarehouseList)
+        val warehouseIndex =
+            warehouses.associateBy { warehouse ->
+                warehouse.id
+            }
+        val warningMessages = mutableListOf<String>()
+        val packageEntities = buildPackages(
+            rawPackages = rawPackageList,
+            warehouseIndex = warehouseIndex, warningMessages = warningMessages
+        )
+        val vehicleEntities = buildVehicles(
+            rawVehicles = rawVehicleList,
+            warehouseIndex = warehouseIndex, warningMessages = warningMessages
+        )
+        val routeEntities = buildRoutes(
+            rawRoutes = rawRouteList,
+            warehouseIndex = warehouseIndex, warningMessages = warningMessages
+        )
+        linkBidirectionalRelationships(
+            packages = packageEntities,
+            vehicles = vehicleEntities,
+            routes = routeEntities
+        )
+        return BuildResult(
+            success = warehouses,
+            warnings = warningMessages
+        )
     }
 
-    private fun findWarehouse(
-        warehouseId: String,
-        warehouseIndex: Map<String, Warehouse>
-    ): Warehouse? = warehouseIndex[warehouseId.trim().uppercase()]
-
+    private fun createWarehouses(
+        rawWarehouses: List<WareHouseRaw>
+    ): List<Warehouse> {
+        return rawWarehouses.map { rawWarehouse ->
+            Warehouse(
+                id = normalizeId(rawWarehouse.id),
+                name = rawWarehouse.name,
+                regionalZone = rawWarehouse.regionalZone,
+                latitude = rawWarehouse.latitude,
+                longitude = rawWarehouse.longitude
+            )
+        }
+    }
 
     private fun buildPackages(
         rawPackages: List<PackageRaw>,
         warehouseIndex: Map<String, Warehouse>,
-        errorMessages: MutableList<String>
+        warningMessages: MutableList<String>
     ): List<Package> {
         val packages = mutableListOf<Package>()
+
         for (rawPackage in rawPackages) {
-            val built = buildSinglePackage(rawPackage, warehouseIndex, errorMessages)
-            if (built != null) {
-                packages.add(built)
+            val builtPackage = buildSinglePackage(
+                rawPackage = rawPackage,
+                warehouseIndex = warehouseIndex,
+                warningMessages = warningMessages
+            )
+
+            if (builtPackage != null) {
+                packages.add(builtPackage)
             }
         }
+
         return packages
     }
 
     private fun buildSinglePackage(
         rawPackage: PackageRaw,
         warehouseIndex: Map<String, Warehouse>,
-        errorMessages: MutableList<String>
+        warningMessages: MutableList<String>
     ): Package? {
-        val originWarehouse = findWarehouse(rawPackage.originHubId, warehouseIndex)
+        val originWarehouse =
+            warehouseIndex[normalizeId(rawPackage.originHubId)]
+
         if (originWarehouse == null) {
-            errorMessages.add("Missing origin hub '${rawPackage.originHubId}' for package '${rawPackage.id}'")
+            warningMessages.add(
+                "Missing origin hub '${rawPackage.originHubId}' " +
+                        "for package '${rawPackage.id}'"
+            )
             return null
         }
 
-        val destinationWarehouse = findWarehouse(rawPackage.destinationHubId, warehouseIndex)
+        val destinationWarehouse =
+            warehouseIndex[normalizeId(rawPackage.destinationHubId)]
+
         if (destinationWarehouse == null) {
-            errorMessages.add("Missing destination hub '${rawPackage.destinationHubId}' for package '${rawPackage.id}'")
+            warningMessages.add(
+                "Missing destination hub '${rawPackage.destinationHubId}' " +
+                        "for package '${rawPackage.id}'"
+            )
             return null
         }
 
@@ -93,26 +119,38 @@ class DomainGraphBuilder {
     private fun buildVehicles(
         rawVehicles: List<VehicleRaw>,
         warehouseIndex: Map<String, Warehouse>,
-        errorMessages: MutableList<String>
+        warningMessages: MutableList<String>
     ): List<Vehicle> {
         val vehicles = mutableListOf<Vehicle>()
+
         for (rawVehicle in rawVehicles) {
-            val built = buildSingleVehicle(rawVehicle, warehouseIndex, errorMessages)
-            if (built != null) {
-                vehicles.add(built)
+            val builtVehicle = buildSingleVehicle(
+                rawVehicle = rawVehicle,
+                warehouseIndex = warehouseIndex,
+                warningMessages = warningMessages
+            )
+
+            if (builtVehicle != null) {
+                vehicles.add(builtVehicle)
             }
         }
+
         return vehicles
     }
 
     private fun buildSingleVehicle(
         rawVehicle: VehicleRaw,
         warehouseIndex: Map<String, Warehouse>,
-        errorMessages: MutableList<String>
+        warningMessages: MutableList<String>
     ): Vehicle? {
-        val hubWarehouse = findWarehouse(rawVehicle.currentHubId, warehouseIndex)
-        if (hubWarehouse == null) {
-            errorMessages.add("Missing hub '${rawVehicle.currentHubId}' for vehicle '${rawVehicle.id}'")
+        val currentWarehouse =
+            warehouseIndex[normalizeId(rawVehicle.currentHubId)]
+
+        if (currentWarehouse == null) {
+            warningMessages.add(
+                "Missing hub '${rawVehicle.currentHubId}' " +
+                        "for vehicle '${rawVehicle.id}'"
+            )
             return null
         }
 
@@ -120,39 +158,56 @@ class DomainGraphBuilder {
             id = rawVehicle.id,
             maxCapacityKg = rawVehicle.maxCapacityKg,
             costPerKm = rawVehicle.costPerKm,
-            currentHub = hubWarehouse
+            currentHub = currentWarehouse
         )
     }
 
     private fun buildRoutes(
         rawRoutes: List<RouteRaw>,
         warehouseIndex: Map<String, Warehouse>,
-        errorMessages: MutableList<String>
+        warningMessages: MutableList<String>
     ): List<Route> {
         val routes = mutableListOf<Route>()
+
         for (rawRoute in rawRoutes) {
-            val built = buildSingleRoute(rawRoute, warehouseIndex, errorMessages)
-            if (built != null) {
-                routes.add(built)
+            val builtRoute = buildSingleRoute(
+                rawRoute = rawRoute,
+                warehouseIndex = warehouseIndex,
+                warningMessages = warningMessages
+            )
+
+            if (builtRoute != null) {
+                routes.add(builtRoute)
             }
         }
+
         return routes
     }
 
     private fun buildSingleRoute(
         rawRoute: RouteRaw,
         warehouseIndex: Map<String, Warehouse>,
-        errorMessages: MutableList<String>
+        warningMessages: MutableList<String>
     ): Route? {
-        val originWarehouse = findWarehouse(rawRoute.originHubId, warehouseIndex)
+        val originWarehouse =
+            warehouseIndex[normalizeId(rawRoute.originHubId)]
+
         if (originWarehouse == null) {
-            errorMessages.add("Missing origin hub '${rawRoute.originHubId}' for route '${rawRoute.id}'")
+            warningMessages.add(
+                "Missing origin hub '${rawRoute.originHubId}' " +
+                        "for route '${rawRoute.id}'"
+            )
             return null
         }
 
-        val destinationWarehouse = findWarehouse(rawRoute.destinationHubId, warehouseIndex)
+        val destinationWarehouse =
+            warehouseIndex[normalizeId(rawRoute.destinationHubId)]
+
         if (destinationWarehouse == null) {
-            errorMessages.add("Missing destination hub '${rawRoute.destinationHubId}' for route '${rawRoute.id}'")
+            warningMessages.add(
+                "Missing destination hub '${rawRoute.destinationHubId}' " +
+                        "for route '${rawRoute.id}'"
+            )
             return null
         }
 
@@ -170,8 +225,20 @@ class DomainGraphBuilder {
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.forEach { pkg -> pkg.originWarehouse.addPackage(pkg) }
-        vehicles.forEach { vehicle -> vehicle.currentHub.addVehicle(vehicle) }
-        routes.forEach { route -> route.originWarehouse.addRoute(route) }
+        packages.forEach { packageEntity ->
+            packageEntity.originWarehouse.addPackage(packageEntity)
+        }
+
+        vehicles.forEach { vehicleEntity ->
+            vehicleEntity.currentHub.addVehicle(vehicleEntity)
+        }
+
+        routes.forEach { routeEntity ->
+            routeEntity.originWarehouse.addRoute(routeEntity)
+        }
+    }
+
+    private fun normalizeId(id: String): String {
+        return id.trim().uppercase()
     }
 }
