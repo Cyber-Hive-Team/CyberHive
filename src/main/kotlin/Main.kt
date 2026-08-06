@@ -179,12 +179,10 @@ private fun runVehicleRoutingTest(packages: List<Package>, vehicles: List<Vehicl
         }
     printVehiclePackageAllocation(
         title = "=== Package allocation before failure ===",
-        allocation = beforeFailure,
-        vehiclesBySlot = routingService.getVehiclesBySlot()
+        allocation = beforeFailure, vehiclesBySlot = routingService.getVehiclesBySlot()
     )
     val afterFailure = routingService.handleVehicleFailure(
-        currentAllocation = beforeFailure,
-        failedVehicleId = failedVehicle.id,
+        currentAllocation = beforeFailure, failedVehicleId = failedVehicle.id,
             failedVehicleSlot = failedVehicleSlot
         )
     printVehiclePackageAllocation(
@@ -193,12 +191,10 @@ private fun runVehicleRoutingTest(packages: List<Package>, vehicles: List<Vehicl
         vehiclesBySlot = routingService.getVehiclesBySlot()
     )
     printRoutingValidationReport(
-        beforeFailure = beforeFailure,
-        afterFailure = afterFailure,
+        beforeFailure = beforeFailure, afterFailure = afterFailure,
         failedVehicleId = failedVehicle.id
     )
 }
-
 private fun printVehiclePackageAllocation(
     title: String,
     allocation: Map<Vehicle, List<Package>>,
