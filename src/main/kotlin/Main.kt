@@ -133,14 +133,17 @@ private fun testSorting(
         println("No hub available for sorting.")
         return
     }
-    val cargoBeforeSorting = firstHub.getCargoQueue()
-    if (cargoBeforeSorting.isEmpty()) {
-        println("First hub has no packages to sort.")
-        return
-    }
     println("\n--- Before Sorting (${firstHub.id}) ---")
-    printPackages(cargoBeforeSorting)
-    firstHub.sortCargoQueue()
+    printPackages(firstHub.getCargoQueue())
+
+    for (warehouse in connectedWarehouses) {
+        val cargoBeforeSorting = warehouse.getCargoQueue()
+        if (cargoBeforeSorting.isEmpty()) {
+            println("\nWarehouse ${warehouse.id} has no packages to sort.")
+            continue
+        }
+        warehouse.sortCargoQueue()
+    }
     println("\n--- After Sorting (${firstHub.id}) ---")
     printPackages(firstHub.getCargoQueue())
 }
