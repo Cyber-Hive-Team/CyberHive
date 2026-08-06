@@ -12,11 +12,14 @@ import org.example.data.dataparsing.parseWarehouse
 import org.example.domain.builder.BuildResult
 import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.model.Package
+import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy
 import org.example.domain.pricing.ExpressStrategy
 import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
+import org.example.domain.routing.report.RoutingValidationReporter
+import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
 
 private data class RawData(
     val warehouses: List<WareHouseRaw>,
@@ -27,31 +30,35 @@ private data class RawData(
 
 fun main() {
     println("=== Cyber Hive ===")
-
     val rawData = loadRawData()
-
     if (rawData.warehouses.isEmpty()) {
         println("ERROR: No warehouses found. Cannot build the domain graph.")
         return
     }
     val buildResult = buildDomainGraph(rawData)
-
     if (buildResult.success.isEmpty()) {
         println("ERROR: Domain graph building failed.")
         return
     }
     if (buildResult.warnings.isNotEmpty()) {
         println("WARNING: Some invalid records were skipped:")
-
-        buildResult.warnings.forEach { warning ->
-            println("  - $warning")
-        }
+        buildResult.warnings.forEach { warning -> println("  - $warning") }
     }
     val connectedWarehouses = buildResult.success
     testPricing(connectedWarehouses)
     testSorting(connectedWarehouses)
     verifyGraph(connectedWarehouses)
+
+    val warehouse = connectedWarehouses.firstOrNull { it.getStationedVehicles().size >= 4 }
+    if (warehouse == null) {
+        println("Cannot test routing: no warehouse has 4 vehicles.")
+        return
+    }
+    val vehicles = warehouse.getStationedVehicles()
+    val packages = warehouse.getCargoQueue()
+    runVehicleRoutingTest(packages = packages, vehicles = vehicles)
 }
+
 
 private fun loadRawData(): RawData {
     val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
@@ -158,4 +165,105 @@ private fun verifyGraph(connectedWarehouses: List<Warehouse>) {
     println("  Packages: ${firstHub.getCargoQueue().size}")
     println("  Vehicles: ${firstHub.getStationedVehicles().size}")
     println("  Routes: ${firstHub.getOutgoingRoutes().size}")
+}
+private fun runVehicleRoutingTest(
+    packages: List<Package>,
+    vehicles: List<Vehicle>
+) {
+    val failedVehicleSlot = 40
+
+    val routingService =
+        ConsistentHashVehicleRoutingService()
+
+    val allocationBeforeFailure =
+        routingService.assignPackagesToVehicles(
+            packages = packages,
+            vehicles = vehicles
+        )
+
+    val failedVehicle =
+        routingService
+            .getVehiclesBySlot()[failedVehicleSlot]
+
+    if (failedVehicle == null) {
+        println(
+            "No vehicle found at slot $failedVehicleSlot."
+        )
+        return
+    }
+
+    val failedVehicleId =
+        failedVehicle.id
+
+    val vehiclesBySlotBeforeFailure =
+        routingService.getVehiclesBySlot()
+
+    println()
+    println("=== Package allocation before failure ===")
+
+    printVehiclePackageAllocation(
+        allocation = allocationBeforeFailure,
+        vehiclesBySlot = vehiclesBySlotBeforeFailure
+    )
+
+    val allocationAfterFailure =
+        routingService.handleVehicleFailure(
+            currentAllocation = allocationBeforeFailure,
+            failedVehicleId = failedVehicleId,
+            failedVehicleSlot = failedVehicleSlot
+        )
+
+    val vehiclesBySlotAfterFailure =
+        routingService.getVehiclesBySlot()
+
+    println()
+    println("=== Vehicle failure ===")
+    println(
+        "Vehicle $failedVehicleId at slot " +
+                "$failedVehicleSlot broke down."
+    )
+
+    println()
+    println("=== Package allocation after failure ===")
+
+    printVehiclePackageAllocation(
+        allocation = allocationAfterFailure,
+        vehiclesBySlot = vehiclesBySlotAfterFailure
+    )
+
+    printRoutingValidationReport(
+        beforeFailure = allocationBeforeFailure,
+        afterFailure = allocationAfterFailure,
+        failedVehicleId = failedVehicleId
+    )
+}
+
+private fun printVehiclePackageAllocation(
+    allocation: Map<Vehicle, List<Package>>,
+    vehiclesBySlot: Map<Int, Vehicle>
+) {
+    vehiclesBySlot.toSortedMap().forEach { (slot, vehicle) ->
+        val packages = allocation[vehicle].orEmpty()
+        val packageIds = packages.joinToString { it.id }
+
+        println("Slot $slot -> ${vehicle.id} -> [$packageIds]")
+    }
+}
+
+private fun printRoutingValidationReport(
+    beforeFailure: Map<Vehicle, List<Package>>,
+    afterFailure: Map<Vehicle, List<Package>>,
+    failedVehicleId: String
+) {
+    val reporter = RoutingValidationReporter()
+    val report = reporter.createReport(
+        before = beforeFailure,
+        after = afterFailure,
+        failedVehicleId = failedVehicleId
+    )
+    println("=== Routing validation report ===")
+    report.messages.forEach { message -> println(message) }
+    println("Stable packages: ${report.stablePackageCount}")
+    println("Rerouted packages: ${report.reroutedPackageCount}")
+    println("All validations passed: ${report.allPassed}")
 }
