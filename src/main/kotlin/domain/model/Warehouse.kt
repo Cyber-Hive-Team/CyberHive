@@ -14,16 +14,16 @@ class Warehouse(
     private val outgoingRoutes = mutableListOf<Route>()
     private val stationedVehicles = mutableListOf<Vehicle>()
 
-    fun addPackage(packageItem: Package) {
-        cargoQueue.add(packageItem)
+    fun addPackages(packages: List<Package>) {
+        cargoQueue.addAll(packages)
     }
 
-    fun addRoute(route: Route) {
-        outgoingRoutes.add(route)
+    fun addRoutes(routes: List<Route>) {
+        outgoingRoutes.addAll(routes)
     }
 
-    fun addVehicle(vehicle: Vehicle) {
-        stationedVehicles.add(vehicle)
+    fun addVehicles(vehicles: List<Vehicle>) {
+        stationedVehicles.addAll(vehicles)
     }
 
     fun getCargoQueue(): List<Package> {
