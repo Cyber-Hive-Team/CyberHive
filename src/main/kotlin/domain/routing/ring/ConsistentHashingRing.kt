@@ -1,5 +1,4 @@
 package org.example.domain.routing.ring
-
 import org.example.domain.model.Vehicle
 
 class ConsistentHashingRing {
@@ -31,6 +30,5 @@ class ConsistentHashingRing {
         }
         return null
     }
-
-    fun getVehiclesBySlot(): Map<Int, Vehicle> = vehiclesBySlot
+    fun getVehiclesBySlot(): Map<Int, Vehicle> = vehiclesBySlot.toMap()
 }
