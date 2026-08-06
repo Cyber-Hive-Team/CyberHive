@@ -225,17 +225,23 @@ class DomainGraphBuilder {
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.forEach { packageEntity ->
-            packageEntity.originWarehouse.addPackage(packageEntity)
-        }
+        packages
+            .groupBy { it.originWarehouse }
+            .forEach { (warehouse, groupedPackages) ->
+                warehouse.addPackages(groupedPackages)
+            }
 
-        vehicles.forEach { vehicleEntity ->
-            vehicleEntity.currentHub.addVehicle(vehicleEntity)
-        }
+        vehicles
+            .groupBy { it.currentHub }
+            .forEach { (warehouse, groupedVehicles) ->
+                warehouse.addVehicles(groupedVehicles)
+            }
 
-        routes.forEach { routeEntity ->
-            routeEntity.originWarehouse.addRoute(routeEntity)
-        }
+        routes
+            .groupBy { it.originWarehouse }
+            .forEach { (warehouse, groupedRoutes) ->
+                warehouse.addRoutes(groupedRoutes)
+            }
     }
 
     private fun normalizeId(id: String): String {
