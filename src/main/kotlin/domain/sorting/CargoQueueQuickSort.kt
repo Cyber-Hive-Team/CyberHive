@@ -15,8 +15,8 @@ fun sortCargoQueueDescendingByWeight(cargoQueue: MutableList<Package>) {
 private fun quickSort(cargoQueue: MutableList<Package>, lowIndex: Int, highIndex: Int) {
     if (lowIndex >= highIndex) return
     val pivotIndex = medianOfThree(cargoQueue, lowIndex, highIndex)
-    cargoQueue[pivotIndex] = cargoQueue[highIndex].also { cargoQueue[highIndex] = cargoQueue[pivotIndex] }
-    val equalWeightRange = partition(cargoQueue, lowIndex, highIndex)
+    val pivotWeight = cargoQueue[pivotIndex].weight
+    val equalWeightRange = partition(cargoQueue, lowIndex, highIndex, pivotWeight)
     val indexBeforeEqualWeight = equalWeightRange.first - INDEX_STEP
     val indexAfterEqualWeight = equalWeightRange.last + INDEX_STEP
     quickSort(cargoQueue, lowIndex, indexBeforeEqualWeight)
@@ -39,8 +39,9 @@ private fun medianOfThree(cargoQueue: MutableList<Package>, lowIndex: Int, highI
     }
 }
 
-private fun partition(cargoQueue: MutableList<Package>, lowIndex: Int, highIndex: Int): IntRange {
-    val pivotWeight = cargoQueue[highIndex].weight
+private fun partition(
+    cargoQueue: MutableList<Package>, lowIndex: Int, highIndex: Int, pivotWeight: Double
+): IntRange {
     var nextHeavierPackageIndex = lowIndex
     for (currentIndex in lowIndex..highIndex) {
         val currentPackage = cargoQueue[currentIndex]
