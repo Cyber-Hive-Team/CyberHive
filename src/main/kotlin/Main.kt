@@ -1,6 +1,5 @@
 package org.example
 
-import domain.sorting.sortCargoQueueDescendingByWeight
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RouteRaw
 import org.example.data.dataholder.VehicleRaw
@@ -118,35 +117,36 @@ private fun testPricing(connectedWarehouses: List<Warehouse>) {
     }
 }
 
-private fun testSorting(connectedWarehouses: List<Warehouse>) {
-    println("\n=== Selection Sort (Priority then Weight) ===")
+private fun testSorting(
+    connectedWarehouses: List<Warehouse>
+) {
+    println("\n=== Quick Sort (Weight Descending) ===")
     val firstHub = connectedWarehouses.firstOrNull()
     if (firstHub == null) {
         println("No hub available for sorting.")
         return
     }
-    val cargoList = firstHub.getCargoQueue() as? MutableList<Package>
-    if (cargoList == null || cargoList.isEmpty()) {
+    val cargoBeforeSorting = firstHub.getCargoQueue()
+    if (cargoBeforeSorting.isEmpty()) {
         println("First hub has no packages to sort.")
         return
     }
     println("\n--- Before Sorting (${firstHub.id}) ---")
-    cargoList.forEachIndexed { index, packageItem ->
-        println(
-            "  $index: ${packageItem.id} " +
-                    "(Priority: ${packageItem.priority}, " + "Weight: ${packageItem.weight}kg)"
-        )
-    }
-    sortCargoQueueDescendingByWeight(cargoList)
+    printPackages(cargoBeforeSorting)
+    firstHub.sortCargoQueue()
     println("\n--- After Sorting (${firstHub.id}) ---")
-    cargoList.forEachIndexed { index, packageItem ->
+    printPackages(firstHub.getCargoQueue())
+}
+
+private fun printPackages(packages: List<Package>) {
+    packages.forEachIndexed { index, packageItem ->
         println(
             "  $index: ${packageItem.id} " +
-                    "(Priority: ${packageItem.priority}, " + "Weight: ${packageItem.weight}kg)"
+                    "(Priority: ${packageItem.priority}, " +
+                    "Weight: ${packageItem.weight}kg)"
         )
     }
 }
-
 private fun verifyGraph(connectedWarehouses: List<Warehouse>) {
     println("\n=== Quick Verification ===")
     val firstHub = connectedWarehouses.firstOrNull()
