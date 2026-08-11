@@ -1,11 +1,9 @@
 package org.example.domain.routing.ring
 import org.example.domain.model.Vehicle
 
-class ConsistentHashingRing {
+private const val RING_SIZE = 100
 
-    companion object {
-        private const val RING_SIZE = 100
-    }
+class ConsistentHashingRing {
 
     private val vehiclesBySlot: MutableMap<Int, Vehicle> = mutableMapOf()
 
@@ -29,6 +27,9 @@ class ConsistentHashingRing {
             if (vehicle != null) return vehicle
         }
         return null
+    }
+    fun removeVehicleAtSlot(slot: Int) {
+        vehiclesBySlot.remove(slot)
     }
     fun getVehiclesBySlot(): Map<Int, Vehicle> = vehiclesBySlot.toMap()
 }
