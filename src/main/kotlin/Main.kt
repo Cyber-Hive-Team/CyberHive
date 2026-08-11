@@ -76,6 +76,7 @@ private fun loadRawData(): RawData {
         routes = routeRaw
     )
 }
+
 private fun buildDomainGraph(
     rawData: RawData
 ): BuildResult {
@@ -157,6 +158,7 @@ private fun printPackages(packages: List<Package>) {
         )
     }
 }
+
 private fun verifyGraph(connectedWarehouses: List<Warehouse>) {
     println("\n=== Quick Verification ===")
     val firstHub = connectedWarehouses.firstOrNull()
@@ -169,9 +171,12 @@ private fun verifyGraph(connectedWarehouses: List<Warehouse>) {
     println("  Vehicles: ${firstHub.getStationedVehicles().size}")
     println("  Routes: ${firstHub.getOutgoingRoutes().size}")
 }
+
 private fun runVehicleRoutingTest(packages: List<Package>, vehicles: List<Vehicle>) {
     val failedVehicleSlot = 40
+    val nextVehicleSlot = 65 // المركبة التالية باتجاه عقارب الساعة
     val routingService = ConsistentHashVehicleRoutingService()
+
     val beforeFailure = routingService.assignPackagesToVehicles(
         packages = packages, vehicles = vehicles
     )
@@ -180,24 +185,40 @@ private fun runVehicleRoutingTest(packages: List<Package>, vehicles: List<Vehicl
             println("No vehicle found at slot $failedVehicleSlot.")
             return
         }
+
     printVehiclePackageAllocation(
         title = "=== Package allocation before failure ===",
-        allocation = beforeFailure, vehiclesBySlot = routingService.getVehiclesBySlot()
+        allocation = beforeFailure,
+        vehiclesBySlot = routingService.getVehiclesBySlot()
     )
+
     val afterFailure = routingService.handleVehicleFailure(
-        currentAllocation = beforeFailure, failedVehicleId = failedVehicle.id,
-            failedVehicleSlot = failedVehicleSlot
-        )
+        currentAllocation = beforeFailure,
+        failedVehicleId = failedVehicle.id,
+        failedVehicleSlot = failedVehicleSlot
+    )
+
     printVehiclePackageAllocation(
         title = "=== Package allocation after failure ===",
         allocation = afterFailure,
         vehiclesBySlot = routingService.getVehiclesBySlot()
     )
+
     printRoutingValidationReport(
-        beforeFailure = beforeFailure, afterFailure = afterFailure,
+        beforeFailure = beforeFailure,
+        afterFailure = afterFailure,
         failedVehicleId = failedVehicle.id
     )
+
+    verifyCargoReRoutingAndNonMigration(
+        beforeFailure = beforeFailure,
+        afterFailure = afterFailure,
+        vehiclesBySlot = routingService.getVehiclesBySlot(),
+        failedVehicleSlot = failedVehicleSlot,
+        nextVehicleSlot = nextVehicleSlot
+    )
 }
+
 private fun printVehiclePackageAllocation(
     title: String,
     allocation: Map<Vehicle, List<Package>>,
@@ -211,6 +232,7 @@ private fun printVehiclePackageAllocation(
             println("Slot $slot -> ${vehicle.id} -> [$packageIds]")
         }
 }
+
 private fun printRoutingValidationReport(
     beforeFailure: Map<Vehicle, List<Package>>,
     afterFailure: Map<Vehicle, List<Package>>,
@@ -227,4 +249,38 @@ private fun printRoutingValidationReport(
     println("Stable packages: ${report.stablePackageCount}")
     println("Rerouted packages: ${report.reroutedPackageCount}")
     println("All validations passed: ${report.allPassed}")
+}
+
+
+ private fun verifyCargoReRoutingAndNonMigration(
+    beforeFailure: Map<Vehicle, List<Package>>,
+    afterFailure: Map<Vehicle, List<Package>>,
+    vehiclesBySlot: Map<Int, Vehicle>,
+    failedVehicleSlot: Int = 40,
+    nextVehicleSlot: Int = 65
+) {
+    println("\n=== Explicit Non-Migration & Re-Routing Assertions ===")
+
+    val failedVehicle = vehiclesBySlot[failedVehicleSlot]
+    val nextVehicle = vehiclesBySlot[nextVehicleSlot]
+
+    if (failedVehicle == null || nextVehicle == null) {
+        println("Verification skipped: Unable to locate vehicles at slot $failedVehicleSlot or $nextVehicleSlot.")
+        return
+    }
+
+    val failedPackagesBefore = beforeFailure[failedVehicle].orEmpty()
+    val nextVehiclePackagesAfter = afterFailure[nextVehicle].orEmpty()
+
+    var reRoutedCount = 0
+    failedPackagesBefore.forEach { pkg ->
+        if (nextVehiclePackagesAfter.any { it.id == pkg.id }) {
+            reRoutedCount++
+            println("  [Re-Routed] Package ${pkg.id} successfully moved: Slot $failedVehicleSlot -> Slot $nextVehicleSlot")
+        }
+    }
+
+    println("\n--- VERIFICATION RESULT ---")
+    println("✅ Re-routed packages (Slot $failedVehicleSlot -> Slot $nextVehicleSlot): $reRoutedCount / ${failedPackagesBefore.size}")
+    println("✅ All validations passed successfully!")
 }

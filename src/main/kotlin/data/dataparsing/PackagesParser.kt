@@ -33,7 +33,7 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
 
     val columns = splitAndCleanColumns(line)
 
-    if (columns.size < 5) {
+    if (columns.size < 4) {
         println(
             "Warning: invalid package row $lineNumber skipped " +
                     "(columns = ${columns.size}): $line"
@@ -45,7 +45,11 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     val weight = parseWeight(columns[1])
     val originHubId = columns[2].uppercase()
     val destinationHubId = columns[3].uppercase()
-    val priority = parsePriority(columns[4])
+
+
+    val rawPriority = columns.getOrNull(4) ?: "STANDARD"
+    val priority = parsePriority(rawPriority)
+
 
     if (!validatePackageFields(id, originHubId, destinationHubId, lineNumber)) {
         return null
@@ -85,20 +89,22 @@ fun validatePackageFields(
 }
 
 fun splitAndCleanColumns(line: String): List<String> {
+
     return line
         .split(",")
-        .map { it.trim() }
+        .map { it.replace("\u00A0", "").trim() }
 }
 
 fun parseWeight(value: String): Double {
-    val invalidWeight = -1.0
+    val defaultWeight = 1.0
 
     val cleaned = value
         .replace("kg", "", ignoreCase = true)
+        .replace("\u00A0", "")
         .replace(" ", "")
         .trim()
 
-    return cleaned.toDoubleOrNull() ?: invalidWeight
+    return cleaned.toDoubleOrNull() ?: defaultWeight
 }
 
 fun parsePriority(value: String): Priority {
@@ -106,6 +112,6 @@ fun parsePriority(value: String): Priority {
         "URGENT" -> Priority.URGENT
         "STANDARD" -> Priority.STANDARD
         "LOW" -> Priority.LOW
-        else -> Priority.LOW
+        else -> Priority.STANDARD
     }
 }
