@@ -6,7 +6,8 @@ import org.example.domain.model.Vehicle
 class RoutingValidationReporter {
 
     fun createReport(
-        before: Map<Vehicle, List<Package>>, after: Map<Vehicle, List<Package>>,
+        before: Map<Vehicle, List<Package>>,
+        after: Map<Vehicle, List<Package>>,
         failedVehicleId: String
     ): RoutingValidationReport {
         val messages = mutableListOf<String>()

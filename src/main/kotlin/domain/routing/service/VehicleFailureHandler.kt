@@ -33,6 +33,9 @@ class VehicleFailureHandler(
             packages = failedPackages,
             failedVehicleSlot = failedVehicleSlot
         )
+        vehicleRing.removeVehicleAtSlot(
+            failedVehicleSlot
+        )
 
         return updatedAllocation
     }
