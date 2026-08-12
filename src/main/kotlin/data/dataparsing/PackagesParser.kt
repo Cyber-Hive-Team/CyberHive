@@ -4,40 +4,29 @@ import org.example.data.dataholder.PackageRaw
 import org.example.domain.model.Priority
 import java.io.File
 
-fun parsePackages(): List<PackageRaw> {
-    val packages = mutableListOf<PackageRaw>()
-    val lines = readPackageLines()
-
-    for (index in 1 until lines.size) {
-        val packageItem = parsePackageLine(lines[index], index + 1)
-        if (packageItem != null) {
-            packages.add(packageItem)
-        }
+fun parsePackages(filePath: String): List<PackageRaw> {
+    val lines = readPackageLines(filePath)
+    return lines.drop(1).mapIndexedNotNull { index, line ->
+        parsePackageLine(line, index + 2)
     }
-    return packages
 }
 
-fun readPackageLines(): List<String> {
-    val packagesFile = File("src/main/resources/packages.csv")
-
+private fun readPackageLines(filePath: String): List<String> {
+    val packagesFile = File(filePath)
     if (!packagesFile.exists()) {
         println("Warning: packages.csv was not found.")
         return emptyList()
     }
-
     return packagesFile.readLines()
 }
 
-fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
+private fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     if (line.isBlank()) return null
 
     val columns = splitAndCleanColumns(line)
 
     if (columns.size < 5) {
-        println(
-            "Warning: invalid package row $lineNumber skipped " +
-                    "(columns = ${columns.size}): $line"
-        )
+        println("Warning: invalid package row $lineNumber skipped (columns = ${columns.size}): $line")
         return null
     }
 
@@ -47,7 +36,14 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     val destinationHubId = columns[3].uppercase()
     val priority = parsePriority(columns[4])
 
-    if (!validatePackageFields(id, originHubId, destinationHubId, lineNumber)) {
+    if (!validatePackageFields(
+            id = id,
+            originHubId = originHubId,
+            destinationHubId = destinationHubId,
+            weight = weight,
+            lineNumber = lineNumber
+        )
+    ) {
         return null
     }
 
@@ -60,10 +56,11 @@ fun parsePackageLine(line: String, lineNumber: Int): PackageRaw? {
     )
 }
 
-fun validatePackageFields(
+private fun validatePackageFields(
     id: String,
     originHubId: String,
     destinationHubId: String,
+    weight: Double,
     lineNumber: Int
 ): Boolean {
     if (id.isBlank() || originHubId.isBlank() || destinationHubId.isBlank()) {
@@ -71,37 +68,29 @@ fun validatePackageFields(
         return false
     }
 
-    if (!originHubId.startsWith("WH-") ||
-        !destinationHubId.startsWith("WH-")
-    ) {
-        println(
-            "Warning: package row $lineNumber has invalid hub ID → " +
-                    "Origin: '$originHubId', Dest: '$destinationHubId'"
-        )
+    if (!originHubId.startsWith("WH-") || !destinationHubId.startsWith("WH-")) {
+        println("Warning: package row $lineNumber has invalid hub ID → Origin: '$originHubId', Dest: '$destinationHubId'")
+        return false
+    }
+
+    if (weight < 0) {
+        println("Warning: package row $lineNumber has invalid weight")
         return false
     }
 
     return true
 }
 
-fun splitAndCleanColumns(line: String): List<String> {
-    return line
-        .split(",")
-        .map { it.trim() }
+private fun splitAndCleanColumns(line: String): List<String> {
+    return line.split(",").map(String::trim)
 }
 
-fun parseWeight(value: String): Double {
-    val invalidWeight = -1.0
-
-    val cleaned = value
-        .replace("kg", "", ignoreCase = true)
-        .replace(" ", "")
-        .trim()
-
-    return cleaned.toDoubleOrNull() ?: invalidWeight
+private fun parseWeight(value: String): Double {
+    val cleaned = value.replace("kg", "", ignoreCase = true).replace(" ", "").trim()
+    return cleaned.toDoubleOrNull() ?: -1.0
 }
 
-fun parsePriority(value: String): Priority {
+private fun parsePriority(value: String): Priority {
     return when (value.trim().uppercase()) {
         "URGENT" -> Priority.URGENT
         "STANDARD" -> Priority.STANDARD

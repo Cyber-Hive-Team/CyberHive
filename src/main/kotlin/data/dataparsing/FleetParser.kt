@@ -5,8 +5,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
 
-fun readFleetLines(): List<String> {
-    val fleetFilePath = Path("src/main/resources/fleet.csv")
+fun readFleetLines(filePath: String): List<String> {
+    val fleetFilePath = Path(filePath)
     if (!fleetFilePath.exists()) {
         println("Warning: fleet.csv was not found.")
         return emptyList()
@@ -14,8 +14,8 @@ fun readFleetLines(): List<String> {
     return fleetFilePath.readLines()
 }
 
-fun parseFleet(): List<VehicleRaw> {
-    val fleetLines = readFleetLines()
+fun parseFleet(filePath: String): List<VehicleRaw> {
+    val fleetLines = readFleetLines(filePath)
     val firstDataLineIndex = 1
 
     if (fleetLines.size <= firstDataLineIndex) {
