@@ -13,7 +13,6 @@ class CsvWarehouseRepository(private val filePath: String) : WarehouseRepository
     override fun getAllWarehouses(): WarehouseRepositoryResult {
         val warnings = mutableListOf<String>()
 
-        // 1. Load: تحميل أسطر الملف
         val rows = readAllLinesFromFile(warnings)
 
         if (rows.isEmpty()) {
@@ -25,14 +24,11 @@ class CsvWarehouseRepository(private val filePath: String) : WarehouseRepository
         for (index in FIRST_DATA_ROW_INDEX until rows.size) {
             val currentRow = rows[index]
 
-            // 2. Trim: تنظيف السطر
             val cleanedRow = currentRow.trim()
 
-            // 3. Handle Errors & Parsing: استخدام الدالة ذات الاسم الواضح لتحويل السطر لأوبجكت
             val rawWarehouse = convertCsvRowToWarehouseRawObject(cleanedRow, index, warnings)
 
             if (rawWarehouse != null) {
-                // تحويل الكائن الخام إلى كائن الدومين (Warehouse)
                 val domainWarehouse = Warehouse(
                     id = rawWarehouse.id,
                     name = rawWarehouse.name,
