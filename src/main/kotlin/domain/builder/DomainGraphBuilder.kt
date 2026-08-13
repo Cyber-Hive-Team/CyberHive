@@ -41,21 +41,6 @@ class DomainGraphBuilder {
             warnings = warningMessages
         )
     }
-
-    private fun createWarehouses(
-        rawWarehouses: List<WareHouseRaw>
-    ): List<Warehouse> {
-        return rawWarehouses.map { rawWarehouse ->
-            Warehouse(
-                id = normalizeId(rawWarehouse.id),
-                name = rawWarehouse.name,
-                regionalZone = rawWarehouse.regionalZone,
-                latitude = rawWarehouse.latitude,
-                longitude = rawWarehouse.longitude
-            )
-        }
-    }
-
     private fun buildPackages(
         rawPackages: List<PackageRaw>,
         warehouseIndex: Map<String, Warehouse>,
