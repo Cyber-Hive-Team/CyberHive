@@ -1,136 +1,54 @@
 package org.example.data.dataparsing
+
 import org.example.data.dataholder.WareHouseRaw
 import org.example.domain.model.RegionalZone
-import java.io.File
 
-
-private const val FIRST_DATA_ROW_INDEX = 1
 private const val REQUIRED_COLUMNS_COUNT = 5
-private const val USER_ROW_NUMBER_OFFSET = 1
-private const val ID_COLUMN_INDEX = 0
-private const val NAME_COLUMN_INDEX = 1
-private const val ZONE_COLUMN_INDEX = 2
-private const val LATITUDE_COLUMN_INDEX = 3
-private const val LONGITUDE_COLUMN_INDEX = 4
+private const val ID_INDEX = 0
+private const val NAME_INDEX = 1
+private const val ZONE_INDEX = 2
+private const val LAT_INDEX = 3
+private const val LON_INDEX = 4
 
-// Reads the file and starts processing the rows.
-fun parseWarehouse(filePath: String): List<WareHouseRaw> {
-    val rows = readFile(filePath)
-    return processRows(rows)
+fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int, warnings: MutableList<String>): WareHouseRaw? {
+    val columns = row.split(",").map { it.trim() }
+
+    if (!hasRequiredColumns(columns, rowIndex, warnings)) return null
+
+    val zone = convertToZone(columns[ZONE_INDEX], rowIndex, warnings) ?: return null
+
+    return extractWarehouseRaw(columns, zone)
 }
-// Reads all file lines.
-fun readFile(filePath: String): List<String> {
-    val file = File(filePath)
-    if (!file.exists()) {
-        println("Warning: warehouses.csv was not found at path: $filePath")
-        return emptyList()
-    }
-    return file.readLines()
-}
-// Processes each row and keeps only valid warehouses.
-fun processRows(rows: List<String>): List<WareHouseRaw> {
-    val warehouses = mutableListOf<WareHouseRaw>()
-    for (index in FIRST_DATA_ROW_INDEX until rows.size) {
-        val warehouse = getWarehouseFromRow(
-            rows[index],
-            index
-        )
-        if (warehouse != null) {
-            warehouses.add(warehouse)
-        }
-    }
-    return warehouses
-}
-// Converts one row into a warehouse
-fun getWarehouseFromRow(row: String, rowIndex: Int): WareHouseRaw? {
-    if (row.isBlank()) {
-        return null
-    }
-    val columns = row.split(",")
-    if (!hasRequiredColumns(columns, rowIndex)) {
-        return null
-    }
-    val zone = convertZone(
-        columns[ZONE_COLUMN_INDEX].trim(),
-        rowIndex
-    ) ?: return null
-    val warehouse = extractData(
-        columns,
-        zone
-    )
-    if (!isValidData(warehouse, rowIndex)) {
-        return null
-    }
-    return warehouse
-}
-// Checks if the row contains the required number of columns.
-fun hasRequiredColumns(columns: List<String>, rowIndex: Int): Boolean {
-    if (columns.size != REQUIRED_COLUMNS_COUNT) {
-        println(
-            "Warning: Row ${getUserRowNumber(rowIndex)} skipped - invalid columns"
-        )
+
+private fun hasRequiredColumns(columns: List<String>, rowIndex: Int, warnings: MutableList<String>): Boolean {
+    if (columns.size < REQUIRED_COLUMNS_COUNT) {
+        warnings.add("Warning: Row ${rowIndex + 1} skipped - missing columns")
         return false
     }
     return true
 }
-// Creates warehouse data from columns.
-fun extractData(columns: List<String>, zone: RegionalZone): WareHouseRaw {
-    return WareHouseRaw(
-        id = columns[ID_COLUMN_INDEX].trim(),
-        name = columns[NAME_COLUMN_INDEX].trim(),
-        regionalZone = zone,
-        latitude = convertCoordinate(columns[LATITUDE_COLUMN_INDEX]),
-        longitude = convertCoordinate(columns[LONGITUDE_COLUMN_INDEX])
-    )
-}
-// Validates required warehouse fields.
-fun isValidData(warehouse: WareHouseRaw, rowIndex: Int): Boolean {
-    if (warehouse.id.isBlank()) {
-        println(
-            "Warning: Row ${getUserRowNumber(rowIndex)} skipped - missing id"
-        )
-        return false
-    }
-    if (warehouse.name.isBlank()) {
-        println(
-            "Warning: Row ${getUserRowNumber(rowIndex)} skipped - missing name"
-        )
-        return false
-    }
-    return true
-}
-// Converts text zone into RegionalZone enum.
-fun convertZone(
-    zoneText: String,
-    rowIndex: Int
-): RegionalZone? {
-    val zone = RegionalZone.entries.find {
-        it.name.equals(
-            zoneText,
-            ignoreCase = true
-        )
-    }
+
+private fun convertToZone(zoneText: String, rowIndex: Int, warnings: MutableList<String>): RegionalZone? {
+    val zone = RegionalZone.entries.find { it.name.equals(zoneText, ignoreCase = true) }
     if (zone == null) {
-        println(
-            "Warning: Row ${getUserRowNumber(rowIndex)} skipped - invalid zone"
-        )
+        warnings.add("Warning: Row ${rowIndex + 1} skipped - invalid zone: $zoneText")
     }
     return zone
 }
-// Converts internal index into user row number.
-fun getUserRowNumber(rowIndex: Int): Int {
-    return rowIndex + USER_ROW_NUMBER_OFFSET
-}
-// Converts latitude/longitude values.
-// Missing values become -1.0.
-fun convertCoordinate(value: String): Double {
-    val cleanedValue = value.trim()
 
-    // Explicitly handle missing, "null", and "N/A" cases.
-    if (cleanedValue.isBlank() ||
-        cleanedValue.equals("null", ignoreCase = true) ||
-        cleanedValue.equals("N/A", ignoreCase = true)) {
+private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): WareHouseRaw {
+    return WareHouseRaw(
+        id = columns[ID_INDEX].uppercase(),
+        name = columns[NAME_INDEX],
+        regionalZone = zone,
+        latitude = parseCoordinate(columns[LAT_INDEX]),
+        longitude = parseCoordinate(columns[LON_INDEX])
+    )
+}
+
+private fun parseCoordinate(value: String): Double {
+    if (value.isBlank() || value.equals("null", true) || value.equals("N/A", true)) {
         return -1.0
     }
-    return cleanedValue.toDoubleOrNull() ?: -1.0
+    return value.toDoubleOrNull() ?: -1.0
 }
