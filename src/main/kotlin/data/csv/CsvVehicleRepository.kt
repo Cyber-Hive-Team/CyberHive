@@ -30,35 +30,49 @@ class CsvVehicleRepository(
         }
 
         for (index in 1 until lines.size) {
-            val cleanColumns = trimData(lines[index])
-
-            if (!handleParsingErrors(cleanColumns)) {
-                warnings.add(
-                    "Fleet row ${index + HEADER_OFFSET} has invalid data."
-                )
-                continue
-            }
-
-            val vehicle = parseFleetRow(
-                vehicleId = cleanColumns[0],
-                currentHubId = cleanColumns[1],
-                maxCapacityKgValue = cleanColumns[2],
-                costPerKmValue = cleanColumns[3]
+            processVehicleRow(
+                line = lines[index],
+                rowNumber = index + HEADER_OFFSET,
+                vehicles = vehicles,
+                warnings = warnings
             )
-
-            if (vehicle != null) {
-                vehicles.add(vehicle)
-            } else {
-                warnings.add(
-                    "Fleet row ${index + HEADER_OFFSET} has missing ID."
-                )
-            }
         }
 
         return VehicleRepositoryResult(
             vehicles = vehicles,
             warnings = warnings
         )
+    }
+
+    private fun processVehicleRow(
+        line: String,
+        rowNumber: Int,
+        vehicles: MutableList<VehicleRaw>,
+        warnings: MutableList<String>
+    ) {
+        val cleanColumns = trimData(line)
+
+        if (!handleParsingErrors(cleanColumns)) {
+            warnings.add(
+                "Fleet row $rowNumber has invalid data."
+            )
+            return
+        }
+
+        val vehicle = parseFleetRow(
+            vehicleId = cleanColumns[0],
+            currentHubId = cleanColumns[1],
+            maxCapacityKgValue = cleanColumns[2],
+            costPerKmValue = cleanColumns[3]
+        )
+
+        if (vehicle != null) {
+            vehicles.add(vehicle)
+        } else {
+            warnings.add(
+                "Fleet row $rowNumber has missing ID."
+            )
+        }
     }
 
     private fun loadFile(): List<String> {
