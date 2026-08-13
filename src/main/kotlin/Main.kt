@@ -45,9 +45,7 @@ fun main() {
     testPricing(connectedWarehouses)
     testSorting(connectedWarehouses)
     verifyGraph(connectedWarehouses)
-    val warehouse = connectedWarehouses.firstOrNull {
-            it.getStationedVehicles().size >= 4
-        }
+    val warehouse = connectedWarehouses.firstOrNull { it.getStationedVehicles().size >= 4 }
     if (warehouse == null) {
         println("Cannot test routing: no warehouse has 4 vehicles.")
         return
