@@ -72,10 +72,12 @@ private fun loadRawData(): RawData {
 private fun buildDomainGraph(rawData: RawData): BuildResult {
     println("\n=== Building Domain Graph ===")
     val vehicleRepository = CsvVehicleRepository("src/main/resources/fleet.csv")
-    val builder = DomainGraphBuilder(vehicleRepository = vehicleRepository)
+    val vehicleResult = vehicleRepository.getVehicles()
+    val builder = DomainGraphBuilder()
     val result = builder.buildConnectedDomainGraph(
         rawWarehouseList = rawData.warehouses,
         rawPackageList = rawData.packages,
+        rawVehicleList = vehicleResult.vehicles,
         rawRouteList = rawData.routes
     )
     println("Connected hubs: ${result.success.size}")
