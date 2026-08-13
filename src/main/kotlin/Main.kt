@@ -39,17 +39,13 @@ fun main() {
     }
     if (buildResult.warnings.isNotEmpty()) {
         println("WARNING: Some invalid records were skipped:")
-
-        buildResult.warnings.forEach { warning ->
-            println("  - $warning")
-        }
+        buildResult.warnings.forEach { warning -> println("  - $warning") }
     }
     val connectedWarehouses = buildResult.success
     testPricing(connectedWarehouses)
     testSorting(connectedWarehouses)
     verifyGraph(connectedWarehouses)
-    val warehouse =
-        connectedWarehouses.firstOrNull {
+    val warehouse = connectedWarehouses.firstOrNull {
             it.getStationedVehicles().size >= 4
         }
     if (warehouse == null) {
@@ -58,10 +54,7 @@ fun main() {
     }
     val vehicles = warehouse.getStationedVehicles()
     val packages = warehouse.getCargoQueue()
-    runVehicleRoutingTest(
-        packages = packages,
-        vehicles = vehicles
-    )
+    runVehicleRoutingTest(packages = packages, vehicles = vehicles)
 }
 private fun loadRawData(): RawData {
     val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
@@ -155,30 +148,22 @@ private fun verifyGraph(connectedWarehouses: List<Warehouse>) {
     println("  Routes: " + firstHub.getOutgoingRoutes().size)
 }
 
-private fun runVehicleRoutingTest(
-    packages: List<Package>,
-    vehicles: List<Vehicle>
-) {
+private fun runVehicleRoutingTest(packages: List<Package>, vehicles: List<Vehicle>) {
     val failedVehicleSlot = 40
     val routingService = ConsistentHashVehicleRoutingService()
-    val beforeFailure = routingService.assignPackagesToVehicles(
-            packages = packages,
-            vehicles = vehicles
-        )
+    val beforeFailure = routingService.assignPackagesToVehicles(packages = packages, vehicles = vehicles)
     val failedVehicle =
         routingService.getVehiclesBySlot()[failedVehicleSlot] ?: run {
             println("No vehicle found at slot $failedVehicleSlot.")
                 return
             }
-
     printVehiclePackageAllocation(
         title = "=== Package allocation before failure ===",
         allocation = beforeFailure,
         vehiclesBySlot = routingService.getVehiclesBySlot()
     )
     val afterFailure = routingService.handleVehicleFailure(
-            currentAllocation = beforeFailure,
-            failedVehicleId = failedVehicle.id,
+        currentAllocation = beforeFailure, failedVehicleId = failedVehicle.id,
         failedVehicleSlot = failedVehicleSlot
     )
     printVehiclePackageAllocation(
@@ -187,12 +172,10 @@ private fun runVehicleRoutingTest(
         vehiclesBySlot = routingService.getVehiclesBySlot()
     )
     printRoutingValidationReport(
-        beforeFailure = beforeFailure,
-        afterFailure = afterFailure,
+        beforeFailure = beforeFailure, afterFailure = afterFailure,
         failedVehicleId = failedVehicle.id
     )
 }
-
 private fun printVehiclePackageAllocation(
     title: String,
     allocation: Map<Vehicle, List<Package>>,
