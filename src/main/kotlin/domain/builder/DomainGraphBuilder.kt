@@ -12,13 +12,11 @@ import org.example.domain.model.Warehouse
 class DomainGraphBuilder {
 
     fun buildConnectedDomainGraph(
-        rawWarehouseList: List<WareHouseRaw>, rawPackageList: List<PackageRaw>,
+        warehouses: List<Warehouse>, rawPackageList: List<PackageRaw>,
         rawVehicleList: List<VehicleRaw>, rawRouteList: List<RouteRaw>
     ): BuildResult {
-        val warehouses = createWarehouses(rawWarehouseList)
-        val warehouseIndex =
-            warehouses.associateBy { warehouse ->
-                warehouse.id
+        val warehouseIndex = warehouses.associateBy { warehouse ->
+            warehouse.id
             }
         val warningMessages = mutableListOf<String>()
         val packageEntities = buildPackages(
