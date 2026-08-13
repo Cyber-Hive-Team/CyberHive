@@ -61,14 +61,16 @@ fun main() {
 
 private fun loadRawData(): RawData {
     val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
-    val packageRaw = parsePackages()
+    val packageRaw = parsePackages("src/main/resources/packages.csv")
     val vehicleRaw = parseFleet()
     val routeRaw = parseRoutes()
+
     println("=== Parsing Results ===")
     println("Warehouses: ${warehouseRaw.size}")
     println("Packages: ${packageRaw.size}")
     println("Vehicles: ${vehicleRaw.size}")
     println("Routes: ${routeRaw.size}")
+
     return RawData(
         warehouses = warehouseRaw,
         packages = packageRaw,
