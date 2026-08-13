@@ -7,7 +7,8 @@ import org.example.data.dataholder.WareHouseRaw
 import org.example.data.dataparsing.parseFleet
 import org.example.data.dataparsing.parsePackages
 import org.example.data.dataparsing.parseRoutes
-import org.example.data.dataparsing.parseWarehouse
+import org.example.domain.repository.WarehouseRepository
+import org.example.data.repository.CsvWarehouseRepository
 import org.example.domain.builder.BuildResult
 import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.model.Package
@@ -21,7 +22,7 @@ import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
 
 private data class RawData(
-    val warehouses: List<WareHouseRaw>,
+    val warehouses: List<Warehouse>,
     val packages: List<PackageRaw>,
     val vehicles: List<VehicleRaw>,
     val routes: List<RouteRaw>
@@ -60,17 +61,20 @@ fun main() {
 
 
 private fun loadRawData(): RawData {
-    val warehouseRaw = parseWarehouse("src/main/resources/warehouses.csv")
+    val warehouseRepo: WarehouseRepository = CsvWarehouseRepository("src/main/resources/warehouses.csv")
+    val warehouseResult = warehouseRepo.getAllWarehouses()
+    warehouseResult.warnings.forEach { println(it) }
+    val warehouses = warehouseResult.warehouses
     val packageRaw = parsePackages()
     val vehicleRaw = parseFleet()
     val routeRaw = parseRoutes()
     println("=== Parsing Results ===")
-    println("Warehouses: ${warehouseRaw.size}")
+    println("Warehouses: ${warehouses.size}")
     println("Packages: ${packageRaw.size}")
     println("Vehicles: ${vehicleRaw.size}")
     println("Routes: ${routeRaw.size}")
     return RawData(
-        warehouses = warehouseRaw,
+        warehouses = warehouses,
         packages = packageRaw,
         vehicles = vehicleRaw,
         routes = routeRaw
@@ -84,7 +88,7 @@ private fun buildDomainGraph(
     val builder = DomainGraphBuilder()
 
     val result = builder.buildConnectedDomainGraph(
-        rawWarehouseList = rawData.warehouses,
+        warehouses = rawData.warehouses,
         rawPackageList = rawData.packages,
         rawVehicleList = rawData.vehicles,
         rawRouteList = rawData.routes
