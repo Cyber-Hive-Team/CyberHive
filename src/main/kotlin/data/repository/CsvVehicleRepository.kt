@@ -1,4 +1,4 @@
-package org.example.data.csv
+package org.example.data.repository
 
 import org.example.data.dataholder.VehicleRaw
 import org.example.data.dataparsing.parseFleetRow
