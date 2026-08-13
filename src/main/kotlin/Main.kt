@@ -3,9 +3,9 @@ package org.example
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RouteRaw
 import org.example.data.dataholder.VehicleRaw
-import org.example.data.dataparsing.parseFleet
 import org.example.data.dataparsing.parsePackages
 import org.example.data.dataparsing.parseRoutes
+import org.example.data.repository.CsvVehicleRepository
 import org.example.data.repository.CsvWarehouseRepository
 import org.example.domain.builder.BuildResult
 import org.example.domain.builder.DomainGraphBuilder
@@ -16,6 +16,7 @@ import org.example.domain.pricing.EcoStrategy
 import org.example.domain.pricing.ExpressStrategy
 import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
+import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
@@ -65,7 +66,9 @@ private fun loadRawData(): RawData {
     warehouseResult.warnings.forEach { println(it) }
     val warehouses = warehouseResult.warehouses
     val packageRaw = parsePackages("src/main/resources/packages.csv")
-    val vehicleRaw = parseFleet()
+    val vehicleRepo: VehicleRepository = CsvVehicleRepository("src/main/resources/fleet.csv")
+    val vehicleResult = vehicleRepo.getVehicles()
+    val vehicleRaw = vehicleResult.vehicles
     val routeRaw = parseRoutes()
     println("=== Parsing Results ===")
     println("Warehouses: ${warehouses.size}")
@@ -83,9 +86,7 @@ private fun buildDomainGraph(
     rawData: RawData
 ): BuildResult {
     println("\n=== Building Domain Graph ===")
-
     val builder = DomainGraphBuilder()
-
     val result = builder.buildConnectedDomainGraph(
         warehouses = rawData.warehouses,
         rawPackageList = rawData.packages,
@@ -189,8 +190,8 @@ private fun runVehicleRoutingTest(packages: List<Package>, vehicles: List<Vehicl
     )
     val afterFailure = routingService.handleVehicleFailure(
         currentAllocation = beforeFailure, failedVehicleId = failedVehicle.id,
-            failedVehicleSlot = failedVehicleSlot
-        )
+        failedVehicleSlot = failedVehicleSlot
+    )
     printVehiclePackageAllocation(
         title = "=== Package allocation after failure ===",
         allocation = afterFailure,
