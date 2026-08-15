@@ -1,5 +1,6 @@
 package org.example.data.dataparsing
 
+import org.example.data.dataholder.PackageParseResult
 import org.example.data.dataholder.PackageRaw
 import org.example.domain.model.Priority
 import java.io.File
