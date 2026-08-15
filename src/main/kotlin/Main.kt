@@ -12,6 +12,7 @@ import org.example.data.repository.CsvWarehouseRepository
 import org.example.domain.builder.BuildResult
 import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.model.Package
+import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy
@@ -35,103 +36,161 @@ fun main() {
 
     val rawData = loadRawData()
 
-    if (rawData.warehouses.isEmpty()) {
-        println("ERROR: No warehouses found. Cannot build the domain graph.")
+    if (!hasWarehouses(rawData)) {
         return
     }
 
     val buildResult = buildDomainGraph(rawData)
 
-    if (buildResult.success.isEmpty()) {
-        println("ERROR: Domain graph building failed.")
+    if (!hasSuccessfulBuild(buildResult)) {
         return
     }
 
-    if (buildResult.warnings.isNotEmpty()) {
-        println("WARNING: Some invalid records were skipped:")
-        buildResult.warnings.forEach { warning ->
-            println("  - $warning")
-        }
-    }
+    printBuildWarnings(buildResult)
 
     val connectedWarehouses = buildResult.success
 
     testPricing(connectedWarehouses)
     testSorting(connectedWarehouses)
     verifyGraph(connectedWarehouses)
+    runRoutingIfPossible(connectedWarehouses)
+}
 
+private fun hasWarehouses(
+    rawData: RawData
+): Boolean {
+    if (rawData.warehouses.isNotEmpty()) {
+        return true
+    }
+
+    println(
+        "ERROR: No warehouses found. " +
+                "Cannot build the domain graph."
+    )
+
+    return false
+}
+
+private fun hasSuccessfulBuild(
+    buildResult: BuildResult
+): Boolean {
+    if (buildResult.success.isNotEmpty()) {
+        return true
+    }
+
+    println("ERROR: Domain graph building failed.")
+
+    return false
+}
+
+private fun printBuildWarnings(
+    buildResult: BuildResult
+) {
+    if (buildResult.warnings.isEmpty()) {
+        return
+    }
+
+    println("WARNING: Some invalid records were skipped:")
+
+    buildResult.warnings.forEach { warning ->
+        println("  - $warning")
+    }
+}
+
+private fun runRoutingIfPossible(
+    connectedWarehouses: List<Warehouse>
+) {
     val warehouse = connectedWarehouses.firstOrNull {
         it.getStationedVehicles().size >= 4
     }
 
     if (warehouse == null) {
-        println("Cannot test routing: no warehouse has 4 vehicles.")
+        println(
+            "Cannot test routing: " +
+                    "no warehouse has 4 vehicles."
+        )
         return
     }
 
-    val vehicles = warehouse.getStationedVehicles()
-    val packages = warehouse.getCargoQueue()
-
     runVehicleRoutingTest(
-        packages = packages,
-        vehicles = vehicles
+        packages = warehouse.getCargoQueue(),
+        vehicles = warehouse.getStationedVehicles()
     )
 }
 
 private fun loadRawData(): RawData {
     val warehouses = loadWarehouses()
+    val packages = loadPackages()
+    val vehicles = loadVehicles()
+    val routes = parseRoutes()
 
-    val packageResult = parsePackages(
-        "src/main/resources/packages.csv"
+    printParsingResults(
+        warehouseCount = warehouses.size,
+        packageCount = packages.size,
+        vehicleCount = vehicles.size,
+        routeCount = routes.size
     )
-
-    packageResult.warnings.forEach { println(it) }
-
-    val packageRaw = packageResult.packages
-
-    val vehicleRepo: VehicleRepository =
-        CsvVehicleRepository(
-            "src/main/resources/fleet.csv"
-        )
-
-    val vehicleResult = vehicleRepo.getVehicles()
-    val vehicleRaw = vehicleResult.vehicles
-
-    val routeRaw = parseRoutes()
-
-    println("=== Parsing Results ===")
-    println("Warehouses: ${warehouses.size}")
-    println("Packages: ${packageRaw.size}")
-    println("Vehicles: ${vehicleRaw.size}")
-    println("Routes: ${routeRaw.size}")
 
     return RawData(
         warehouses = warehouses,
-        packages = packageRaw,
-        vehicles = vehicleRaw,
-        routes = routeRaw
+        packages = packages,
+        vehicles = vehicles,
+        routes = routes
     )
 }
 
 private fun loadWarehouses(): List<Warehouse> {
-    val warehouseDataSource =
-        CsvWarehouseDataSource(
-            "src/main/resources/warehouses.csv"
-        )
+    val dataSource = CsvWarehouseDataSource(
+        "src/main/resources/warehouses.csv"
+    )
 
-    val warehouseMapper = WarehouseMapper()
+    val mapper = WarehouseMapper()
 
-    val warehouseRepo: WarehouseRepository =
+    val repository: WarehouseRepository =
         CsvWarehouseRepository(
-            dataSource = warehouseDataSource,
-            mapper = warehouseMapper
+            dataSource = dataSource,
+            mapper = mapper
         )
 
-    val warehouseResult = warehouseRepo.getAllWarehouses()
+    val result = repository.getAllWarehouses()
 
-    warehouseResult.warnings.forEach { println(it) }
+    result.warnings.forEach { println(it) }
 
-    return warehouseResult.warehouses
+    return result.warehouses
+}
+
+private fun loadPackages(): List<PackageRaw> {
+    val result = parsePackages(
+        "src/main/resources/packages.csv"
+    )
+
+    result.warnings.forEach { println(it) }
+
+    return result.packages
+}
+
+private fun loadVehicles(): List<VehicleRaw> {
+    val repository: VehicleRepository =
+        CsvVehicleRepository(
+            "src/main/resources/fleet.csv"
+        )
+
+    val result = repository.getVehicles()
+
+    return result.vehicles
+}
+
+private fun printParsingResults(
+    warehouseCount: Int,
+    packageCount: Int,
+    vehicleCount: Int,
+    routeCount: Int
+) {
+    println("=== Parsing Results ===")
+    println("Warehouses: $warehouseCount")
+    println("Packages: $packageCount")
+    println("Vehicles: $vehicleCount")
+    println("Routes: $routeCount")
 }
 
 private fun buildDomainGraph(
@@ -159,45 +218,96 @@ private fun testPricing(
     println("\n=== Strategy Pattern Pricing ===")
 
     val sampleHub = connectedWarehouses.firstOrNull()
-    val samplePackage = sampleHub?.getCargoQueue()?.firstOrNull()
-    val sampleRoute = sampleHub?.getOutgoingRoutes()?.firstOrNull()
+    val samplePackage = sampleHub
+        ?.getCargoQueue()
+        ?.firstOrNull()
+    val sampleRoute = sampleHub
+        ?.getOutgoingRoutes()
+        ?.firstOrNull()
 
-    if (samplePackage != null && sampleRoute != null) {
-        val engine = RoutePricingEngine(EcoStrategy())
-
-        println(
-            "EcoStrategy price: $${
-                engine.calculatePrice(
-                    samplePackage,
-                    sampleRoute
-                )
-            }"
-        )
-
-        engine.setStrategy(ExpressStrategy())
-
-        println(
-            "ExpressStrategy price: $${
-                engine.calculatePrice(
-                    samplePackage,
-                    sampleRoute
-                )
-            }"
-        )
-
-        engine.setStrategy(FragileStrategy())
-
-        println(
-            "FragileStrategy price: $${
-                engine.calculatePrice(
-                    samplePackage,
-                    sampleRoute
-                )
-            }"
-        )
-    } else {
+    if (samplePackage == null || sampleRoute == null) {
         println("No package or route available to test pricing.")
+        return
     }
+
+    printStrategyPrices(
+        packageItem = samplePackage,
+        route = sampleRoute
+    )
+}
+
+private fun printStrategyPrices(
+    packageItem: Package,
+    route: Route
+) {
+    val engine = RoutePricingEngine(EcoStrategy())
+
+    printEcoPrice(
+        engine = engine,
+        packageItem = packageItem,
+        route = route
+    )
+
+    engine.setStrategy(ExpressStrategy())
+
+    printExpressPrice(
+        engine = engine,
+        packageItem = packageItem,
+        route = route
+    )
+
+    engine.setStrategy(FragileStrategy())
+
+    printFragilePrice(
+        engine = engine,
+        packageItem = packageItem,
+        route = route
+    )
+}
+
+private fun printEcoPrice(
+    engine: RoutePricingEngine,
+    packageItem: Package,
+    route: Route
+) {
+    println(
+        "EcoStrategy price: $${
+            engine.calculatePrice(
+                packageItem,
+                route
+            )
+        }"
+    )
+}
+
+private fun printExpressPrice(
+    engine: RoutePricingEngine,
+    packageItem: Package,
+    route: Route
+) {
+    println(
+        "ExpressStrategy price: $${
+            engine.calculatePrice(
+                packageItem,
+                route
+            )
+        }"
+    )
+}
+
+private fun printFragilePrice(
+    engine: RoutePricingEngine,
+    packageItem: Package,
+    route: Route
+) {
+    println(
+        "FragileStrategy price: $${
+            engine.calculatePrice(
+                packageItem,
+                route
+            )
+        }"
+    )
 }
 
 private fun testSorting(
@@ -215,21 +325,28 @@ private fun testSorting(
     println("\n--- Before Sorting (${firstHub.id}) ---")
     printPackages(firstHub.getCargoQueue())
 
-    for (warehouse in connectedWarehouses) {
-        val cargoBeforeSorting = warehouse.getCargoQueue()
+    sortWarehouseCargo(connectedWarehouses)
 
-        if (cargoBeforeSorting.isEmpty()) {
+    println("\n--- After Sorting (${firstHub.id}) ---")
+    printPackages(firstHub.getCargoQueue())
+}
+
+private fun sortWarehouseCargo(
+    connectedWarehouses: List<Warehouse>
+) {
+    for (warehouse in connectedWarehouses) {
+        val cargo = warehouse.getCargoQueue()
+
+        if (cargo.isEmpty()) {
             println(
-                "\nWarehouse ${warehouse.id} has no packages to sort."
+                "\nWarehouse ${warehouse.id} " +
+                        "has no packages to sort."
             )
             continue
         }
 
         warehouse.sortCargoQueue()
     }
-
-    println("\n--- After Sorting (${firstHub.id}) ---")
-    printPackages(firstHub.getCargoQueue())
 }
 
 private fun printPackages(
@@ -256,10 +373,25 @@ private fun verifyGraph(
         return
     }
 
-    println("First hub: ${firstHub.id} (${firstHub.name})")
-    println("  Packages: ${firstHub.getCargoQueue().size}")
-    println("  Vehicles: ${firstHub.getStationedVehicles().size}")
-    println("  Routes: ${firstHub.getOutgoingRoutes().size}")
+    println(
+        "First hub: ${firstHub.id} " +
+                "(${firstHub.name})"
+    )
+
+    println(
+        "  Packages: " +
+                firstHub.getCargoQueue().size
+    )
+
+    println(
+        "  Vehicles: " +
+                firstHub.getStationedVehicles().size
+    )
+
+    println(
+        "  Routes: " +
+                firstHub.getOutgoingRoutes().size
+    )
 }
 
 private fun runVehicleRoutingTest(
@@ -269,31 +401,35 @@ private fun runVehicleRoutingTest(
     val failedVehicleSlot = 40
     val routingService = ConsistentHashVehicleRoutingService()
 
-    val beforeFailure = routingService.assignPackagesToVehicles(
-        packages = packages,
-        vehicles = vehicles
-    )
+    val beforeFailure =
+        routingService.assignPackagesToVehicles(
+            packages = packages,
+            vehicles = vehicles
+        )
 
-    val failedVehicle = routingService.getVehiclesBySlot()[failedVehicleSlot]
-        ?: run {
-            println("No vehicle found at slot $failedVehicleSlot.")
-            return
-        }
+    val failedVehicle =
+        routingService.getVehiclesBySlot()[failedVehicleSlot]
+            ?: run {
+                println(
+                    "No vehicle found at slot " +
+                            "$failedVehicleSlot."
+                )
+                return
+            }
 
-    printVehiclePackageAllocation(
-        title = "=== Package allocation before failure ===",
+    printBeforeFailure(
         allocation = beforeFailure,
         vehiclesBySlot = routingService.getVehiclesBySlot()
     )
 
-    val afterFailure = routingService.handleVehicleFailure(
-        currentAllocation = beforeFailure,
-        failedVehicleId = failedVehicle.id,
-        failedVehicleSlot = failedVehicleSlot
-    )
+    val afterFailure =
+        routingService.handleVehicleFailure(
+            currentAllocation = beforeFailure,
+            failedVehicleId = failedVehicle.id,
+            failedVehicleSlot = failedVehicleSlot
+        )
 
-    printVehiclePackageAllocation(
-        title = "=== Package allocation after failure ===",
+    printAfterFailure(
         allocation = afterFailure,
         vehiclesBySlot = routingService.getVehiclesBySlot()
     )
@@ -302,6 +438,28 @@ private fun runVehicleRoutingTest(
         beforeFailure = beforeFailure,
         afterFailure = afterFailure,
         failedVehicleId = failedVehicle.id
+    )
+}
+
+private fun printBeforeFailure(
+    allocation: Map<Vehicle, List<Package>>,
+    vehiclesBySlot: Map<Int, Vehicle>
+) {
+    printVehiclePackageAllocation(
+        title = "=== Package allocation before failure ===",
+        allocation = allocation,
+        vehiclesBySlot = vehiclesBySlot
+    )
+}
+
+private fun printAfterFailure(
+    allocation: Map<Vehicle, List<Package>>,
+    vehiclesBySlot: Map<Int, Vehicle>
+) {
+    printVehiclePackageAllocation(
+        title = "=== Package allocation after failure ===",
+        allocation = allocation,
+        vehiclesBySlot = vehiclesBySlot
     )
 }
 
@@ -320,7 +478,8 @@ private fun printVehiclePackageAllocation(
                     .joinToString { it.id }
 
             println(
-                "Slot $slot -> ${vehicle.id} -> [$packageIds]"
+                "Slot $slot -> ${vehicle.id} -> " +
+                        "[$packageIds]"
             )
         }
 }
@@ -344,7 +503,18 @@ private fun printRoutingValidationReport(
         println(message)
     }
 
-    println("Stable packages: ${report.stablePackageCount}")
-    println("Rerouted packages: ${report.reroutedPackageCount}")
-    println("All validations passed: ${report.allPassed}")
+    println(
+        "Stable packages: " +
+                report.stablePackageCount
+    )
+
+    println(
+        "Rerouted packages: " +
+                report.reroutedPackageCount
+    )
+
+    println(
+        "All validations passed: " +
+                report.allPassed
+    )
 }
