@@ -31,6 +31,7 @@ class VehicleMapper(
             )
         }
 
+
         return VehicleMappingResult(
             vehicle = createVehicle(raw, currentHub!!),
             warnings = emptyList()
