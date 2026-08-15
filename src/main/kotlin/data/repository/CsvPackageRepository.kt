@@ -1,34 +1,35 @@
 package org.example.data.repository
 
-import org.example.data.dataparsing.parsePackages
+import org.example.data.datasource.PackageDataSource
+import org.example.data.mapper.PackageMapper
 import org.example.domain.model.Package
-import org.example.domain.model.Warehouse
 import org.example.domain.repository.PackageRepository
+import org.example.domain.repository.PackageRepositoryResult
 
 class CsvPackageRepository(
-    private val filePath: String,
-    private val warehouseMap: Map<String, Warehouse>
+    private val dataSource: PackageDataSource,
+    private val mapper: PackageMapper
 ) : PackageRepository {
 
-    override fun getAllPackages(): List<Package> {
-        val rawPackages = parsePackages(filePath)
+    override fun getAllPackages(): PackageRepositoryResult {
+        val dataSourceResult = dataSource.getPackages()
 
-        return rawPackages.mapNotNull { raw ->
-            val originWarehouse = warehouseMap[raw.originHubId]
-            val destinationWarehouse = warehouseMap[raw.destinationHubId]
+        val packages = mutableListOf<Package>()
+        val warnings = dataSourceResult.warnings.toMutableList()
 
-            if (originWarehouse == null || destinationWarehouse == null) {
-                println("Warning: Package ${raw.id} skipped - warehouse not found.")
-                return@mapNotNull null
+        for (rawPackage in dataSourceResult.packages) {
+            val mappingResult = mapper.map(rawPackage)
+
+            warnings.addAll(mappingResult.warnings)
+
+            mappingResult.packageItem?.let { packageItem ->
+                packages.add(packageItem)
             }
-
-            Package(
-                id = raw.id,
-                weight = raw.weight,
-                priority = raw.priority,
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
         }
+
+        return PackageRepositoryResult(
+            packages = packages,
+            warnings = warnings
+        )
     }
 }
