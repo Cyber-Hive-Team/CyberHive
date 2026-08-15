@@ -20,10 +20,7 @@ fun parsePackages(filePath: String): PackageParseResult {
     val packages = mutableListOf<PackageRaw>()
     val warnings = mutableListOf<String>()
 
-    val lines = readPackageLines(
-        filePath = filePath,
-        warnings = warnings
-    )
+    val lines = readPackageLines(filePath, warnings)
 
     for (index in FIRST_DATA_ROW_INDEX until lines.size) {
         val packageItem = parsePackageLine(
@@ -64,41 +61,22 @@ private fun parsePackageLine(
     lineNumber: Int,
     warnings: MutableList<String>
 ): PackageRaw? {
-
     if (line.isBlank()) {
         return null
     }
 
     val columns = splitAndCleanColumns(line)
 
-    if (columns.size < EXPECTED_COLUMN_COUNT) {
-        warnings.add(
-            "Warning: invalid package row $lineNumber skipped " +
-                    "(columns = ${columns.size}): $line"
-        )
+    if (!hasRequiredColumns(columns, lineNumber, line, warnings)) {
         return null
     }
 
-    val id = columns[ID_COLUMN_INDEX].uppercase()
+    val packageRaw = createPackageRaw(columns)
 
-    val weight = parseWeight(
-        columns[WEIGHT_COLUMN_INDEX]
-    )
-
-    val originHubId =
-        columns[ORIGIN_COLUMN_INDEX].uppercase()
-
-    val destinationHubId =
-        columns[DESTINATION_COLUMN_INDEX].uppercase()
-
-    val priority =
-        parsePriority(columns[PRIORITY_COLUMN_INDEX])
-
-    if (
-        !validatePackageFields(
-            id = id,
-            originHubId = originHubId,
-            destinationHubId = destinationHubId,
+    if (!validatePackageFields(
+            id = packageRaw.id,
+            originHubId = packageRaw.originHubId,
+            destinationHubId = packageRaw.destinationHubId,
             lineNumber = lineNumber,
             warnings = warnings
         )
@@ -106,12 +84,35 @@ private fun parsePackageLine(
         return null
     }
 
+    return packageRaw
+}
+
+private fun hasRequiredColumns(
+    columns: List<String>,
+    lineNumber: Int,
+    line: String,
+    warnings: MutableList<String>
+): Boolean {
+    if (columns.size < EXPECTED_COLUMN_COUNT) {
+        warnings.add(
+            "Warning: invalid package row $lineNumber skipped " +
+                    "(columns = ${columns.size}): $line"
+        )
+        return false
+    }
+
+    return true
+}
+
+private fun createPackageRaw(
+    columns: List<String>
+): PackageRaw {
     return PackageRaw(
-        id = id,
-        weight = weight,
-        originHubId = originHubId,
-        destinationHubId = destinationHubId,
-        priority = priority
+        id = columns[ID_COLUMN_INDEX].uppercase(),
+        weight = parseWeight(columns[WEIGHT_COLUMN_INDEX]),
+        originHubId = columns[ORIGIN_COLUMN_INDEX].uppercase(),
+        destinationHubId = columns[DESTINATION_COLUMN_INDEX].uppercase(),
+        priority = parsePriority(columns[PRIORITY_COLUMN_INDEX])
     )
 }
 
@@ -122,7 +123,6 @@ private fun validatePackageFields(
     lineNumber: Int,
     warnings: MutableList<String>
 ): Boolean {
-
     if (
         id.isBlank() ||
         originHubId.isBlank() ||
@@ -159,20 +159,17 @@ private fun splitAndCleanColumns(
 private fun parseWeight(
     value: String
 ): Double {
-
     val cleaned = value
         .replace("kg", "", ignoreCase = true)
         .replace(" ", "")
         .trim()
 
-    return cleaned.toDoubleOrNull()
-        ?: INVALID_WEIGHT
+    return cleaned.toDoubleOrNull() ?: INVALID_WEIGHT
 }
 
 private fun parsePriority(
     value: String
 ): Priority {
-
     return when (value.trim().uppercase()) {
         "URGENT" -> Priority.URGENT
         "STANDARD" -> Priority.STANDARD

@@ -10,24 +10,21 @@ class PackageMapper(
 ) {
 
     fun map(raw: PackageRaw): PackageMappingResult {
-        val originWarehouse = warehouseMap[raw.originHubId]
-        val destinationWarehouse = warehouseMap[raw.destinationHubId]
-
         val warnings = mutableListOf<String>()
 
-        if (originWarehouse == null) {
-            warnings.add(
-                "Warning: Package ${raw.id} skipped - " +
-                        "origin warehouse not found: ${raw.originHubId}"
-            )
-        }
+        val originWarehouse = findWarehouse(
+            warehouseId = raw.originHubId,
+            packageId = raw.id,
+            warehouseType = "origin",
+            warnings = warnings
+        )
 
-        if (destinationWarehouse == null) {
-            warnings.add(
-                "Warning: Package ${raw.id} skipped - " +
-                        "destination warehouse not found: ${raw.destinationHubId}"
-            )
-        }
+        val destinationWarehouse = findWarehouse(
+            warehouseId = raw.destinationHubId,
+            packageId = raw.id,
+            warehouseType = "destination",
+            warnings = warnings
+        )
 
         if (originWarehouse == null || destinationWarehouse == null) {
             return PackageMappingResult(
@@ -37,14 +34,44 @@ class PackageMapper(
         }
 
         return PackageMappingResult(
-            packageItem = Package(
-                id = raw.id,
-                weight = raw.weight,
-                priority = raw.priority,
+            packageItem = createPackage(
+                raw = raw,
                 originWarehouse = originWarehouse,
                 destinationWarehouse = destinationWarehouse
             ),
-            warnings = emptyList()
+            warnings = warnings
+        )
+    }
+
+    private fun findWarehouse(
+        warehouseId: String,
+        packageId: String,
+        warehouseType: String,
+        warnings: MutableList<String>
+    ): Warehouse? {
+        val warehouse = warehouseMap[warehouseId]
+
+        if (warehouse == null) {
+            warnings.add(
+                "Warning: Package $packageId skipped - " +
+                        "$warehouseType warehouse not found: $warehouseId"
+            )
+        }
+
+        return warehouse
+    }
+
+    private fun createPackage(
+        raw: PackageRaw,
+        originWarehouse: Warehouse,
+        destinationWarehouse: Warehouse
+    ): Package {
+        return Package(
+            id = raw.id,
+            weight = raw.weight,
+            priority = raw.priority,
+            originWarehouse = originWarehouse,
+            destinationWarehouse = destinationWarehouse
         )
     }
 }
