@@ -5,6 +5,8 @@ import org.example.data.dataholder.RouteRaw
 import org.example.data.dataholder.VehicleRaw
 import org.example.data.dataparsing.parsePackages
 import org.example.data.dataparsing.parseRoutes
+import org.example.data.datasource.CsvWarehouseDataSource
+import org.example.data.mapper.WarehouseMapper
 import org.example.data.repository.CsvVehicleRepository
 import org.example.data.repository.CsvWarehouseRepository
 import org.example.domain.builder.BuildResult
@@ -59,22 +61,40 @@ fun main() {
     runVehicleRoutingTest(packages = packages, vehicles = vehicles)
 }
 
-
 private fun loadRawData(): RawData {
-    val warehouseRepo: WarehouseRepository = CsvWarehouseRepository("src/main/resources/warehouses.csv")
+    val warehouseDataSource =
+        CsvWarehouseDataSource("src/main/resources/warehouses.csv")
+
+    val warehouseMapper = WarehouseMapper()
+
+    val warehouseRepo: WarehouseRepository =
+        CsvWarehouseRepository(
+            dataSource = warehouseDataSource,
+            mapper = warehouseMapper
+        )
+
     val warehouseResult = warehouseRepo.getAllWarehouses()
     warehouseResult.warnings.forEach { println(it) }
     val warehouses = warehouseResult.warehouses
-    val packageRaw = parsePackages("src/main/resources/packages.csv")
-    val vehicleRepo: VehicleRepository = CsvVehicleRepository("src/main/resources/fleet.csv")
+
+    val packageResult = parsePackages("src/main/resources/packages.csv")
+    packageResult.warnings.forEach { println(it) }
+    val packageRaw = packageResult.packages
+
+    val vehicleRepo: VehicleRepository =
+        CsvVehicleRepository("src/main/resources/fleet.csv")
+
     val vehicleResult = vehicleRepo.getVehicles()
     val vehicleRaw = vehicleResult.vehicles
+
     val routeRaw = parseRoutes()
+
     println("=== Parsing Results ===")
     println("Warehouses: ${warehouses.size}")
     println("Packages: ${packageRaw.size}")
     println("Vehicles: ${vehicleRaw.size}")
     println("Routes: ${routeRaw.size}")
+
     return RawData(
         warehouses = warehouses,
         packages = packageRaw,
