@@ -6,3 +6,4 @@ data class PackageRepositoryResult(
     val packages: List<Package>,
     val warnings: List<String>
 )
+
