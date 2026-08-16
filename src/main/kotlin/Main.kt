@@ -217,7 +217,6 @@ private fun verifyGraph(
     println("  Vehicles: ${warehouse.getStationedVehicles().size}")
     println("  Routes: ${warehouse.getOutgoingRoutes().size}")
 }
-
 private fun runRouting(
     warehouses: List<Warehouse>
 ) {
@@ -231,16 +230,12 @@ private fun runRouting(
     }
 
     val service = ConsistentHashVehicleRoutingService()
-    val packages = warehouse.getCargoQueue()
-    val vehicles = warehouse.getStationedVehicles()
-
     val before = service.assignPackagesToVehicles(
-        packages,
-        vehicles
+        warehouse.getCargoQueue(),
+        warehouse.getStationedVehicles()
     )
 
     val failedVehicle = service.getVehiclesBySlot()[FAILURE_SLOT]
-
     if (failedVehicle == null) {
         println("No vehicle found at slot $FAILURE_SLOT.")
         return
@@ -253,12 +248,7 @@ private fun runRouting(
     )
 
     printAllocations(service, before, after)
-
-    printRoutingReport(
-        before = before,
-        after = after,
-        failedVehicleId = failedVehicle.id
-    )
+    printRoutingReport(before, after, failedVehicle.id)
 }
 
 private fun printAllocations(
