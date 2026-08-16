@@ -11,6 +11,7 @@ class CsvWarehouseRepository(
     private val mapper: WarehouseMapper
 ) : WarehouseRepository {
 
+
     override fun getAllWarehouses(): WarehouseRepositoryResult {
         val dataSourceResult = dataSource.getWarehouses()
 
