@@ -1,4 +1,4 @@
-package org.example.sorting
+package org.example.domain.algorithm.sorting
 
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
