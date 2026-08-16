@@ -1,5 +1,4 @@
 package org.example.domain.repository
-import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 
 interface WarehouseRepository {
