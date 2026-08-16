@@ -1,6 +1,5 @@
 package org.example.data.dataparsing
 
-import org.example.data.dataholder.VehicleParseResult
 import org.example.data.dataholder.VehicleRaw
 import java.io.File
 
