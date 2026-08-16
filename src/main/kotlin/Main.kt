@@ -101,8 +101,8 @@ private fun loadWarehouses(): List<Warehouse> {
         mapper = WarehouseMapper()
     ).getAllWarehouses()
 
-    result.warnings.forEach(::println)
-    return result.warehouses
+    result.errorMessage?.let { println("WARNING: $it") }
+    return result.data.orEmpty()
 }
 
 private fun loadPackages(
@@ -113,8 +113,8 @@ private fun loadPackages(
         mapper = PackageMapper(warehouseMap)
     ).getAllPackages()
 
-    result.warnings.forEach(::println)
-    return result.packages
+    result.errorMessage?.let { println("WARNING: $it") }
+    return result.data.orEmpty()
 }
 
 private fun loadVehicles(
@@ -125,8 +125,8 @@ private fun loadVehicles(
         mapper = VehicleMapper(warehouseMap)
     ).getVehicles()
 
-    result.warnings.forEach(::println)
-    return result.vehicles
+    result.errorMessage?.let { println("WARNING: $it") }
+    return result.data.orEmpty()
 }
 
 private fun printResults(

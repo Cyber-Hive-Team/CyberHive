@@ -4,7 +4,7 @@ import org.example.data.datasource.PackageDataSource
 import org.example.data.mapper.PackageMapper
 import org.example.domain.model.Package
 import org.example.domain.repository.PackageRepository
-import org.example.domain.repository.PackageRepositoryResult
+import org.example.domain.repository.Result
 
 class CsvPackageRepository(
     private val dataSource: PackageDataSource,
@@ -12,7 +12,7 @@ class CsvPackageRepository(
 ) : PackageRepository {
 
 
-    override fun getAllPackages(): PackageRepositoryResult {
+    override fun getAllPackages(): Result<List<Package>> {
         val dataSourceResult = dataSource.getPackages()
 
         val packages = mutableListOf<Package>()
@@ -28,9 +28,11 @@ class CsvPackageRepository(
             }
         }
 
-        return PackageRepositoryResult(
-            packages = packages,
-            warnings = warnings
-        )
-    }
+        val errorMessage = if (warnings.isEmpty()) {
+            null
+        } else {
+            warnings.joinToString("; ")
+        }
+
+        return Result(packages, errorMessage)    }
 }

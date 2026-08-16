@@ -3,15 +3,15 @@ package org.example.data.repository
 import org.example.data.datasource.VehicleDataSource
 import org.example.data.mapper.VehicleMapper
 import org.example.domain.model.Vehicle
+import org.example.domain.repository.Result
 import org.example.domain.repository.VehicleRepository
-import org.example.domain.repository.VehicleRepositoryResult
 
 class CsvVehicleRepository(
     private val dataSource: VehicleDataSource,
     private val mapper: VehicleMapper
 ) : VehicleRepository {
 
-    override fun getVehicles(): VehicleRepositoryResult {
+    override fun getVehicles(): Result<List<Vehicle>> {
         val result = dataSource.getVehicles()
         val vehicles = mutableListOf<Vehicle>()
         val warnings = result.warnings.toMutableList()
@@ -26,9 +26,12 @@ class CsvVehicleRepository(
             }
         }
 
-        return VehicleRepositoryResult(
-            vehicles = vehicles,
-            warnings = warnings
-        )
+        val errorMessage = if (warnings.isEmpty()) {
+            null
+        } else {
+            warnings.joinToString("; ")
+        }
+
+        return Result(vehicles, errorMessage)
     }
 }
