@@ -3,8 +3,8 @@ package org.example.data.repository
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.mapper.WarehouseMapper
 import org.example.domain.model.Warehouse
+import org.example.domain.repository.Result
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.repository.WarehouseRepositoryResult
 
 class CsvWarehouseRepository(
     private val dataSource: WarehouseDataSource,
@@ -12,7 +12,7 @@ class CsvWarehouseRepository(
 ) : WarehouseRepository {
 
 
-    override fun getAllWarehouses(): WarehouseRepositoryResult {
+    override fun getAllWarehouses(): Result<List<Warehouse>> {
         val dataSourceResult = dataSource.getWarehouses()
 
         val warehouses = mutableListOf<Warehouse>()
@@ -28,9 +28,12 @@ class CsvWarehouseRepository(
             }
         }
 
-        return WarehouseRepositoryResult(
-            warehouses = warehouses,
-            warnings = warnings
-        )
+        val errorMessage = if (warnings.isEmpty()) {
+            null
+        } else {
+            warnings.joinToString("; ")
+        }
+
+        return Result(warehouses, errorMessage)
     }
 }
