@@ -1,54 +1,35 @@
 package org.example.data.repository
 
-import org.example.data.dataparsing.convertCsvRowToWarehouseRawObject
+import org.example.data.datasource.WarehouseDataSource
+import org.example.data.mapper.WarehouseMapper
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.repository.WarehouseRepositoryResult
-import java.io.File
 
-private const val FIRST_DATA_ROW_INDEX = 1
-
-class CsvWarehouseRepository(private val filePath: String) : WarehouseRepository {
+class CsvWarehouseRepository(
+    private val dataSource: WarehouseDataSource,
+    private val mapper: WarehouseMapper
+) : WarehouseRepository {
 
     override fun getAllWarehouses(): WarehouseRepositoryResult {
-        val warnings = mutableListOf<String>()
-
-        val rows = readAllLinesFromFile(warnings)
-
-        if (rows.isEmpty()) {
-            return WarehouseRepositoryResult(emptyList(), warnings)
-        }
+        val dataSourceResult = dataSource.getWarehouses()
 
         val warehouses = mutableListOf<Warehouse>()
+        val warnings = dataSourceResult.warnings.toMutableList()
 
-        for (index in FIRST_DATA_ROW_INDEX until rows.size) {
-            val currentRow = rows[index]
+        for (rawWarehouse in dataSourceResult.warehouses) {
+            val mappingResult = mapper.map(rawWarehouse)
 
-            val cleanedRow = currentRow.trim()
+            warnings.addAll(mappingResult.warnings)
 
-            val rawWarehouse = convertCsvRowToWarehouseRawObject(cleanedRow, index, warnings)
-
-            if (rawWarehouse != null) {
-                val domainWarehouse = Warehouse(
-                    id = rawWarehouse.id,
-                    name = rawWarehouse.name,
-                    regionalZone = rawWarehouse.regionalZone,
-                    latitude = rawWarehouse.latitude,
-                    longitude = rawWarehouse.longitude
-                )
-                warehouses.add(domainWarehouse)
+            mappingResult.warehouse?.let { warehouse ->
+                warehouses.add(warehouse)
             }
         }
 
-        return WarehouseRepositoryResult(warehouses, warnings)
-    }
-
-    private fun readAllLinesFromFile(warnings: MutableList<String>): List<String> {
-        val file = File(filePath)
-        if (!file.exists()) {
-            warnings.add("Warning: File not found at path: $filePath")
-            return emptyList()
-        }
-        return file.readLines()
+        return WarehouseRepositoryResult(
+            warehouses = warehouses,
+            warnings = warnings
+        )
     }
 }

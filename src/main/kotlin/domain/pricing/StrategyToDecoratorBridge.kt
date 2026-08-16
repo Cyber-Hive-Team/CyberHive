@@ -2,7 +2,6 @@ package org.example.domain.pricing
 
 import org.example.domain.model.BaseCost
 import org.example.domain.model.PackageComponent
-
 class StrategyToDecoratorBridge(
     basePrice: Double
 ) : PackageComponent {
