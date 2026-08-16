@@ -1,6 +1,5 @@
 package org.example.domain.builder
 
-import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RouteRaw
 import org.example.domain.model.Package
 import org.example.domain.model.Route
@@ -11,21 +10,13 @@ class DomainGraphBuilder {
 
     fun buildConnectedDomainGraph(
         warehouses: List<Warehouse>,
-        rawPackageList: List<PackageRaw>,
+        packages: List<Package>,
         vehicles: List<Vehicle>,
-        rawRouteList: List<RouteRaw>
+        rawRoutes: List<RouteRaw>
     ): BuildResult {
-        val warehouseIndex = warehouses.associateBy { it.id }
-        val warnings = mutableListOf<String>()
+        val routes = buildRoutes(rawRoutes, warehouses)
 
-        val packages = buildPackages(
-            rawPackageList, warehouseIndex, warnings
-        )
-        val routes = buildRoutes(
-            rawRouteList, warehouseIndex, warnings
-        )
-
-        linkBidirectionalRelationships(
+        linkRelationships(
             packages = packages,
             vehicles = vehicles,
             routes = routes
@@ -33,44 +24,22 @@ class DomainGraphBuilder {
 
         return BuildResult(
             success = warehouses,
-            warnings = warnings
+            warnings = emptyList()
         )
     }
 
-    private fun buildPackages(
-        rawPackages: List<PackageRaw>,
-        warehouseIndex: Map<String, Warehouse>,
-        warnings: MutableList<String>
-    ): List<Package> =
-        rawPackages.mapNotNull { raw ->
-            val origin = warehouseIndex[normalizeId(raw.originHubId)]
-            val destination = warehouseIndex[normalizeId(raw.destinationHubId)]
-
-            if (origin == null || destination == null) {
-                warnings.add("Missing hub for package '${raw.id}'")
-                null
-            } else {
-                Package(
-                    id = raw.id,
-                    weight = raw.weight,
-                    priority = raw.priority,
-                    originWarehouse = origin,
-                    destinationWarehouse = destination
-                )
-            }
-        }
-
     private fun buildRoutes(
         rawRoutes: List<RouteRaw>,
-        warehouseIndex: Map<String, Warehouse>,
-        warnings: MutableList<String>
-    ): List<Route> =
-        rawRoutes.mapNotNull { raw ->
-            val origin = warehouseIndex[normalizeId(raw.originHubId)]
-            val destination = warehouseIndex[normalizeId(raw.destinationHubId)]
+        warehouses: List<Warehouse>
+    ): List<Route> {
+        val warehouseMap = warehouses.associateBy { it.id }
+
+        return rawRoutes.mapNotNull { raw ->
+            val origin = warehouseMap[normalizeId(raw.originHubId)]
+            val destination =
+                warehouseMap[normalizeId(raw.destinationHubId)]
 
             if (origin == null || destination == null) {
-                warnings.add("Missing hub for route '${raw.id}'")
                 null
             } else {
                 Route(
@@ -82,21 +51,32 @@ class DomainGraphBuilder {
                 )
             }
         }
+    }
 
-    private fun linkBidirectionalRelationships(
+    private fun linkRelationships(
         packages: List<Package>,
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-        packages.groupBy { it.originWarehouse }
-            .forEach { (warehouse, items) -> warehouse.addPackages(items) }
+        packages
+            .groupBy { it.originWarehouse }
+            .forEach { (warehouse, items) ->
+                warehouse.addPackages(items)
+            }
 
-        vehicles.groupBy { it.currentHub }
-            .forEach { (warehouse, items) -> warehouse.addVehicles(items) }
+        vehicles
+            .groupBy { it.currentHub }
+            .forEach { (warehouse, items) ->
+                warehouse.addVehicles(items)
+            }
 
-        routes.groupBy { it.originWarehouse }
-            .forEach { (warehouse, items) -> warehouse.addRoutes(items) }
+        routes
+            .groupBy { it.originWarehouse }
+            .forEach { (warehouse, items) ->
+                warehouse.addRoutes(items)
+            }
     }
 
-    private fun normalizeId(id: String) = id.trim().uppercase()
+    private fun normalizeId(id: String): String =
+        id.trim().uppercase()
 }
