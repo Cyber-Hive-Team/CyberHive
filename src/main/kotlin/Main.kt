@@ -11,6 +11,7 @@ import org.example.data.mapper.WarehouseMapper
 import org.example.data.repository.CsvVehicleRepository
 import org.example.data.repository.CsvWarehouseRepository
 import org.example.domain.builder.DomainGraphBuilder
+import org.example.domain.model.Package
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy
@@ -19,6 +20,9 @@ import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
+
+private const val MIN_VEHICLES_FOR_ROUTING = 4
+private const val ROUTING_SLOT = 40
 
 private data class RawData(
     val warehouses: List<Warehouse>,
@@ -37,6 +41,7 @@ fun main() {
     }
 
     println("\n=== Building Domain Graph ===")
+
     val result = DomainGraphBuilder().buildConnectedDomainGraph(
         warehouses = raw.warehouses,
         rawPackageList = raw.packages,
@@ -53,6 +58,7 @@ fun main() {
     result.warnings.forEach { println("WARNING: $it") }
 
     val warehouses = result.success
+
     testPricing(warehouses)
     testSorting(warehouses)
     verifyGraph(warehouses)
@@ -73,10 +79,10 @@ private fun loadRawData(): RawData {
     )
 
     return RawData(
-        warehouses,
-        packages,
-        vehicles,
-        routes
+        warehouses = warehouses,
+        packages = packages,
+        vehicles = vehicles,
+        routes = routes
     )
 }
 
@@ -156,6 +162,7 @@ private fun testPricing(
         "FragileStrategy" to FragileStrategy()
     ).forEach { (name, strategy) ->
         engine.setStrategy(strategy)
+
         println(
             "$name price: $" +
                     engine.calculatePrice(packageItem, route)
@@ -227,57 +234,54 @@ private fun verifyGraph(
 private fun runRouting(
     warehouses: List<Warehouse>
 ) {
-    val warehouse = warehouses.firstOrNull {
-        it.getStationedVehicles().size >= 4
-    }
-
-    if (warehouse == null) {
-        println(
-            "Cannot test routing: " +
-                    "no warehouse has 4 vehicles."
-        )
-        return
-    }
+    val warehouse = findRoutingWarehouse(warehouses)
+        ?: return
 
     val service = ConsistentHashVehicleRoutingService()
     val packages = warehouse.getCargoQueue()
     val vehicles = warehouse.getStationedVehicles()
+
     val before = service.assignPackagesToVehicles(
         packages,
         vehicles
     )
 
-    val slot = 40
-    val failedVehicle = service.getVehiclesBySlot()[slot]
-        ?: return println("No vehicle found at slot $slot.")
+    val failedVehicle = service.getVehiclesBySlot()[ROUTING_SLOT]
+        ?: return println(
+            "No vehicle found at slot $ROUTING_SLOT."
+        )
 
     val after = service.handleVehicleFailure(
         currentAllocation = before,
         failedVehicleId = failedVehicle.id,
-        failedVehicleSlot = slot
+        failedVehicleSlot = ROUTING_SLOT
     )
 
-    printAllocation(
-        service,
-        before,
-        "before failure"
-    )
-    printAllocation(
-        service,
-        after,
-        "after failure"
-    )
+    printAllocation(service, before, "before failure")
+    printAllocation(service, after, "after failure")
+    printRoutingReport(before, after, failedVehicle.id)
+}
 
-    printRoutingReport(
-        before,
-        after,
-        failedVehicle.id
-    )
+private fun findRoutingWarehouse(
+    warehouses: List<Warehouse>
+): Warehouse? {
+    val warehouse = warehouses.firstOrNull {
+        it.getStationedVehicles().size >= MIN_VEHICLES_FOR_ROUTING
+    }
+
+    if (warehouse == null) {
+        println(
+            "Cannot test routing: " +
+                    "no warehouse has $MIN_VEHICLES_FOR_ROUTING vehicles."
+        )
+    }
+
+    return warehouse
 }
 
 private fun printAllocation(
     service: ConsistentHashVehicleRoutingService,
-    allocation: Map<Vehicle, List<org.example.domain.model.Package>>,
+    allocation: Map<Vehicle, List<Package>>,
     title: String
 ) {
     println("=== Package allocation $title ===")
@@ -295,8 +299,8 @@ private fun printAllocation(
 }
 
 private fun printRoutingReport(
-    before: Map<Vehicle, List<org.example.domain.model.Package>>,
-    after: Map<Vehicle, List<org.example.domain.model.Package>>,
+    before: Map<Vehicle, List<Package>>,
+    after: Map<Vehicle, List<Package>>,
     failedVehicleId: String
 ) {
     val report = RoutingValidationReporter()
@@ -308,16 +312,7 @@ private fun printRoutingReport(
 
     println("=== Routing validation report ===")
     report.messages.forEach(::println)
-    println(
-        "Stable packages: " +
-                report.stablePackageCount
-    )
-    println(
-        "Rerouted packages: " +
-                report.reroutedPackageCount
-    )
-    println(
-        "All validations passed: " +
-                report.allPassed
-    )
+    println("Stable packages: ${report.stablePackageCount}")
+    println("Rerouted packages: ${report.reroutedPackageCount}")
+    println("All validations passed: ${report.allPassed}")
 }
