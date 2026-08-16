@@ -1,5 +1,6 @@
 package org.example.data.repository
 
+import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.mapper.WarehouseMapper
 import org.example.domain.model.Warehouse
@@ -11,29 +12,42 @@ class CsvWarehouseRepository(
     private val mapper: WarehouseMapper
 ) : WarehouseRepository {
 
-
     override fun getAllWarehouses(): Result<List<Warehouse>> {
-        val dataSourceResult = dataSource.getWarehouses()
-
+        val result = dataSource.getWarehouses()
         val warehouses = mutableListOf<Warehouse>()
-        val warnings = dataSourceResult.warnings.toMutableList()
+        val warnings = result.warnings.toMutableList()
 
-        for (rawWarehouse in dataSourceResult.warehouses) {
-            val mappingResult = mapper.map(rawWarehouse)
+        result.warehouses.forEach { raw ->
+            val validationWarnings = validate(raw)
 
-            warnings.addAll(mappingResult.warnings)
-
-            mappingResult.warehouse?.let { warehouse ->
-                warehouses.add(warehouse)
+            if (validationWarnings.isEmpty()) {
+                warehouses.add(mapper.map(raw))
+            } else {
+                warnings.addAll(validationWarnings)
             }
         }
 
-        val errorMessage = if (warnings.isEmpty()) {
-            null
-        } else {
-            warnings.joinToString("; ")
+        val errorMessage = warnings
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString("; ")
+
+        return Result(
+            warehouses,
+            errorMessage
+        )
+    }
+
+    private fun validate(
+        raw: WareHouseRaw
+    ): List<String> {
+        val warnings = mutableListOf<String>()
+
+        if (raw.id.isBlank()) {
+            warnings.add(
+                "Warning: Warehouse skipped - ID is missing"
+            )
         }
 
-        return Result(warehouses, errorMessage)
+        return warnings
     }
 }
