@@ -1,4 +1,4 @@
-package domain.algorithm.search
+package org.example.domain.algorithm.search
 
 import org.example.domain.model.Warehouse
 
