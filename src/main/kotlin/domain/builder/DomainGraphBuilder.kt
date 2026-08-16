@@ -1,6 +1,5 @@
 package org.example.domain.builder
 
-import org.example.data.dataholder.RouteRaw
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
@@ -12,10 +11,8 @@ class DomainGraphBuilder {
         warehouses: List<Warehouse>,
         packages: List<Package>,
         vehicles: List<Vehicle>,
-        rawRoutes: List<RouteRaw>
+        routes: List<Route>
     ): BuildResult {
-        val routes = buildRoutes(rawRoutes, warehouses)
-
         linkRelationships(
             packages = packages,
             vehicles = vehicles,
@@ -28,55 +25,43 @@ class DomainGraphBuilder {
         )
     }
 
-    private fun buildRoutes(
-        rawRoutes: List<RouteRaw>,
-        warehouses: List<Warehouse>
-    ): List<Route> {
-        val warehouseMap = warehouses.associateBy { it.id }
-
-        return rawRoutes.mapNotNull { raw ->
-            val origin = warehouseMap[normalizeId(raw.originHubId)]
-            val destination =
-                warehouseMap[normalizeId(raw.destinationHubId)]
-
-            if (origin == null || destination == null) {
-                null
-            } else {
-                Route(
-                    id = raw.id,
-                    distanceKm = raw.distanceKm,
-                    typicalDelayMin = raw.typicalDelayMin,
-                    originWarehouse = origin,
-                    destinationWarehouse = destination
-                )
-            }
-        }
-    }
-
     private fun linkRelationships(
         packages: List<Package>,
         vehicles: List<Vehicle>,
         routes: List<Route>
+    ) {
+        linkPackages(packages)
+        linkVehicles(vehicles)
+        linkRoutes(routes)
+    }
+
+    private fun linkPackages(
+        packages: List<Package>
     ) {
         packages
             .groupBy { it.originWarehouse }
             .forEach { (warehouse, items) ->
                 warehouse.addPackages(items)
             }
+    }
 
+    private fun linkVehicles(
+        vehicles: List<Vehicle>
+    ) {
         vehicles
             .groupBy { it.currentHub }
             .forEach { (warehouse, items) ->
                 warehouse.addVehicles(items)
             }
+    }
 
+    private fun linkRoutes(
+        routes: List<Route>
+    ) {
         routes
             .groupBy { it.originWarehouse }
             .forEach { (warehouse, items) ->
                 warehouse.addRoutes(items)
             }
     }
-
-    private fun normalizeId(id: String): String =
-        id.trim().uppercase()
 }
