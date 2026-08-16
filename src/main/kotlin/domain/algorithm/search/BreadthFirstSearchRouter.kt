@@ -1,6 +1,5 @@
 package org.example.domain.algorithm.search
 
-import domain.algorithm.search.Router
 import org.example.domain.model.Warehouse
 
 class BreadthFirstSearchRouter : Router {
