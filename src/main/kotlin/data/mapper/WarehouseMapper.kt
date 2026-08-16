@@ -6,6 +6,7 @@ import org.example.domain.model.Warehouse
 
 class WarehouseMapper {
 
+
     fun map(raw: WareHouseRaw): WarehouseMappingResult {
         val warnings = mutableListOf<String>()
 

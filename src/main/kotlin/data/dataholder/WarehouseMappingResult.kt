@@ -6,3 +6,4 @@ data class WarehouseMappingResult(
     val warehouse: Warehouse?,
     val warnings: List<String>
 )
+
