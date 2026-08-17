@@ -1,145 +1,172 @@
 package org.example.data.dataparsing
 
+import org.example.data.dataholder.RouteParseResult
 import org.example.data.dataholder.RouteRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
 
-fun readRouteLines(): List<String> {
-    val routeFilePath = Path("src/main/resources/routes.csv")
-    val routeLines: List<String>
-    if (routeFilePath.exists()) {
-        routeLines = routeFilePath.readLines()
-    } else {
-        println("Warning: routes.csv was not found.")
-        routeLines = emptyList()
-    }
-    return routeLines
+private const val FIRST_DATA_ROW_INDEX = 1
+private const val EXPECTED_COLUMN_COUNT = 5
+private const val ID_INDEX = 0
+private const val ORIGIN_INDEX = 1
+private const val DESTINATION_INDEX = 2
+private const val DISTANCE_INDEX = 3
+private const val DELAY_INDEX = 4
+private const val INVALID_DISTANCE = -1.0
+private const val INVALID_DELAY = -1
 
-}
-fun parseRoutes(): List<RouteRaw> {
+private data class RouteIds(
+    val id: String,
+    val origin: String,
+    val destination: String
+)
+
+fun parseRoutes(filePath: String): RouteParseResult {
+    val warnings = mutableListOf<String>()
     val routes = mutableListOf<RouteRaw>()
-    val routeLines = readRouteLines()
-    val firstDataLineIndex = 1
-    for (lineIndex in firstDataLineIndex until routeLines.size) {
-        val currentRouteLine = routeLines[lineIndex]
-        val csvLineNumber = lineIndex + 1
-        processRouteLine(routes, currentRouteLine, csvLineNumber)
-    }
-    return routes
-}
+    val lines = readRouteLines(filePath, warnings)
 
-fun processRouteLine(routes: MutableList<RouteRaw>, currentRouteLine: String, csvLineNumber: Int
-) {
-    if (currentRouteLine.isNotBlank()) {
-        val routeColumns = currentRouteLine.split(",").map { column -> column.trim() }
-        validateAndAddRoute(routes, routeColumns, csvLineNumber)
-    }
-
-}
-fun validateAndAddRoute(routes: MutableList<RouteRaw>, routeColumns: List<String>, csvLineNumber: Int) {
-    val validColumnCount = hasValidRouteColumnCount(routeColumns)
-    if (validColumnCount) {
-        addRoute(routes, routeColumns, csvLineNumber)
-    } else {
-        println(
-            "Warning: route row $csvLineNumber was skipped " +
-                    "because the number of columns is invalid."
+    for (index in FIRST_DATA_ROW_INDEX until lines.size) {
+        processRouteLine(
+            routes,
+            lines[index],
+            index + 1,
+            warnings
         )
     }
 
+    return RouteParseResult(routes, warnings)
 }
-fun hasValidRouteColumnCount(routeColumns: List<String>): Boolean {
-    val expectedColumnCount = 5
-    val validColumnCount: Boolean
-    if (routeColumns.size == expectedColumnCount) {
-        validColumnCount = true
-    } else {
-        validColumnCount = false
-    }
-    return validColumnCount
 
-}
-fun addRoute(routes: MutableList<RouteRaw>, routeColumns: List<String>, csvLineNumber: Int) {
-    val id = cleanId(routeColumns[0], "route ID", csvLineNumber)
-    val originHubId = cleanId(routeColumns[1], "origin hub ID", csvLineNumber)
-    val destinationHubId = cleanId(routeColumns[2], "destination hub ID", csvLineNumber)
-    val routeIdsAreValid = areRouteIdsValid(id, originHubId, destinationHubId)
-    if (routeIdsAreValid) {
-        createAndAddRoute(routes, routeColumns, id, originHubId, destinationHubId)
+private fun readRouteLines(
+    filePath: String,
+    warnings: MutableList<String>
+): List<String> {
+    val path = Path(filePath)
+
+    if (!path.exists()) {
+        warnings.add("Warning: routes.csv was not found.")
+        return emptyList()
     }
 
+    return path.readLines()
 }
-fun cleanId(idBeforeCleaning: String, fieldName: String, csvLineNumber: Int): String {
-    val cleanedId = idBeforeCleaning.trim().uppercase()
-    if (cleanedId.isBlank()) {
-        println(
-            "Warning: route row $csvLineNumber was skipped " +
+
+private fun processRouteLine(
+    routes: MutableList<RouteRaw>,
+    line: String,
+    rowNumber: Int,
+    warnings: MutableList<String>
+) {
+    if (line.isBlank()) {
+        return
+    }
+
+    val columns = line.split(",").map { it.trim() }
+
+    if (columns.size != EXPECTED_COLUMN_COUNT) {
+        warnings.add(
+            "Warning: route row $rowNumber was skipped " +
+                    "because the number of columns is invalid."
+        )
+        return
+    }
+
+    createRoute(columns, rowNumber, warnings)?.let(routes::add)
+}
+
+private fun createRoute(
+    columns: List<String>,
+    rowNumber: Int,
+    warnings: MutableList<String>
+): RouteRaw? {
+    val ids = extractRouteIds(columns, rowNumber, warnings)
+        ?: return null
+
+    return RouteRaw(
+        id = ids.id,
+        originHubId = ids.origin,
+        destinationHubId = ids.destination,
+        distanceKm = cleanDistance(columns[DISTANCE_INDEX]),
+        typicalDelayMin = cleanDelay(columns[DELAY_INDEX])
+    )
+}
+
+private fun extractRouteIds(
+    columns: List<String>,
+    rowNumber: Int,
+    warnings: MutableList<String>
+): RouteIds? {
+    val id = cleanId(
+        columns[ID_INDEX],
+        "route ID",
+        rowNumber,
+        warnings
+    )
+    val origin = cleanId(
+        columns[ORIGIN_INDEX],
+        "origin hub ID",
+        rowNumber,
+        warnings
+    )
+    val destination = cleanId(
+        columns[DESTINATION_INDEX],
+        "destination hub ID",
+        rowNumber,
+        warnings
+    )
+
+    if (id.isBlank() || origin.isBlank() || destination.isBlank()) {
+        return null
+    }
+
+    return RouteIds(id, origin, destination)
+}
+
+private fun cleanId(
+    value: String,
+    fieldName: String,
+    rowNumber: Int,
+    warnings: MutableList<String>
+): String {
+    val cleaned = value.trim().uppercase()
+
+    if (cleaned.isBlank()) {
+        warnings.add(
+            "Warning: route row $rowNumber was skipped " +
                     "because $fieldName is missing."
         )
     }
-    return cleanedId
 
+    return cleaned
 }
-fun areRouteIdsValid(id: String, originHubId: String, destinationHubId: String): Boolean {
-    val routeIdsAreValid: Boolean
-    if (id.isNotBlank() &&
-        originHubId.isNotBlank() &&
-        destinationHubId.isNotBlank()
-    ) {
-        routeIdsAreValid = true
-    } else {
-        routeIdsAreValid = false
-    }
-    return routeIdsAreValid
 
-}
-fun createAndAddRoute(routes: MutableList<RouteRaw>,
-    routeColumns: List<String>, id: String,
-    originHubId: String, destinationHubId: String) {
-    val distanceKm = cleanDistance(routeColumns[3])
-    val typicalDelayMin = cleanDelay(routeColumns[4])
-    val route = RouteRaw(
-        id,
-        originHubId,
-        destinationHubId,
-        distanceKm,
-        typicalDelayMin
-    )
-    routes.add(route)
-
-}
-fun cleanDistance(distanceBeforeCleaning: String): Double {
-    val distanceAfterCleaning = distanceBeforeCleaning.replace("km", "", ignoreCase = true)
+private fun cleanDistance(value: String): Double {
+    val cleaned = value
+        .replace("km", "", ignoreCase = true)
         .trim()
-    val invalidDistance = -1.0
-    val validatedDistance: Double
-    if (
-        distanceAfterCleaning.isBlank() ||
-        distanceAfterCleaning.equals(
-            "N/A", ignoreCase = true) ||
-        distanceAfterCleaning.equals("null", ignoreCase = true)) {
-        validatedDistance = invalidDistance
-    } else {
-        validatedDistance =
-            distanceAfterCleaning.toDoubleOrNull() ?: invalidDistance
-    }
-    return validatedDistance
 
+    if (isInvalidValue(cleaned)) {
+        return INVALID_DISTANCE
+    }
+
+    return cleaned.toDoubleOrNull() ?: INVALID_DISTANCE
 }
-fun cleanDelay(delayBeforeCleaning: String): Int {
-    val delayAfterCleaning = delayBeforeCleaning.trim()
-    val invalidDelay = -1
-    val validatedDelay: Int
-    if (
-        delayAfterCleaning.isBlank() ||
-        delayAfterCleaning.equals("N/A", ignoreCase = true) ||
-        delayAfterCleaning.equals("null", ignoreCase = true)) {
-        validatedDelay = invalidDelay
-    } else {
-        validatedDelay = delayAfterCleaning.toIntOrNull() ?: invalidDelay
-    }
-    return validatedDelay
 
+private fun cleanDelay(value: String): Int {
+    val cleaned = value.trim()
+
+    if (isInvalidValue(cleaned)) {
+        return INVALID_DELAY
+    }
+
+    return cleaned.toIntOrNull() ?: INVALID_DELAY
+}
+
+private fun isInvalidValue(value: String): Boolean {
+    return value.isBlank() ||
+            value.equals("N/A", ignoreCase = true) ||
+            value.equals("null", ignoreCase = true)
 }
 

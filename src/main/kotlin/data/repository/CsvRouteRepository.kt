@@ -1,38 +1,84 @@
 package org.example.data.repository
 
-import org.example.data.dataparsing.parseRoutes
+import org.example.data.datasource.RouteDataSource
+import org.example.data.mapper.RouteMapper
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.Result
 import org.example.domain.repository.RouteRepository
-//الكلاس هذا لسا بده تعديل لانه لسا البارسينج فيه مشكلة ولانه موضوع الmapping
-// لسا بده عمل عملته هيك عشان يرضى يرفع فقط
+
 class CsvRouteRepository(
+    private val dataSource: RouteDataSource,
+    private val mapper: RouteMapper,
     private val warehouseMap: Map<String, Warehouse>
 ) : RouteRepository {
 
     override fun getAllRoutes(): Result<List<Route>> {
-        val rawRoutes = parseRoutes()
-        val routes = mutableListOf<Route>()
+        val result = dataSource.getRoutes()
+        val warnings = result.warnings.toMutableList()
+        val routes = mapRoutes(result.routes, warnings)
 
-        for (rawRoute in rawRoutes) {
-            val originWarehouse = warehouseMap[rawRoute.originHubId]
-            val destinationWarehouse = warehouseMap[rawRoute.destinationHubId]
+        return Result(
+            data = routes,
+            errorMessage = warnings.takeIf { it.isNotEmpty() }
+                ?.joinToString("; ")
+        )
+    }
 
-            if (originWarehouse == null || destinationWarehouse == null) {
-                continue
+    private fun mapRoutes(
+        rawRoutes: List<org.example.data.dataholder.RouteRaw>,
+        warnings: MutableList<String>
+    ): List<Route> =
+        rawRoutes.mapNotNull { raw ->
+            val origin = warehouseMap[normalizeId(raw.originHubId)]
+            val destination = warehouseMap[normalizeId(raw.destinationHubId)]
+
+            val validation = validate(raw, origin, destination)
+
+            if (validation.isNotEmpty()) {
+                warnings.addAll(validation)
+                null
+            } else {
+                mapper.map(raw, origin!!, destination!!)
             }
+        }
 
-            routes.add(
-                Route(
-                    id = rawRoute.id,
-                    distanceKm = rawRoute.distanceKm,
-                    typicalDelayMin = rawRoute.typicalDelayMin,
-                    originWarehouse = originWarehouse,
-                    destinationWarehouse = destinationWarehouse
-                )
+    private fun validate(
+        raw: org.example.data.dataholder.RouteRaw,
+        origin: Warehouse?,
+        destination: Warehouse?
+    ): List<String> {
+        val warnings = mutableListOf<String>()
+
+        if (raw.id.isBlank()) {
+            warnings.add("Warning: Route skipped - missing id")
+        }
+        if (origin == null) {
+            warnings.add(
+                "Warning: Route ${raw.id} skipped - " +
+                        "origin warehouse not found: ${raw.originHubId}"
             )
         }
-        return Result(data = routes)
+        if (destination == null) {
+            warnings.add(
+                "Warning: Route ${raw.id} skipped - " +
+                        "destination warehouse not found: ${raw.destinationHubId}"
+            )
+        }
+        if (raw.distanceKm <= 0) {
+            warnings.add(
+                "Warning: Route ${raw.id} skipped - invalid distance"
+            )
+        }
+        if (raw.typicalDelayMin < 0) {
+            warnings.add(
+                "Warning: Route ${raw.id} skipped - invalid delay"
+            )
+        }
+
+        return warnings
     }
+
+    private fun normalizeId(id: String): String =
+        id.trim().uppercase()
 }

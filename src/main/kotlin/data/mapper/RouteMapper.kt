@@ -1,20 +1,20 @@
 package org.example.data.mapper
 
-import org.example.data.dataholder.PackageRaw
-import org.example.domain.model.Package
+import org.example.data.dataholder.RouteRaw
+import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 
-class PackageMapper {
+class RouteMapper {
 
     fun map(
-        raw: PackageRaw,
+        raw: RouteRaw,
         originWarehouse: Warehouse,
         destinationWarehouse: Warehouse
-    ): Package {
-        return Package(
+    ): Route {
+        return Route(
             id = raw.id,
-            weight = raw.weight,
-            priority = raw.priority,
+            distanceKm = raw.distanceKm,
+            typicalDelayMin = raw.typicalDelayMin,
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )
