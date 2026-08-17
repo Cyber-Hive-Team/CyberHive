@@ -21,29 +21,14 @@ class DijkstraRouter(
         val previousWarehouses = mutableMapOf<Warehouse, Warehouse>()
         val processedWarehouses = mutableSetOf<Warehouse>()
 
-        while (processedWarehouses.size < allWarehouses.size) {
+        exploreNetwork(
+            destination,
+            distances,
+            previousWarehouses,
+            processedWarehouses
+        )
 
-            val currentWarehouse = findClosestUnprocessedWarehouse(
-                distances,
-                processedWarehouses
-            ) ?: break
-
-            if (currentWarehouse == destination) {
-                break
-            }
-
-            updateNeighborDistances(
-                currentWarehouse,
-                distances,
-                previousWarehouses,
-                processedWarehouses
-            )
-
-            processedWarehouses.add(currentWarehouse)
-        }
-
-        return buildPath(
-            start,
+        return buildPath(start,
             destination,
             previousWarehouses,
             distances
@@ -65,6 +50,39 @@ class DijkstraRouter(
         return distances
     }
 
+    private fun exploreNetwork(
+        destination: Warehouse,
+        distances: MutableMap<Warehouse, Double>,
+        previousWarehouses: MutableMap<Warehouse, Warehouse>,
+        processedWarehouses: MutableSet<Warehouse>
+    ) {
+        var currentWarehouse =
+            findClosestUnprocessedWarehouse(
+                distances,
+                processedWarehouses
+            )
+
+        while (
+            currentWarehouse != null &&
+            currentWarehouse != destination
+        ) {
+            updateNeighborDistances(
+                currentWarehouse,
+                distances,
+                previousWarehouses,
+                processedWarehouses
+            )
+
+            processedWarehouses.add(currentWarehouse)
+
+            currentWarehouse =
+                findClosestUnprocessedWarehouse(
+                    distances,
+                    processedWarehouses
+                )
+        }
+    }
+
     private fun findClosestUnprocessedWarehouse(
         distances: Map<Warehouse, Double>,
         processedWarehouses: Set<Warehouse>
@@ -74,7 +92,6 @@ class DijkstraRouter(
         var shortestDistance = Double.POSITIVE_INFINITY
 
         for ((warehouse, distance) in distances) {
-
             if (
                 warehouse !in processedWarehouses &&
                 distance < shortestDistance
@@ -97,7 +114,6 @@ class DijkstraRouter(
             ?: return
 
         for (route in currentWarehouse.getOutgoingRoutes()) {
-
             val neighbor = route.destinationWarehouse
 
             if (neighbor in processedWarehouses) {
