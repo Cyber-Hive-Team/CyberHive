@@ -28,7 +28,6 @@ private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
 private const val VEHICLE_FILE = "src/main/resources/fleet.csv"
 private const val ROUTE_FILE = "src/main/resources/routes.csv"
-
 private const val MIN_VEHICLES = 4
 private const val FAILURE_SLOT = 40
 
@@ -56,7 +55,10 @@ fun main() {
         return
     }
 
-    runTests(warehouses)
+    testPricing(warehouses)
+    testSorting(warehouses)
+    verifyGraph(warehouses)
+    runRouting(warehouses)
 }
 
 private fun loadData(): LoadedData {
@@ -67,18 +69,17 @@ private fun loadData(): LoadedData {
     val vehicles = loadVehicles(warehouseMap)
     val routes = loadRoutes(warehouseMap)
 
-    printResults(
-        warehouses.size,
-        packages.size,
-        vehicles.size,
-        routes.size
-    )
+    println("\n=== Parsing Results ===")
+    println("Warehouses: ${warehouses.size}")
+    println("Packages: ${packages.size}")
+    println("Vehicles: ${vehicles.size}")
+    println("Routes: ${routes.size}")
 
     return LoadedData(
-        warehouses,
-        packages,
-        vehicles,
-        routes
+        warehouses = warehouses,
+        packages = packages,
+        vehicles = vehicles,
+        routes = routes
     )
 }
 
@@ -131,25 +132,10 @@ private fun loadRoutes(
     return result.data.orEmpty()
 }
 
-private fun printWarnings(
-    message: String?
-) {
+private fun printWarnings(message: String?) {
     message?.let {
         println("WARNING: $it")
     }
-}
-
-private fun printResults(
-    warehouseCount: Int,
-    packageCount: Int,
-    vehicleCount: Int,
-    routeCount: Int
-) {
-    println("\n=== Parsing Results ===")
-    println("Warehouses: $warehouseCount")
-    println("Packages: $packageCount")
-    println("Vehicles: $vehicleCount")
-    println("Routes: $routeCount")
 }
 
 private fun buildGraph(
@@ -174,14 +160,6 @@ private fun buildGraph(
     return result.success
 }
 
-private fun runTests(
-    warehouses: List<Warehouse>
-) {
-    testPricing(warehouses)
-    testSorting(warehouses)
-    verifyGraph(warehouses)
-    runRouting(warehouses)
-}
 
 private fun testPricing(
     warehouses: List<Warehouse>
@@ -257,18 +235,9 @@ private fun verifyGraph(
         "First hub: ${warehouse.id} " +
                 "(${warehouse.name})"
     )
-    println(
-        "Packages: " +
-                warehouse.getCargoQueue().size
-    )
-    println(
-        "Vehicles: " +
-                warehouse.getStationedVehicles().size
-    )
-    println(
-        "Routes: " +
-                warehouse.getOutgoingRoutes().size
-    )
+    println("Packages: ${warehouse.getCargoQueue().size}")
+    println("Vehicles: ${warehouse.getStationedVehicles().size}")
+    println("Routes: ${warehouse.getOutgoingRoutes().size}")
 }
 
 private fun runRouting(
@@ -293,15 +262,7 @@ private fun runRouting(
         warehouse.getStationedVehicles()
     )
 
-    handleFailure(service, before)
-}
-
-private fun handleFailure(
-    service: ConsistentHashVehicleRoutingService,
-    before: Map<Vehicle, List<Package>>
-) {
-    val failedVehicle =
-        service.getVehiclesBySlot()[FAILURE_SLOT]
+    val failedVehicle = service.getVehiclesBySlot()[FAILURE_SLOT]
 
     if (failedVehicle == null) {
         println("No vehicle found at slot $FAILURE_SLOT.")
@@ -314,20 +275,17 @@ private fun handleFailure(
         failedVehicleSlot = FAILURE_SLOT
     )
 
-    printAllocations(service, before, after)
-    printRoutingReport(before, after, failedVehicle.id)
-}
-
-private fun printAllocations(
-    service: ConsistentHashVehicleRoutingService,
-    before: Map<Vehicle, List<Package>>,
-    after: Map<Vehicle, List<Package>>
-) {
     println("=== Package allocation before failure ===")
     printAllocation(service, before)
 
     println("=== Package allocation after failure ===")
     printAllocation(service, after)
+
+    printRoutingReport(
+        before = before,
+        after = after,
+        failedVehicleId = failedVehicle.id
+    )
 }
 
 private fun printAllocation(
@@ -363,4 +321,3 @@ private fun printRoutingReport(
     println("Rerouted packages: ${report.reroutedPackageCount}")
     println("All validations passed: ${report.allPassed}")
 }
-

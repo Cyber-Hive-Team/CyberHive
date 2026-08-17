@@ -8,15 +8,19 @@ import kotlin.io.path.readLines
 
 private const val FIRST_DATA_ROW_INDEX = 1
 private const val EXPECTED_COLUMN_COUNT = 5
-
 private const val ID_INDEX = 0
 private const val ORIGIN_INDEX = 1
 private const val DESTINATION_INDEX = 2
 private const val DISTANCE_INDEX = 3
 private const val DELAY_INDEX = 4
-
 private const val INVALID_DISTANCE = -1.0
 private const val INVALID_DELAY = -1
+
+private data class RouteIds(
+    val id: String,
+    val origin: String,
+    val destination: String
+)
 
 fun parseRoutes(filePath: String): RouteParseResult {
     val warnings = mutableListOf<String>()
@@ -25,17 +29,14 @@ fun parseRoutes(filePath: String): RouteParseResult {
 
     for (index in FIRST_DATA_ROW_INDEX until lines.size) {
         processRouteLine(
-            routes = routes,
-            line = lines[index],
-            rowNumber = index + 1,
-            warnings = warnings
+            routes,
+            lines[index],
+            index + 1,
+            warnings
         )
     }
 
-    return RouteParseResult(
-        routes = routes,
-        warnings = warnings
-    )
+    return RouteParseResult(routes, warnings)
 }
 
 private fun readRouteLines(
@@ -62,9 +63,7 @@ private fun processRouteLine(
         return
     }
 
-    val columns = line
-        .split(",")
-        .map { it.trim() }
+    val columns = line.split(",").map { it.trim() }
 
     if (columns.size != EXPECTED_COLUMN_COUNT) {
         warnings.add(
@@ -74,11 +73,7 @@ private fun processRouteLine(
         return
     }
 
-    createRoute(
-        columns = columns,
-        rowNumber = rowNumber,
-        warnings = warnings
-    )?.let(routes::add)
+    createRoute(columns, rowNumber, warnings)?.let(routes::add)
 }
 
 private fun createRoute(
@@ -86,20 +81,35 @@ private fun createRoute(
     rowNumber: Int,
     warnings: MutableList<String>
 ): RouteRaw? {
+    val ids = extractRouteIds(columns, rowNumber, warnings)
+        ?: return null
+
+    return RouteRaw(
+        id = ids.id,
+        originHubId = ids.origin,
+        destinationHubId = ids.destination,
+        distanceKm = cleanDistance(columns[DISTANCE_INDEX]),
+        typicalDelayMin = cleanDelay(columns[DELAY_INDEX])
+    )
+}
+
+private fun extractRouteIds(
+    columns: List<String>,
+    rowNumber: Int,
+    warnings: MutableList<String>
+): RouteIds? {
     val id = cleanId(
         columns[ID_INDEX],
         "route ID",
         rowNumber,
         warnings
     )
-
     val origin = cleanId(
         columns[ORIGIN_INDEX],
         "origin hub ID",
         rowNumber,
         warnings
     )
-
     val destination = cleanId(
         columns[DESTINATION_INDEX],
         "destination hub ID",
@@ -111,13 +121,7 @@ private fun createRoute(
         return null
     }
 
-    return RouteRaw(
-        id = id,
-        originHubId = origin,
-        destinationHubId = destination,
-        distanceKm = cleanDistance(columns[DISTANCE_INDEX]),
-        typicalDelayMin = cleanDelay(columns[DELAY_INDEX])
-    )
+    return RouteIds(id, origin, destination)
 }
 
 private fun cleanId(
@@ -126,9 +130,7 @@ private fun cleanId(
     rowNumber: Int,
     warnings: MutableList<String>
 ): String {
-    val cleaned = value
-        .trim()
-        .uppercase()
+    val cleaned = value.trim().uppercase()
 
     if (cleaned.isBlank()) {
         warnings.add(
@@ -167,3 +169,4 @@ private fun isInvalidValue(value: String): Boolean {
             value.equals("N/A", ignoreCase = true) ||
             value.equals("null", ignoreCase = true)
 }
+
