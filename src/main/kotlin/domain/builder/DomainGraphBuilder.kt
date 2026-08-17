@@ -30,18 +30,34 @@ class DomainGraphBuilder {
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
+        linkPackages(packages)
+        linkVehicles(vehicles)
+        linkRoutes(routes)
+    }
+
+    private fun linkPackages(
+        packages: List<Package>
+    ) {
         packages
             .groupBy { it.originWarehouse }
             .forEach { (warehouse, items) ->
                 warehouse.addPackages(items)
             }
+    }
 
+    private fun linkVehicles(
+        vehicles: List<Vehicle>
+    ) {
         vehicles
             .groupBy { it.currentHub }
             .forEach { (warehouse, items) ->
                 warehouse.addVehicles(items)
             }
+    }
 
+    private fun linkRoutes(
+        routes: List<Route>
+    ) {
         routes
             .groupBy { it.originWarehouse }
             .forEach { (warehouse, items) ->
