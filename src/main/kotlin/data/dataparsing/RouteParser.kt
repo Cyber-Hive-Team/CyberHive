@@ -56,44 +56,27 @@ private fun processRouteLine(
 ): RawResult<RouteRaw> {
     if (line.isBlank()) {
         return RawResult(
-            rawData = null,
-            errorMessage = "Route row $rowNumber is empty"
+            rawData = null, errorMessage = "Route row $rowNumber is empty"
         )
     }
-
     val columns = line.split(",").map { it.trim() }
-
     if (columns.size != EXPECTED_COLUMN_COUNT) {
         return RawResult(
-            rawData = null,
-            errorMessage =
-                "Route row $rowNumber was skipped because the number of columns is invalid"
+            rawData = null, errorMessage = "Route row $rowNumber was skipped because the number of columns is invalid"
         )
     }
-    val route = createRoute(
-        columns = columns,
-        rowNumber = rowNumber
-    )
-
+    val route = createRoute(columns = columns)
     if (route == null) {
-        return RawResult(
-            rawData = null,
-            errorMessage = "Route row $rowNumber has missing required fields"
-        )
+        return RawResult(rawData = null, errorMessage = "Route row $rowNumber has missing required fields")
     }
-
-    return RawResult(
-        rawData = route,
-        errorMessage = null
-    )
+    return RawResult(rawData = route, errorMessage = null)
 }
 
 
 private fun createRoute(
-    columns: List<String>,
-    rowNumber: Int,
+    columns: List<String>
 ): RouteRaw? {
-    val ids = extractRouteIds(columns, rowNumber)
+    val ids = extractRouteIds(columns)
         ?: return null
 
     return RouteRaw(
@@ -106,23 +89,16 @@ private fun createRoute(
 }
 
 private fun extractRouteIds(
-    columns: List<String>,
-    rowNumber: Int
+    columns: List<String>
 ): RouteIds? {
     val id = cleanId(
-        columns[ID_INDEX],
-        "route ID",
-        rowNumber
+        columns[ID_INDEX]
     )
     val origin = cleanId(
-        columns[ORIGIN_INDEX],
-        "origin hub ID",
-        rowNumber
+        columns[ORIGIN_INDEX]
     )
     val destination = cleanId(
-        columns[DESTINATION_INDEX],
-        "destination hub ID",
-        rowNumber
+        columns[DESTINATION_INDEX]
     )
 
     if (id.isBlank() || origin.isBlank() || destination.isBlank()) {
@@ -133,12 +109,9 @@ private fun extractRouteIds(
 }
 
 private fun cleanId(
-    value: String,
-    fieldName: String,
-    rowNumber: Int
+    value: String
 ): String {
     val cleaned = value.trim().uppercase()
-
     return cleaned
 }
 
