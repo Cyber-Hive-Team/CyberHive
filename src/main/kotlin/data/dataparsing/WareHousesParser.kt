@@ -1,5 +1,6 @@
 package org.example.data.dataparsing
 
+import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.WareHouseRaw
 import org.example.domain.model.RegionalZone
 
@@ -10,31 +11,43 @@ private const val ZONE_INDEX = 2
 private const val LAT_INDEX = 3
 private const val LON_INDEX = 4
 
-fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int, warnings: MutableList<String>): WareHouseRaw? {
+fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<WareHouseRaw> {
     val columns = row.split(",").map { it.trim() }
 
-    if (!hasRequiredColumns(columns, rowIndex, warnings)) return null
-
-    val zone = convertToZone(columns[ZONE_INDEX], rowIndex, warnings) ?: return null
-
-    return extractWarehouseRaw(columns, zone)
-}
-
-private fun hasRequiredColumns(columns: List<String>, rowIndex: Int, warnings: MutableList<String>): Boolean {
-    if (columns.size < REQUIRED_COLUMNS_COUNT) {
-        warnings.add("Warning: Row ${rowIndex + 1} skipped - missing columns")
-        return false
+    if (!hasRequiredColumns(columns)) {
+        return RawResult(
+            rawData = null,
+            errorMessage = "Row ${rowIndex + 1} skipped - missing columns"
+        )
     }
-    return true
-}
 
-private fun convertToZone(zoneText: String, rowIndex: Int, warnings: MutableList<String>): RegionalZone? {
-    val zone = RegionalZone.entries.find { it.name.equals(zoneText, ignoreCase = true) }
+    val zone = convertToZone(columns[ZONE_INDEX])
     if (zone == null) {
-        warnings.add("Warning: Row ${rowIndex + 1} skipped - invalid zone: $zoneText")
+        return RawResult(
+            rawData = null,
+            errorMessage = "Row ${rowIndex + 1} skipped - invalid zone: ${columns[ZONE_INDEX]}"
+        )
     }
-    return zone
+    val warehouseRaw = extractWarehouseRaw(columns, zone)
+
+    return RawResult(
+        rawData = warehouseRaw,
+        errorMessage = null
+    )
 }
+
+
+private fun hasRequiredColumns(columns: List<String>): Boolean {
+    return columns.size >= REQUIRED_COLUMNS_COUNT
+
+}
+
+private fun convertToZone(zoneText: String): RegionalZone? {
+    return RegionalZone.entries.find {
+        it.name.equals(zoneText, ignoreCase = true)
+    }
+}
+
 
 private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): WareHouseRaw {
     return WareHouseRaw(
