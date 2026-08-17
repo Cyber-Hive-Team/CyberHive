@@ -1,18 +1,20 @@
 package org.example
 
-import org.example.data.dataholder.RouteRaw
-import org.example.data.dataparsing.parseRoutes
 import org.example.data.datasource.CsvPackageDataSource
+import org.example.data.datasource.CsvRouteDataSource
 import org.example.data.datasource.CsvVehicleDataSource
 import org.example.data.datasource.CsvWarehouseDataSource
 import org.example.data.mapper.PackageMapper
+import org.example.data.mapper.RouteMapper
 import org.example.data.mapper.VehicleMapper
 import org.example.data.mapper.WarehouseMapper
 import org.example.data.repository.CsvPackageRepository
+import org.example.data.repository.CsvRouteRepository
 import org.example.data.repository.CsvVehicleRepository
 import org.example.data.repository.CsvWarehouseRepository
 import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.model.Package
+import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy
@@ -25,6 +27,8 @@ import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
 private const val VEHICLE_FILE = "src/main/resources/fleet.csv"
+private const val ROUTE_FILE = "src/main/resources/routes.csv"
+
 private const val MIN_VEHICLES = 4
 private const val FAILURE_SLOT = 40
 
@@ -32,7 +36,7 @@ private data class LoadedData(
     val warehouses: List<Warehouse>,
     val packages: List<Package>,
     val vehicles: List<Vehicle>,
-    val routes: List<RouteRaw>
+    val routes: List<Route>
 )
 
 fun main() {
@@ -45,31 +49,14 @@ fun main() {
         return
     }
 
-    println("\n=== Building Domain Graph ===")
+    val warehouses = buildGraph(data)
 
-    val result = DomainGraphBuilder().buildConnectedDomainGraph(
-        warehouses = data.warehouses,
-        packages = data.packages,
-        vehicles = data.vehicles,
-        rawRoutes = data.routes
-    )
-
-    if (result.success.isEmpty()) {
+    if (warehouses.isEmpty()) {
         println("ERROR: Domain graph building failed.")
         return
     }
 
-    println("Connected hubs: ${result.success.size}")
-    result.warnings.forEach {
-        println("WARNING: $it")
-    }
-
-    val warehouses = result.success
-
-    testPricing(warehouses)
-    testSorting(warehouses)
-    verifyGraph(warehouses)
-    runRouting(warehouses)
+    runTests(warehouses)
 }
 
 private fun loadData(): LoadedData {
@@ -78,7 +65,7 @@ private fun loadData(): LoadedData {
 
     val packages = loadPackages(warehouseMap)
     val vehicles = loadVehicles(warehouseMap)
-    val routes = parseRoutes()
+    val routes = loadRoutes(warehouseMap)
 
     printResults(
         warehouses.size,
@@ -88,20 +75,20 @@ private fun loadData(): LoadedData {
     )
 
     return LoadedData(
-        warehouses = warehouses,
-        packages = packages,
-        vehicles = vehicles,
-        routes = routes
+        warehouses,
+        packages,
+        vehicles,
+        routes
     )
 }
 
 private fun loadWarehouses(): List<Warehouse> {
     val result = CsvWarehouseRepository(
-        dataSource = CsvWarehouseDataSource(WAREHOUSE_FILE),
-        mapper = WarehouseMapper()
+        CsvWarehouseDataSource(WAREHOUSE_FILE),
+        WarehouseMapper()
     ).getAllWarehouses()
 
-    result.errorMessage?.let { println("WARNING: $it") }
+    printWarnings(result.errorMessage)
     return result.data.orEmpty()
 }
 
@@ -109,11 +96,12 @@ private fun loadPackages(
     warehouseMap: Map<String, Warehouse>
 ): List<Package> {
     val result = CsvPackageRepository(
-        dataSource = CsvPackageDataSource(PACKAGE_FILE),
-        mapper = PackageMapper(warehouseMap)
+        CsvPackageDataSource(PACKAGE_FILE),
+        PackageMapper(),
+        warehouseMap
     ).getAllPackages()
 
-    result.errorMessage?.let { println("WARNING: $it") }
+    printWarnings(result.errorMessage)
     return result.data.orEmpty()
 }
 
@@ -121,12 +109,34 @@ private fun loadVehicles(
     warehouseMap: Map<String, Warehouse>
 ): List<Vehicle> {
     val result = CsvVehicleRepository(
-        dataSource = CsvVehicleDataSource(VEHICLE_FILE),
-        mapper = VehicleMapper(warehouseMap)
+        CsvVehicleDataSource(VEHICLE_FILE),
+        VehicleMapper(),
+        warehouseMap
     ).getVehicles()
 
-    result.errorMessage?.let { println("WARNING: $it") }
+    printWarnings(result.errorMessage)
     return result.data.orEmpty()
+}
+
+private fun loadRoutes(
+    warehouseMap: Map<String, Warehouse>
+): List<Route> {
+    val result = CsvRouteRepository(
+        CsvRouteDataSource(ROUTE_FILE),
+        RouteMapper(),
+        warehouseMap
+    ).getAllRoutes()
+
+    printWarnings(result.errorMessage)
+    return result.data.orEmpty()
+}
+
+private fun printWarnings(
+    message: String?
+) {
+    message?.let {
+        println("WARNING: $it")
+    }
 }
 
 private fun printResults(
@@ -140,6 +150,37 @@ private fun printResults(
     println("Packages: $packageCount")
     println("Vehicles: $vehicleCount")
     println("Routes: $routeCount")
+}
+
+private fun buildGraph(
+    data: LoadedData
+): List<Warehouse> {
+    println("\n=== Building Domain Graph ===")
+
+    val result = DomainGraphBuilder()
+        .buildConnectedDomainGraph(
+            warehouses = data.warehouses,
+            packages = data.packages,
+            vehicles = data.vehicles,
+            routes = data.routes
+        )
+
+    println("Connected hubs: ${result.success.size}")
+
+    result.warnings.forEach {
+        println("WARNING: $it")
+    }
+
+    return result.success
+}
+
+private fun runTests(
+    warehouses: List<Warehouse>
+) {
+    testPricing(warehouses)
+    testSorting(warehouses)
+    verifyGraph(warehouses)
+    runRouting(warehouses)
 }
 
 private fun testPricing(
@@ -212,11 +253,24 @@ private fun verifyGraph(
     val warehouse = warehouses.firstOrNull()
         ?: return println("No hubs built.")
 
-    println("First hub: ${warehouse.id} (${warehouse.name})")
-    println("  Packages: ${warehouse.getCargoQueue().size}")
-    println("  Vehicles: ${warehouse.getStationedVehicles().size}")
-    println("  Routes: ${warehouse.getOutgoingRoutes().size}")
+    println(
+        "First hub: ${warehouse.id} " +
+                "(${warehouse.name})"
+    )
+    println(
+        "Packages: " +
+                warehouse.getCargoQueue().size
+    )
+    println(
+        "Vehicles: " +
+                warehouse.getStationedVehicles().size
+    )
+    println(
+        "Routes: " +
+                warehouse.getOutgoingRoutes().size
+    )
 }
+
 private fun runRouting(
     warehouses: List<Warehouse>
 ) {
@@ -225,17 +279,30 @@ private fun runRouting(
     }
 
     if (warehouse == null) {
-        println("Cannot test routing: no warehouse has enough vehicles.")
+        println(
+            "Cannot test routing: " +
+                    "no warehouse has enough vehicles."
+        )
         return
     }
 
     val service = ConsistentHashVehicleRoutingService()
+
     val before = service.assignPackagesToVehicles(
         warehouse.getCargoQueue(),
         warehouse.getStationedVehicles()
     )
 
-    val failedVehicle = service.getVehiclesBySlot()[FAILURE_SLOT]
+    handleFailure(service, before)
+}
+
+private fun handleFailure(
+    service: ConsistentHashVehicleRoutingService,
+    before: Map<Vehicle, List<Package>>
+) {
+    val failedVehicle =
+        service.getVehiclesBySlot()[FAILURE_SLOT]
+
     if (failedVehicle == null) {
         println("No vehicle found at slot $FAILURE_SLOT.")
         return
@@ -296,3 +363,4 @@ private fun printRoutingReport(
     println("Rerouted packages: ${report.reroutedPackageCount}")
     println("All validations passed: ${report.allPassed}")
 }
+

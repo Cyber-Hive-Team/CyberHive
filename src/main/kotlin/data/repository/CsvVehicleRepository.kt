@@ -22,29 +22,22 @@ class CsvVehicleRepository(
         val vehicles = mutableListOf<Vehicle>()
         val warnings = result.warnings.toMutableList()
 
-        result.vehicles.forEach { rawVehicle ->
-            val currentHub = warehouseMap[rawVehicle.currentHubId]
-            val validationWarnings = validate(rawVehicle, currentHub)
+        result.vehicles.forEach { raw ->
+            val currentHub = warehouseMap[raw.currentHubId]
+            val validationWarnings = validate(raw, currentHub)
 
             if (validationWarnings.isEmpty()) {
-                vehicles.add(
-                    mapper.map(
-                        raw = rawVehicle,
-                        currentHub = currentHub!!
-                    )
-                )
+                vehicles.add(mapper.map(raw, currentHub!!))
             } else {
                 warnings.addAll(validationWarnings)
             }
         }
 
-        val errorMessage = warnings
-            .takeIf { it.isNotEmpty() }
-            ?.joinToString("; ")
-
         return Result(
             data = vehicles,
-            errorMessage = errorMessage
+            errorMessage = warnings
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString("; ")
         )
     }
 
@@ -52,39 +45,51 @@ class CsvVehicleRepository(
         raw: VehicleRaw,
         currentHub: Warehouse?
     ): List<String> {
-        val warnings = mutableListOf<String>()
-
-        if (raw.id.isBlank()) {
-            warnings.add(
-                "Warning: Vehicle skipped - missing id"
-            )
-        }
-
-        if (raw.currentHubId.isBlank()) {
-            warnings.add(
-                "Warning: Vehicle ${raw.id} skipped - missing hub id"
-            )
-        }
-
-        if (currentHub == null) {
-            warnings.add(
-                "Warning: Vehicle ${raw.id} skipped - " +
-                        "warehouse not found: ${raw.currentHubId}"
-            )
-        }
-
-        if (raw.maxCapacityKg <= MIN_CAPACITY_KG) {
-            warnings.add(
-                "Warning: Vehicle ${raw.id} skipped - invalid capacity"
-            )
-        }
-
-        if (raw.costPerKm < MIN_COST_PER_KM) {
-            warnings.add(
-                "Warning: Vehicle ${raw.id} skipped - invalid cost per km"
-            )
-        }
-
-        return warnings
+        return listOfNotNull(
+            validateId(raw),
+            validateHubId(raw),
+            validateWarehouse(raw, currentHub),
+            validateCapacity(raw),
+            validateCost(raw)
+        )
     }
+
+    private fun validateId(raw: VehicleRaw): String? =
+        if (raw.id.isBlank()) {
+            "Warning: Vehicle skipped - missing id"
+        } else {
+            null
+        }
+
+    private fun validateHubId(raw: VehicleRaw): String? =
+        if (raw.currentHubId.isBlank()) {
+            "Warning: Vehicle ${raw.id} skipped - missing hub id"
+        } else {
+            null
+        }
+
+    private fun validateWarehouse(
+        raw: VehicleRaw,
+        currentHub: Warehouse?
+    ): String? =
+        if (currentHub == null) {
+            "Warning: Vehicle ${raw.id} skipped - " +
+                    "warehouse not found: ${raw.currentHubId}"
+        } else {
+            null
+        }
+
+    private fun validateCapacity(raw: VehicleRaw): String? =
+        if (raw.maxCapacityKg <= MIN_CAPACITY_KG) {
+            "Warning: Vehicle ${raw.id} skipped - invalid capacity"
+        } else {
+            null
+        }
+
+    private fun validateCost(raw: VehicleRaw): String? =
+        if (raw.costPerKm < MIN_COST_PER_KM) {
+            "Warning: Vehicle ${raw.id} skipped - invalid cost per km"
+        } else {
+            null
+        }
 }
