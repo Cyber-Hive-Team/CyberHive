@@ -1,6 +1,6 @@
 package org.example.data.dataholder
 
-data class VehicleParseResult(
-    val vehicles: List<VehicleRaw>,
+data class RouteParseResult(
+    val routes: List<RouteRaw>,
     val warnings: List<String>
 )

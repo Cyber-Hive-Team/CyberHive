@@ -1,6 +1,5 @@
 package org.example.domain.builder
 
-import org.example.data.dataholder.RouteRaw
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
@@ -12,10 +11,8 @@ class DomainGraphBuilder {
         warehouses: List<Warehouse>,
         packages: List<Package>,
         vehicles: List<Vehicle>,
-        rawRoutes: List<RouteRaw>
+        routes: List<Route>
     ): BuildResult {
-        val routes = buildRoutes(rawRoutes, warehouses)
-
         linkRelationships(
             packages = packages,
             vehicles = vehicles,
@@ -26,31 +23,6 @@ class DomainGraphBuilder {
             success = warehouses,
             warnings = emptyList()
         )
-    }
-
-    private fun buildRoutes(
-        rawRoutes: List<RouteRaw>,
-        warehouses: List<Warehouse>
-    ): List<Route> {
-        val warehouseMap = warehouses.associateBy { it.id }
-
-        return rawRoutes.mapNotNull { raw ->
-            val origin = warehouseMap[normalizeId(raw.originHubId)]
-            val destination =
-                warehouseMap[normalizeId(raw.destinationHubId)]
-
-            if (origin == null || destination == null) {
-                null
-            } else {
-                Route(
-                    id = raw.id,
-                    distanceKm = raw.distanceKm,
-                    typicalDelayMin = raw.typicalDelayMin,
-                    originWarehouse = origin,
-                    destinationWarehouse = destination
-                )
-            }
-        }
     }
 
     private fun linkRelationships(
@@ -76,7 +48,4 @@ class DomainGraphBuilder {
                 warehouse.addRoutes(items)
             }
     }
-
-    private fun normalizeId(id: String): String =
-        id.trim().uppercase()
 }
