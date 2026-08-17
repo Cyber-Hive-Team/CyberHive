@@ -160,7 +160,6 @@ private fun buildGraph(
     return result.success
 }
 
-
 private fun testPricing(
     warehouses: List<Warehouse>
 ) {
@@ -275,13 +274,8 @@ private fun runRouting(
         failedVehicleSlot = FAILURE_SLOT
     )
 
-    println("=== Package allocation before failure ===")
-    printAllocation(service, before)
-
-    println("=== Package allocation after failure ===")
-    printAllocation(service, after)
-
-    printRoutingReport(
+    printAllocation(
+        service = service,
         before = before,
         after = after,
         failedVehicleId = failedVehicle.id
@@ -289,6 +283,31 @@ private fun runRouting(
 }
 
 private fun printAllocation(
+    service: ConsistentHashVehicleRoutingService,
+    before: Map<Vehicle, List<Package>>,
+    after: Map<Vehicle, List<Package>>,
+    failedVehicleId: String
+) {
+    println("=== Package allocation before failure ===")
+    printVehicleAllocation(service, before)
+
+    println("=== Package allocation after failure ===")
+    printVehicleAllocation(service, after)
+
+    val report = RoutingValidationReporter().createReport(
+        before = before,
+        after = after,
+        failedVehicleId = failedVehicleId
+    )
+
+    println("=== Routing validation report ===")
+    report.messages.forEach(::println)
+    println("Stable packages: ${report.stablePackageCount}")
+    println("Rerouted packages: ${report.reroutedPackageCount}")
+    println("All validations passed: ${report.allPassed}")
+}
+
+private fun printVehicleAllocation(
     service: ConsistentHashVehicleRoutingService,
     allocation: Map<Vehicle, List<Package>>
 ) {
@@ -302,22 +321,4 @@ private fun printAllocation(
                             .joinToString { it.id }
             )
         }
-}
-
-private fun printRoutingReport(
-    before: Map<Vehicle, List<Package>>,
-    after: Map<Vehicle, List<Package>>,
-    failedVehicleId: String
-) {
-    val report = RoutingValidationReporter().createReport(
-        before = before,
-        after = after,
-        failedVehicleId = failedVehicleId
-    )
-
-    println("=== Routing validation report ===")
-    report.messages.forEach(::println)
-    println("Stable packages: ${report.stablePackageCount}")
-    println("Rerouted packages: ${report.reroutedPackageCount}")
-    println("All validations passed: ${report.allPassed}")
 }
