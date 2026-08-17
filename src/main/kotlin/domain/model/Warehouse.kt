@@ -1,7 +1,7 @@
 package org.example.domain.model
 
-import domain.sorting.sortCargoQueueDescendingByWeight
-import org.example.sorting.sortPackagesByPriorityThenWeight
+import org.example.domain.algorithm.sorting.sortCargoQueueDescendingByWeight
+import org.example.domain.algorithm.sorting.sortPackagesByPriorityThenWeight
 
 class Warehouse(
     val id: String,
