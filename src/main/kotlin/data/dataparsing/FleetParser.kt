@@ -14,16 +14,20 @@ private const val INVALID_VALUE = -1.0
 
 fun parseVehicles(filePath: String): VehicleParseResult {
     val lines = File(filePath).readLines()
-    val vehicles = mutableListOf<VehicleRaw>()
     val warnings = mutableListOf<String>()
-
-    lines.drop(FIRST_DATA_ROW).forEachIndexed { index, line ->
-        parseLine(line, index + FIRST_DATA_ROW, warnings)?.let {
-            vehicles.add(it)
-        }
-    }
+    val vehicles = parseRows(lines, warnings)
 
     return VehicleParseResult(vehicles, warnings)
+}
+
+private fun parseRows(
+    lines: List<String>,
+    warnings: MutableList<String>
+): List<VehicleRaw> {
+    return lines.drop(FIRST_DATA_ROW)
+        .mapIndexedNotNull { index, line ->
+            parseLine(line, index + FIRST_DATA_ROW, warnings)
+        }
 }
 
 private fun parseLine(
@@ -39,18 +43,18 @@ private fun parseLine(
     }
 
     return parseFleetRow(
-        vehicleId = columns[ID_INDEX],
-        currentHubId = columns[HUB_INDEX],
-        maxCapacityKgValue = columns[CAPACITY_INDEX],
-        costPerKmValue = columns[COST_INDEX]
+        columns[ID_INDEX],
+        columns[HUB_INDEX],
+        columns[CAPACITY_INDEX],
+        columns[COST_INDEX]
     )
 }
 
-fun parseFleetRow(
+private fun parseFleetRow(
     vehicleId: String,
     currentHubId: String,
-    maxCapacityKgValue: String,
-    costPerKmValue: String
+    capacity: String,
+    cost: String
 ): VehicleRaw? {
     if (vehicleId.isBlank() || currentHubId.isBlank()) {
         return null
@@ -59,11 +63,10 @@ fun parseFleetRow(
     return VehicleRaw(
         id = vehicleId,
         currentHubId = currentHubId,
-        maxCapacityKg = parseNumericValue(maxCapacityKgValue),
-        costPerKm = parseNumericValue(costPerKmValue)
+        maxCapacityKg = parseNumericValue(capacity),
+        costPerKm = parseNumericValue(cost)
     )
 }
 
-private fun parseNumericValue(value: String): Double {
-    return value.toDoubleOrNull() ?: INVALID_VALUE
-}
+private fun parseNumericValue(value: String): Double =
+    value.toDoubleOrNull() ?: INVALID_VALUE
