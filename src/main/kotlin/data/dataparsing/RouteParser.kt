@@ -1,6 +1,6 @@
 package org.example.data.dataparsing
 
-import org.example.data.dataholder.RouteParseResult
+import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.RouteRaw
 import kotlin.io.path.Path
 import kotlin.io.path.exists
@@ -22,31 +22,28 @@ private data class RouteIds(
     val destination: String
 )
 
-fun parseRoutes(filePath: String): RouteParseResult {
-    val warnings = mutableListOf<String>()
-    val routes = mutableListOf<RouteRaw>()
-    val lines = readRouteLines(filePath, warnings)
+fun parseRoutes(filePath: String): List<RawResult<RouteRaw>> {
 
-    for (index in FIRST_DATA_ROW_INDEX until lines.size) {
-        processRouteLine(
-            routes,
-            lines[index],
-            index + 1,
-            warnings
-        )
-    }
+    val lines = readRouteLines(filePath)
+    val rawRoutesResultList: List<RawResult<RouteRaw>> =
+        lines
+            .drop(FIRST_DATA_ROW_INDEX)
+            .mapIndexed { index, line ->
+                processRouteLine(
+                    line = line,
+                    rowNumber = index + FIRST_DATA_ROW_INDEX
+                )
+            }
 
-    return RouteParseResult(routes, warnings)
+    return rawRoutesResultList
 }
 
 private fun readRouteLines(
-    filePath: String,
-    warnings: MutableList<String>
+    filePath: String
 ): List<String> {
     val path = Path(filePath)
 
     if (!path.exists()) {
-        warnings.add("Warning: routes.csv was not found.")
         return emptyList()
     }
 
@@ -54,34 +51,49 @@ private fun readRouteLines(
 }
 
 private fun processRouteLine(
-    routes: MutableList<RouteRaw>,
     line: String,
     rowNumber: Int,
-    warnings: MutableList<String>
-) {
+): RawResult<RouteRaw> {
     if (line.isBlank()) {
-        return
+        return RawResult(
+            rawData = null,
+            errorMessage = "Route row $rowNumber is empty"
+        )
     }
 
     val columns = line.split(",").map { it.trim() }
 
     if (columns.size != EXPECTED_COLUMN_COUNT) {
-        warnings.add(
-            "Warning: route row $rowNumber was skipped " +
-                    "because the number of columns is invalid."
+        return RawResult(
+            rawData = null,
+            errorMessage =
+                "Route row $rowNumber was skipped because the number of columns is invalid"
         )
-        return
+    }
+    val route = createRoute(
+        columns = columns,
+        rowNumber = rowNumber
+    )
+
+    if (route == null) {
+        return RawResult(
+            rawData = null,
+            errorMessage = "Route row $rowNumber has missing required fields"
+        )
     }
 
-    createRoute(columns, rowNumber, warnings)?.let(routes::add)
+    return RawResult(
+        rawData = route,
+        errorMessage = null
+    )
 }
+
 
 private fun createRoute(
     columns: List<String>,
     rowNumber: Int,
-    warnings: MutableList<String>
 ): RouteRaw? {
-    val ids = extractRouteIds(columns, rowNumber, warnings)
+    val ids = extractRouteIds(columns, rowNumber)
         ?: return null
 
     return RouteRaw(
@@ -95,26 +107,22 @@ private fun createRoute(
 
 private fun extractRouteIds(
     columns: List<String>,
-    rowNumber: Int,
-    warnings: MutableList<String>
+    rowNumber: Int
 ): RouteIds? {
     val id = cleanId(
         columns[ID_INDEX],
         "route ID",
-        rowNumber,
-        warnings
+        rowNumber
     )
     val origin = cleanId(
         columns[ORIGIN_INDEX],
         "origin hub ID",
-        rowNumber,
-        warnings
+        rowNumber
     )
     val destination = cleanId(
         columns[DESTINATION_INDEX],
         "destination hub ID",
-        rowNumber,
-        warnings
+        rowNumber
     )
 
     if (id.isBlank() || origin.isBlank() || destination.isBlank()) {
@@ -127,17 +135,9 @@ private fun extractRouteIds(
 private fun cleanId(
     value: String,
     fieldName: String,
-    rowNumber: Int,
-    warnings: MutableList<String>
+    rowNumber: Int
 ): String {
     val cleaned = value.trim().uppercase()
-
-    if (cleaned.isBlank()) {
-        warnings.add(
-            "Warning: route row $rowNumber was skipped " +
-                    "because $fieldName is missing."
-        )
-    }
 
     return cleaned
 }
