@@ -7,7 +7,10 @@ import org.example.domain.model.Warehouse
 import org.example.domain.repository.Result
 import org.example.domain.repository.WarehouseRepository
 
-private const val MIN_VALID_COORDINATE = 0.0
+private const val MIN_LATITUDE = -90.0
+private const val MAX_LATITUDE = 90.0
+private const val MIN_LONGITUDE = -180.0
+private const val MAX_LONGITUDE = 180.0
 
 class CsvWarehouseRepository(
     private val dataSource: WarehouseDataSource,
@@ -43,29 +46,21 @@ class CsvWarehouseRepository(
         return mapper.map(raw)
     }
 
-    private fun validate(
-        raw: WareHouseRaw
-    ): List<String> {
+    private fun validate(raw: WareHouseRaw): List<String> {
         val warnings = mutableListOf<String>()
 
         if (raw.id.isBlank()) {
-            warnings.add(
-                "Warning: Warehouse skipped - ID is missing"
-            )
+            warnings.add("Warning: Warehouse skipped - ID is missing")
         }
+        if (raw.latitude == null ||
+            raw.latitude < MIN_LATITUDE ||
+            raw.latitude > MAX_LATITUDE)
+        { warnings.add("Warning: Warehouse ${raw.id} skipped - invalid latitude") }
 
-        if (raw.latitude < MIN_VALID_COORDINATE) {
-            warnings.add(
-                "Warning: Warehouse ${raw.id} skipped - invalid latitude"
-            )
-        }
-
-        if (raw.longitude < MIN_VALID_COORDINATE) {
-            warnings.add(
-                "Warning: Warehouse ${raw.id} skipped - invalid longitude"
-            )
-        }
-
+        if (raw.longitude == null ||
+            raw.longitude < MIN_LONGITUDE ||
+            raw.longitude > MAX_LONGITUDE )
+        { warnings.add("Warning: Warehouse ${raw.id} skipped - invalid longitude") }
         return warnings
     }
 }

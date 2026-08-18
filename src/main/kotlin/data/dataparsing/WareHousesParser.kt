@@ -59,9 +59,9 @@ private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): Ware
     )
 }
 
-private fun parseCoordinate(value: String): Double {
+private fun parseCoordinate(value: String): Double? {
     if (value.isBlank() || value.equals("null", true) || value.equals("N/A", true)) {
-        return -1.0
+        return null
     }
-    return value.toDoubleOrNull() ?: -1.0
+    return value.toDoubleOrNull()
 }
