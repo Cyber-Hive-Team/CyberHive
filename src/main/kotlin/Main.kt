@@ -23,6 +23,10 @@ import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
+import org.example.domain.decorator.ColdChainDecorator
+import org.example.domain.decorator.ExpressInsuranceDecorator
+import org.example.domain.decorator.FragileHandlingDecorator
+import org.example.domain.model.PackageComponent
 
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
@@ -67,6 +71,7 @@ fun main() {
     result.warnings.forEach { println("WARNING: $it") }
 
     testPricing(result.success)
+    testDecorator(result.success)
     testSorting(result.success)
     runRouting(result.success)
 }
@@ -271,4 +276,43 @@ private fun printAllocation(
                             .joinToString { it.id }
             )
         }
+}
+private fun testDecorator(
+    warehouses: List<Warehouse>
+) {
+    println("\n=== Decorator Pattern ===")
+
+    val packageItem = warehouses
+        .firstOrNull()
+        ?.getCargoQueue()
+        ?.firstOrNull()
+
+    if (packageItem == null) {
+        println("No package available for decorator test.")
+        return
+    }
+
+    var decoratedPackage: PackageComponent = packageItem
+
+    println("Original:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+
+    decoratedPackage = FragileHandlingDecorator(decoratedPackage)
+
+    println("\nAfter Fragile Handling:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+
+    decoratedPackage = ColdChainDecorator(decoratedPackage)
+
+    println("\nAfter Cold Chain:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+
+    decoratedPackage = ExpressInsuranceDecorator(decoratedPackage)
+
+    println("\nAfter Express Insurance:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
 }
