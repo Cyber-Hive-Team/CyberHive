@@ -27,6 +27,8 @@ import org.example.domain.decorator.ColdChainDecorator
 import org.example.domain.decorator.ExpressInsuranceDecorator
 import org.example.domain.decorator.FragileHandlingDecorator
 import org.example.domain.model.PackageComponent
+import org.example.domain.algorithm.search.BreadthFirstSearchRouter
+import org.example.domain.algorithm.search.DijkstraRouter
 
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
@@ -74,6 +76,7 @@ fun main() {
     testDecorator(result.success)
     testSorting(result.success)
     runRouting(result.success)
+    compareRoutingAlgorithms(result.success)
 }
 
 private fun loadData(): LoadedData {
@@ -315,4 +318,44 @@ private fun testDecorator(
     println("\nAfter Express Insurance:")
     println("Description: ${decoratedPackage.getDescription()}")
     println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+}
+private fun compareRoutingAlgorithms(
+    warehouses: List<Warehouse>
+) {
+    println("\n=== Routing Algorithms Comparison ===")
+
+    if (warehouses.size < 2) {
+        println("Not enough warehouses to test routing.")
+        return
+    }
+
+    val start = warehouses.first()
+    val destination = warehouses.last()
+
+    val bfsRouter = BreadthFirstSearchRouter()
+    val dijkstraRouter = DijkstraRouter(warehouses)
+
+    val bfsPath = bfsRouter.findPath(start, destination)
+    val dijkstraPath = dijkstraRouter.findPath(start, destination)
+
+    println("Start: ${start.id}")
+    println("Destination: ${destination.id}")
+
+    println("\n--- BFS (Least-Hop Path) ---")
+
+    if (bfsPath.isEmpty()) {
+        println("No path found.")
+    } else {
+        println(bfsPath.joinToString(" -> ") { it.id })
+        println("Number of hops: ${bfsPath.size - 1}")
+    }
+
+    println("\n--- Dijkstra (Shortest-Distance Path) ---")
+
+    if (dijkstraPath.isEmpty()) {
+        println("No path found.")
+    } else {
+        println(dijkstraPath.joinToString(" -> ") { it.id })
+        println("Number of hops: ${dijkstraPath.size - 1}")
+    }
 }
