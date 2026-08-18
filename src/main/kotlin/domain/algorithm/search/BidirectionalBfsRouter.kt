@@ -22,17 +22,11 @@ class BidirectionalBfsRouter(
         val forwardVisited = mutableSetOf<Warehouse>()
         val backwardVisited = mutableSetOf<Warehouse>()
 
-        val forwardParents = mutableMapOf<Warehouse, Warehouse?>()
-        val backwardParents = mutableMapOf<Warehouse, Warehouse?>()
-
         initializeSearch(start, forwardQueue, forwardVisited)
-        forwardParents[start] = null
 
         initializeSearch(destination, backwardQueue, backwardVisited)
-        backwardParents[destination] = null
         return searchPath(
-            forwardQueue, backwardQueue, forwardVisited, backwardVisited,
-            forwardParents, backwardParents
+            forwardQueue, backwardQueue, forwardVisited, backwardVisited
         )
     }
 
@@ -48,27 +42,25 @@ class BidirectionalBfsRouter(
     private fun searchPath(
         forwardQueue: ArrayDeque<Warehouse>, backwardQueue: ArrayDeque<Warehouse>,
         forwardVisited: MutableSet<Warehouse>, backwardVisited: MutableSet<Warehouse>,
-        forwardParents: MutableMap<Warehouse, Warehouse?>, backwardParents: MutableMap<Warehouse, Warehouse?>
     ): List<Warehouse> {
+        val forwardParents = mutableMapOf<Warehouse, Warehouse?>()
+        val backwardParents = mutableMapOf<Warehouse, Warehouse?>()
+        forwardParents[forwardQueue.first()] = null
+        backwardParents[backwardQueue.first()] = null
         while (forwardQueue.isNotEmpty() && backwardQueue.isNotEmpty()) {
             val meetingPoint = search(
-                forwardQueue,
-                forwardVisited,
-                backwardVisited,
-                forwardParents
+                forwardQueue, forwardVisited,
+                backwardVisited, forwardParents
             )
             if (meetingPoint != null) {
                 return reconstructPath(
                     meetingPoint,
-                    forwardParents,
-                    backwardParents
+                    forwardParents, backwardParents
                 )
             }
             val backwardMeetingPoint = search(
-                backwardQueue,
-                backwardVisited,
-                forwardVisited,
-                backwardParents
+                backwardQueue, backwardVisited,
+                forwardVisited, backwardParents
             )
             if (backwardMeetingPoint != null) {
                 return reconstructPath(
