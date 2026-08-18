@@ -43,20 +43,11 @@ private fun readPackageLines(
     return packagesFile.readLines()
 }
 
-private fun parsePackageLine(
-    line: String,
-    lineNumber: Int
-): RawResult<PackageRaw> {
-
+private fun parsePackageLine(line: String, lineNumber: Int): RawResult<PackageRaw> {
     if (line.isBlank()) {
-        return RawResult(
-            rawData = null,
-            errorMessage = "Package row $lineNumber is empty"
-        )
+        return RawResult(rawData = null, errorMessage = "Package row $lineNumber is empty")
     }
-
     val columns = splitAndCleanColumns(line)
-
     if (columns.size < EXPECTED_COLUMN_COUNT) {
         return RawResult(
             rawData = null,
@@ -64,27 +55,17 @@ private fun parsePackageLine(
                     "expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}"
         )
     }
-
     val packageRaw = createPackageRaw(columns)
-
     val validationError = validatePackageFields(
         id = packageRaw.id,
         originHubId = packageRaw.originHubId,
         destinationHubId = packageRaw.destinationHubId,
         lineNumber = lineNumber
     )
-
     if (validationError != null) {
-        return RawResult(
-            rawData = null,
-            errorMessage = validationError
-        )
+        return RawResult(rawData = null, errorMessage = validationError)
     }
-
-    return RawResult(
-        rawData = packageRaw,
-        errorMessage = null
-    )
+    return RawResult(rawData = packageRaw, errorMessage = null)
 }
 
 
