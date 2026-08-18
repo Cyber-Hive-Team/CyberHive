@@ -22,23 +22,17 @@ class BidirectionalBfsRouter(
         val forwardVisited = mutableSetOf<Warehouse>()
         val backwardVisited = mutableSetOf<Warehouse>()
 
-        initializeSearch(
-            start,
-            forwardQueue,
-            forwardVisited
-        )
+        val forwardParents = mutableMapOf<Warehouse, Warehouse?>()
+        val backwardParents = mutableMapOf<Warehouse, Warehouse?>()
 
-        initializeSearch(
-            destination,
-            backwardQueue,
-            backwardVisited
-        )
+        initializeSearch(start, forwardQueue, forwardVisited)
+        forwardParents[start] = null
 
+        initializeSearch(destination, backwardQueue, backwardVisited)
+        backwardParents[destination] = null
         return searchPath(
-            forwardQueue,
-            backwardQueue,
-            forwardVisited,
-            backwardVisited
+            forwardQueue, backwardQueue, forwardVisited, backwardVisited,
+            forwardParents, backwardParents
         )
     }
 
@@ -52,62 +46,79 @@ class BidirectionalBfsRouter(
     }
 
     private fun searchPath(
-        forwardQueue: ArrayDeque<Warehouse>,
-        backwardQueue: ArrayDeque<Warehouse>,
-        forwardVisited: MutableSet<Warehouse>,
-        backwardVisited: MutableSet<Warehouse>
+        forwardQueue: ArrayDeque<Warehouse>, backwardQueue: ArrayDeque<Warehouse>,
+        forwardVisited: MutableSet<Warehouse>, backwardVisited: MutableSet<Warehouse>,
+        forwardParents: MutableMap<Warehouse, Warehouse?>, backwardParents: MutableMap<Warehouse, Warehouse?>
     ): List<Warehouse> {
-
-        while (
-            forwardQueue.isNotEmpty() &&
-            backwardQueue.isNotEmpty()
-        ) {
+        while (forwardQueue.isNotEmpty() && backwardQueue.isNotEmpty()) {
             val meetingPoint = search(
                 forwardQueue,
                 forwardVisited,
-                backwardVisited
+                backwardVisited,
+                forwardParents
             )
-
             if (meetingPoint != null) {
-                return listOf(meetingPoint)
+                return reconstructPath(
+                    meetingPoint,
+                    forwardParents,
+                    backwardParents
+                )
             }
-
             val backwardMeetingPoint = search(
                 backwardQueue,
                 backwardVisited,
-                forwardVisited
+                forwardVisited,
+                backwardParents
             )
-
             if (backwardMeetingPoint != null) {
-                return listOf(backwardMeetingPoint)
+                return reconstructPath(
+                    backwardMeetingPoint,
+                    forwardParents, backwardParents
+                )
             }
         }
-
         return emptyList()
     }
 
     private fun search(
         queue: ArrayDeque<Warehouse>,
         visited: MutableSet<Warehouse>,
-        oppositeVisited: Set<Warehouse>
+        oppositeVisited: Set<Warehouse>,
+        parents: MutableMap<Warehouse, Warehouse?>
     ): Warehouse? {
-
         val current = queue.removeFirst()
-
         for (neighbor in graph.getNeighbors(current)) {
             if (neighbor in visited) {
                 continue
             }
-
             visited.add(neighbor)
-
+            parents[neighbor] = current
             if (neighbor in oppositeVisited) {
                 return neighbor
             }
 
             queue.addLast(neighbor)
         }
-
         return null
     }
+}
+
+private fun reconstructPath(
+    meetingPoint: Warehouse,
+    forwardParents: Map<Warehouse, Warehouse?>,
+    backwardParents: Map<Warehouse, Warehouse?>
+): List<Warehouse> {
+    val path = mutableListOf<Warehouse>()
+    var current: Warehouse? = meetingPoint
+    while (current != null) {
+        path.add(current)
+        current = forwardParents[current]
+    }
+    path.reverse()
+    current = backwardParents[meetingPoint]
+    while (current != null) {
+        path.add(current)
+        current = backwardParents[current]
+    }
+    return path
 }
