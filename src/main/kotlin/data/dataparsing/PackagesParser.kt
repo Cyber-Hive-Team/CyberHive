@@ -1,7 +1,7 @@
 package org.example.data.dataparsing
 
-import org.example.data.dataholder.PackageParseResult
 import org.example.data.dataholder.PackageRaw
+import org.example.data.dataholder.RawResult
 import org.example.domain.model.Priority
 import java.io.File
 
@@ -16,40 +16,27 @@ private const val PRIORITY_COLUMN_INDEX = 4
 
 private const val INVALID_WEIGHT = -1.0
 
-fun parsePackages(filePath: String): PackageParseResult {
-    val packages = mutableListOf<PackageRaw>()
-    val warnings = mutableListOf<String>()
+fun parsePackages(filePath: String): List<RawResult<PackageRaw>> {
+    val lines = readPackageLines(filePath)
 
-    val lines = readPackageLines(filePath, warnings)
-
-    for (index in FIRST_DATA_ROW_INDEX until lines.size) {
-        val packageItem = parsePackageLine(
-            line = lines[index],
-            lineNumber = index + 1,
-            warnings = warnings
-        )
-
-        if (packageItem != null) {
-            packages.add(packageItem)
-        }
-    }
-
-    return PackageParseResult(
-        packages = packages,
-        warnings = warnings
-    )
+    val rawPackagesResultList: List<RawResult<PackageRaw>> =
+        lines
+            .drop(FIRST_DATA_ROW_INDEX)
+            .mapIndexed { index, line ->
+                parsePackageLine(
+                    line = line,
+                    lineNumber = index + FIRST_DATA_ROW_INDEX
+                )
+            }
+    return rawPackagesResultList
 }
 
 private fun readPackageLines(
     filePath: String,
-    warnings: MutableList<String>
 ): List<String> {
     val packagesFile = File(filePath)
 
     if (!packagesFile.exists()) {
-        warnings.add(
-            "Warning: packages.csv was not found at: $filePath"
-        )
         return emptyList()
     }
 
@@ -58,51 +45,48 @@ private fun readPackageLines(
 
 private fun parsePackageLine(
     line: String,
-    lineNumber: Int,
-    warnings: MutableList<String>
-): PackageRaw? {
+    lineNumber: Int
+): RawResult<PackageRaw> {
+
     if (line.isBlank()) {
-        return null
+        return RawResult(
+            rawData = null,
+            errorMessage = "Package row $lineNumber is empty"
+        )
     }
 
     val columns = splitAndCleanColumns(line)
 
-    if (!hasRequiredColumns(columns, lineNumber, line, warnings)) {
-        return null
+    if (columns.size < EXPECTED_COLUMN_COUNT) {
+        return RawResult(
+            rawData = null,
+            errorMessage = "Invalid package row $lineNumber: " +
+                    "expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}"
+        )
     }
 
     val packageRaw = createPackageRaw(columns)
 
-    if (!validatePackageFields(
-            id = packageRaw.id,
-            originHubId = packageRaw.originHubId,
-            destinationHubId = packageRaw.destinationHubId,
-            lineNumber = lineNumber,
-            warnings = warnings
+    val validationError = validatePackageFields(
+        id = packageRaw.id,
+        originHubId = packageRaw.originHubId,
+        destinationHubId = packageRaw.destinationHubId,
+        lineNumber = lineNumber
+    )
+
+    if (validationError != null) {
+        return RawResult(
+            rawData = null,
+            errorMessage = validationError
         )
-    ) {
-        return null
     }
 
-    return packageRaw
+    return RawResult(
+        rawData = packageRaw,
+        errorMessage = null
+    )
 }
 
-private fun hasRequiredColumns(
-    columns: List<String>,
-    lineNumber: Int,
-    line: String,
-    warnings: MutableList<String>
-): Boolean {
-    if (columns.size < EXPECTED_COLUMN_COUNT) {
-        warnings.add(
-            "Warning: invalid package row $lineNumber skipped " +
-                    "(columns = ${columns.size}): $line"
-        )
-        return false
-    }
-
-    return true
-}
 
 private fun createPackageRaw(
     columns: List<String>
@@ -121,31 +105,29 @@ private fun validatePackageFields(
     originHubId: String,
     destinationHubId: String,
     lineNumber: Int,
-    warnings: MutableList<String>
-): Boolean {
+): String? {
     if (
         id.isBlank() ||
         originHubId.isBlank() ||
         destinationHubId.isBlank()
     ) {
-        warnings.add(
-            "Warning: package row $lineNumber has missing required fields"
-        )
-        return false
+
+        return "Warning: package row $lineNumber has missing required fields"
+
+
     }
 
     if (
         !originHubId.startsWith("WH-") ||
         !destinationHubId.startsWith("WH-")
     ) {
-        warnings.add(
-            "Warning: package row $lineNumber has invalid hub ID → " +
-                    "Origin: '$originHubId', Dest: '$destinationHubId'"
-        )
-        return false
+        return "Warning: package row $lineNumber has invalid hub ID → " +
+                "Origin: '$originHubId', Dest: '$destinationHubId'"
+
+
     }
 
-    return true
+    return null
 }
 
 private fun splitAndCleanColumns(

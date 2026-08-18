@@ -18,20 +18,26 @@ class CsvVehicleRepository(
 ) : VehicleRepository {
 
     override fun getVehicles(): Result<List<Vehicle>> {
-        val result = dataSource.getVehicles()
+        val rawResults = dataSource.getVehicles()
         val vehicles = mutableListOf<Vehicle>()
-        val warnings = result.warnings.toMutableList()
-
-        result.vehicles.forEach { raw ->
+        val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
+        val rawVehicles = rawResults.mapNotNull { it.rawData }
+        rawVehicles.forEach { raw ->
             val currentHub = warehouseMap[raw.currentHubId]
             val validationWarnings = validate(raw, currentHub)
 
             if (validationWarnings.isEmpty()) {
-                vehicles.add(mapper.map(raw, currentHub!!))
+                vehicles.add(
+                    mapper.map(
+                        raw,
+                        currentHub!!
+                    )
+                )
             } else {
                 warnings.addAll(validationWarnings)
             }
         }
+
 
         return Result(
             data = vehicles,

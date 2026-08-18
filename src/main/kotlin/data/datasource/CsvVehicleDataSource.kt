@@ -1,6 +1,7 @@
 package org.example.data.datasource
 
-import org.example.data.dataholder.VehicleParseResult
+import org.example.data.dataholder.RawResult
+import org.example.data.dataholder.VehicleRaw
 import org.example.data.dataparsing.parseVehicles
 
 class CsvVehicleDataSource(
@@ -8,7 +9,7 @@ class CsvVehicleDataSource(
 ) : VehicleDataSource {
 
 
-    override fun getVehicles(): VehicleParseResult {
+    override fun getVehicles(): List<RawResult<VehicleRaw>> {
         return parseVehicles(filePath)
     }
 }

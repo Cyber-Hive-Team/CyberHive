@@ -15,13 +15,12 @@ class CsvWarehouseRepository(
 ) : WarehouseRepository {
 
     override fun getAllWarehouses(): Result<List<Warehouse>> {
-        val result = dataSource.getWarehouses()
-        val warnings = result.warnings.toMutableList()
-
-        val warehouses = result.warehouses.mapNotNull { raw ->
+        val rawResults = dataSource.getWarehouses()
+        val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
+        val rawWarehouses = rawResults.mapNotNull { it.rawData }
+        val warehouses = rawWarehouses.mapNotNull { raw ->
             mapValidWarehouse(raw, warnings)
         }
-
         return Result(
             data = warehouses,
             errorMessage = warnings

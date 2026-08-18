@@ -15,13 +15,14 @@ class CsvPackageRepository(
 ) : PackageRepository {
 
     override fun getAllPackages(): Result<List<Package>> {
-        val result = dataSource.getPackages()
-        val warnings = result.warnings.toMutableList()
-        val packages = mapPackages(result.packages, warnings)
-
+        val rawResults = dataSource.getPackages()
+        val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
+        val rawPackages = rawResults.mapNotNull { it.rawData }
+        val packages = mapPackages(rawPackages = rawPackages, warnings = warnings)
         return Result(
             data = packages,
-            errorMessage = warnings.takeIf { it.isNotEmpty() }
+            errorMessage = warnings
+                .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
     }
