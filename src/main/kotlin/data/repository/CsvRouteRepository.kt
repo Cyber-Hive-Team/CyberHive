@@ -14,10 +14,10 @@ class CsvRouteRepository(
 ) : RouteRepository {
 
     override fun getAllRoutes(): Result<List<Route>> {
-        val result = dataSource.getRoutes()
-        val warnings = result.warnings.toMutableList()
-        val routes = mapRoutes(result.routes, warnings)
-
+        val rawResults = dataSource.getRoutes()
+        val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
+        val rawRoutes = rawResults.mapNotNull { it.rawData }
+        val routes = mapRoutes(rawRoutes = rawRoutes, warnings = warnings)
         return Result(
             data = routes,
             errorMessage = warnings.takeIf { it.isNotEmpty() }

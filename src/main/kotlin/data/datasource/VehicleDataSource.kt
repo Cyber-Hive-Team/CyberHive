@@ -1,5 +1,8 @@
 package org.example.data.datasource
-import org.example.data.dataholder.VehicleParseResult
+
+import org.example.data.dataholder.RawResult
+import org.example.data.dataholder.VehicleRaw
+
 interface VehicleDataSource {
-    fun getVehicles(): VehicleParseResult
+    fun getVehicles(): List<RawResult<VehicleRaw>>
 }

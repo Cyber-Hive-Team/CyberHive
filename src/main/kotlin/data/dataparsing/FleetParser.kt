@@ -1,6 +1,6 @@
 package org.example.data.dataparsing
 
-import org.example.data.dataholder.VehicleParseResult
+import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.VehicleRaw
 import java.io.File
 
@@ -12,43 +12,57 @@ private const val CAPACITY_INDEX = 2
 private const val COST_INDEX = 3
 private const val INVALID_VALUE = -1.0
 
-fun parseVehicles(filePath: String): VehicleParseResult {
+fun parseVehicles(filePath: String): List<RawResult<VehicleRaw>> {
     val lines = File(filePath).readLines()
-    val warnings = mutableListOf<String>()
-    val vehicles = parseRows(lines, warnings)
 
-    return VehicleParseResult(vehicles, warnings)
+    val rawVehiclesResultList: List<RawResult<VehicleRaw>> = parseRows(lines)
+    return rawVehiclesResultList
 }
 
 private fun parseRows(
     lines: List<String>,
-    warnings: MutableList<String>
-): List<VehicleRaw> {
+): List<RawResult<VehicleRaw>> {
+
     return lines.drop(FIRST_DATA_ROW)
-        .mapIndexedNotNull { index, line ->
-            parseLine(line, index + FIRST_DATA_ROW, warnings)
+        .mapIndexed { index, line ->
+            parseLine(
+                line = line,
+                lineNumber = index + FIRST_DATA_ROW
+            )
         }
+
 }
 
 private fun parseLine(
     line: String,
     lineNumber: Int,
-    warnings: MutableList<String>
-): VehicleRaw? {
+): RawResult<VehicleRaw> {
     val columns = line.split(",").map { it.trim() }
 
     if (columns.size < REQUIRED_COLUMNS) {
-        warnings.add("Invalid vehicle row: $lineNumber")
-        return null
+        return RawResult(
+            rawData = null,
+            errorMessage = "Invalid vehicle row: $lineNumber"
+        )
     }
-
-    return parseFleetRow(
+    val vehicleItem = parseFleetRow(
         columns[ID_INDEX],
         columns[HUB_INDEX],
         columns[CAPACITY_INDEX],
         columns[COST_INDEX]
     )
+    if (vehicleItem == null) {
+        return RawResult(
+            rawData = null,
+            errorMessage = "Vehicle row $lineNumber has missing required fields"
+        )
+    }
+    return RawResult(
+        rawData = vehicleItem,
+        errorMessage = null
+    )
 }
+
 
 private fun parseFleetRow(
     vehicleId: String,
