@@ -10,8 +10,8 @@ class WarehouseMapper {
             id = raw.id,
             name = raw.name,
             regionalZone = raw.regionalZone,
-            latitude = raw.latitude,
-            longitude = raw.longitude
+            latitude = raw.latitude!!,
+            longitude = raw.longitude!!
         )
     }
 }

@@ -23,6 +23,12 @@ import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
+import org.example.domain.decorator.ColdChainDecorator
+import org.example.domain.decorator.ExpressInsuranceDecorator
+import org.example.domain.decorator.FragileHandlingDecorator
+import org.example.domain.model.PackageComponent
+import org.example.domain.algorithm.search.BreadthFirstSearchRouter
+import org.example.domain.algorithm.search.DijkstraRouter
 
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
@@ -67,8 +73,10 @@ fun main() {
     result.warnings.forEach { println("WARNING: $it") }
 
     testPricing(result.success)
+    testDecorator(result.success)
     testSorting(result.success)
     runRouting(result.success)
+    compareRoutingAlgorithms(result.success)
 }
 
 private fun loadData(): LoadedData {
@@ -271,4 +279,83 @@ private fun printAllocation(
                             .joinToString { it.id }
             )
         }
+}
+private fun testDecorator(
+    warehouses: List<Warehouse>
+) {
+    println("\n=== Decorator Pattern ===")
+
+    val packageItem = warehouses
+        .firstOrNull()
+        ?.getCargoQueue()
+        ?.firstOrNull()
+
+    if (packageItem == null) {
+        println("No package available for decorator test.")
+        return
+    }
+
+    var decoratedPackage: PackageComponent = packageItem
+
+    println("Original:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+
+    decoratedPackage = FragileHandlingDecorator(decoratedPackage)
+
+    println("\nAfter Fragile Handling:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+
+    decoratedPackage = ColdChainDecorator(decoratedPackage)
+
+    println("\nAfter Cold Chain:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+
+    decoratedPackage = ExpressInsuranceDecorator(decoratedPackage)
+
+    println("\nAfter Express Insurance:")
+    println("Description: ${decoratedPackage.getDescription()}")
+    println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
+}
+private fun compareRoutingAlgorithms(
+    warehouses: List<Warehouse>
+) {
+    println("\n=== Routing Algorithms Comparison ===")
+
+    if (warehouses.size < 2) {
+        println("Not enough warehouses to test routing.")
+        return
+    }
+
+    val start = warehouses.first()
+    val destination = warehouses.last()
+
+    val bfsRouter = BreadthFirstSearchRouter()
+    val dijkstraRouter = DijkstraRouter(warehouses)
+
+    val bfsPath = bfsRouter.findPath(start, destination)
+    val dijkstraPath = dijkstraRouter.findPath(start, destination)
+
+    println("Start: ${start.id}")
+    println("Destination: ${destination.id}")
+
+    println("\n--- BFS (Least-Hop Path) ---")
+
+    if (bfsPath.isEmpty()) {
+        println("No path found.")
+    } else {
+        println(bfsPath.joinToString(" -> ") { it.id })
+        println("Number of hops: ${bfsPath.size - 1}")
+    }
+
+    println("\n--- Dijkstra (Shortest-Distance Path) ---")
+
+    if (dijkstraPath.isEmpty()) {
+        println("No path found.")
+    } else {
+        println(dijkstraPath.joinToString(" -> ") { it.id })
+        println("Number of hops: ${dijkstraPath.size - 1}")
+    }
 }
