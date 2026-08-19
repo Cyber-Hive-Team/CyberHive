@@ -31,6 +31,8 @@ import org.example.domain.algorithm.search.BreadthFirstSearchRouter
 import org.example.domain.algorithm.search.DijkstraRouter
 import org.example.domain.algorithm.benchmark.RoutingBenchmark
 import org.example.domain.algorithm.search.RouteWarehouseGraph
+import org.example.domain.algorithm.benchmark.BenchmarkReporter
+
 
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
@@ -39,6 +41,7 @@ private const val ROUTE_FILE = "src/main/resources/routes.csv"
 
 private const val MIN_VEHICLES = 4
 private const val FAILURE_SLOT = 40
+private const val MIN_WAREHOUSES_FOR_ROUTING = 2
 
 private data class LoadedData(
     val warehouses: List<Warehouse>,
@@ -327,109 +330,86 @@ private fun compareRoutingAlgorithms(
     warehouses: List<Warehouse>,
     routes: List<Route>
 ) {
-    println("\n=== Routing Algorithms Comparison ===")
-
-    if (warehouses.size < 2) {
+    if (warehouses.size < MIN_WAREHOUSES_FOR_ROUTING) {
         println("Not enough warehouses to test routing.")
         return
     }
 
     val start = warehouses.first()
     val destination = warehouses.last()
-
     val graph = RouteWarehouseGraph(routes)
-    val bfsRouter = BreadthFirstSearchRouter(graph)
-    val dijkstraRouter = DijkstraRouter(warehouses)
 
-    val bfsPath = bfsRouter.findPath(start, destination)
-    val dijkstraPath = dijkstraRouter.findPath(start, destination)
+    val bfsPath = BreadthFirstSearchRouter(graph)
+        .findPath(start, destination)
 
+    val dijkstraPath = DijkstraRouter(warehouses)
+        .findPath(start, destination)
+
+    printRoutingComparison(
+        start,
+        destination,
+        bfsPath,
+        dijkstraPath
+    )
+
+    runBidirectionalBfsBenchmark(
+        graph,
+        start,
+        destination
+    )
+}
+private fun printRoutingComparison(
+    start: Warehouse,
+    destination: Warehouse,
+    bfsPath: List<Warehouse>,
+    dijkstraPath: List<Warehouse>
+) {
+    println("\n=== Routing Algorithms Comparison ===")
     println("Start: ${start.id}")
     println("Destination: ${destination.id}")
 
-    println("\n--- BFS (Least-Hop Path) ---")
+    printPathResult(
+        "BFS (Least-Hop Path)",
+        bfsPath
+    )
 
-    if (bfsPath.isEmpty()) {
-        println("No path found.")
-    } else {
-        println(bfsPath.joinToString(" -> ") { it.id })
-        println("Number of hops: ${bfsPath.size - 1}")
-    }
-
-    println("\n--- Dijkstra (Shortest-Distance Path) ---")
-
-    if (dijkstraPath.isEmpty()) {
-        println("No path found.")
-    } else {
-        println(dijkstraPath.joinToString(" -> ") { it.id })
-        println("Number of hops: ${dijkstraPath.size - 1}")
-    }
-    runBidirectionalBfsBenchmark(
-        graph = graph,
-        start = start,
-        destination = destination
+    printPathResult(
+        "Dijkstra (Shortest-Distance Path)",
+        dijkstraPath
     )
 }
+private fun printPathResult(
+    algorithmName: String,
+    path: List<Warehouse>
+) {
+    println("\n--- $algorithmName ---")
+
+    if (path.isEmpty()) {
+        println("No path found.")
+        return
+    }
+
+    println(path.joinToString(" -> ") { it.id })
+    println("Number of hops: ${path.size - 1}")
+}
+
 private fun runBidirectionalBfsBenchmark(
     graph: RouteWarehouseGraph,
     start: Warehouse,
     destination: Warehouse
 ) {
-    println("\n=== BFS vs Bidirectional BFS Benchmark ===")
-
     val benchmark = RoutingBenchmark(graph)
+    val reporter = BenchmarkReporter()
 
-    val result = benchmark.compare(
-        start = start,
-        destination = destination
-    )
+    val result = benchmark.compare(start, destination)
+
+    reporter.printResults(result)
 
     val valid = benchmark.validate(
-        result = result,
-        start = start,
-        destination = destination
+        result,
+        start,
+        destination
     )
 
-    println("\n--- Standard BFS ---")
-    println(
-        "Path: ${
-            result.bfsPath.joinToString(" -> ") { it.id }
-        }"
-    )
-    println("Hops: ${result.bfsPath.size - 1}")
-    println("Warehouses evaluated: ${result.bfsEvaluated}")
-    println("Execution time: ${result.bfsTime / 1_000_000.0} ms")
-
-    println("\n--- Bidirectional BFS ---")
-    println(
-        "Path: ${
-            result.bidirectionalPath
-                .joinToString(" -> ") { it.id }
-        }"
-    )
-    println("Hops: ${result.bidirectionalPath.size - 1}")
-    println(
-        "Warehouses evaluated: " +
-                result.bidirectionalEvaluated
-    )
-    println(
-        "Execution time: " +
-                "${result.bidirectionalTime / 1_000_000.0} ms"
-    )
-
-    println("\n--- Validation ---")
-    println(
-        if (valid) {
-            "Both algorithms produced valid shortest-hop paths."
-        } else {
-            "Validation failed."
-        }
-    )
-
-    val saved =
-        result.bfsEvaluated -
-                result.bidirectionalEvaluated
-
-    println("\n--- Efficiency ---")
-    println("Warehouses saved: $saved")
+    reporter.printValidation(valid)
 }
