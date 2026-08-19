@@ -29,6 +29,8 @@ import org.example.domain.decorator.FragileHandlingDecorator
 import org.example.domain.model.PackageComponent
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
 import org.example.domain.algorithm.search.DijkstraRouter
+import org.example.domain.algorithm.benchmark.RoutingBenchmark
+import org.example.domain.algorithm.search.RouteWarehouseGraph
 
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
@@ -76,8 +78,10 @@ fun main() {
     testDecorator(result.success)
     testSorting(result.success)
     runRouting(result.success)
-    compareRoutingAlgorithms(result.success)
-}
+    compareRoutingAlgorithms(
+        result.success,
+        data.routes
+    )}
 
 private fun loadData(): LoadedData {
     val warehouses = loadWarehouses()
@@ -320,7 +324,8 @@ private fun testDecorator(
     println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
 }
 private fun compareRoutingAlgorithms(
-    warehouses: List<Warehouse>
+    warehouses: List<Warehouse>,
+    routes: List<Route>
 ) {
     println("\n=== Routing Algorithms Comparison ===")
 
@@ -332,7 +337,8 @@ private fun compareRoutingAlgorithms(
     val start = warehouses.first()
     val destination = warehouses.last()
 
-    val bfsRouter = BreadthFirstSearchRouter()
+    val graph = RouteWarehouseGraph(routes)
+    val bfsRouter = BreadthFirstSearchRouter(graph)
     val dijkstraRouter = DijkstraRouter(warehouses)
 
     val bfsPath = bfsRouter.findPath(start, destination)
@@ -358,4 +364,72 @@ private fun compareRoutingAlgorithms(
         println(dijkstraPath.joinToString(" -> ") { it.id })
         println("Number of hops: ${dijkstraPath.size - 1}")
     }
+    runBidirectionalBfsBenchmark(
+        graph = graph,
+        start = start,
+        destination = destination
+    )
+}
+private fun runBidirectionalBfsBenchmark(
+    graph: RouteWarehouseGraph,
+    start: Warehouse,
+    destination: Warehouse
+) {
+    println("\n=== BFS vs Bidirectional BFS Benchmark ===")
+
+    val benchmark = RoutingBenchmark(graph)
+
+    val result = benchmark.compare(
+        start = start,
+        destination = destination
+    )
+
+    val valid = benchmark.validate(
+        result = result,
+        start = start,
+        destination = destination
+    )
+
+    println("\n--- Standard BFS ---")
+    println(
+        "Path: ${
+            result.bfsPath.joinToString(" -> ") { it.id }
+        }"
+    )
+    println("Hops: ${result.bfsPath.size - 1}")
+    println("Warehouses evaluated: ${result.bfsEvaluated}")
+    println("Execution time: ${result.bfsTime / 1_000_000.0} ms")
+
+    println("\n--- Bidirectional BFS ---")
+    println(
+        "Path: ${
+            result.bidirectionalPath
+                .joinToString(" -> ") { it.id }
+        }"
+    )
+    println("Hops: ${result.bidirectionalPath.size - 1}")
+    println(
+        "Warehouses evaluated: " +
+                result.bidirectionalEvaluated
+    )
+    println(
+        "Execution time: " +
+                "${result.bidirectionalTime / 1_000_000.0} ms"
+    )
+
+    println("\n--- Validation ---")
+    println(
+        if (valid) {
+            "Both algorithms produced valid shortest-hop paths."
+        } else {
+            "Validation failed."
+        }
+    )
+
+    val saved =
+        result.bfsEvaluated -
+                result.bidirectionalEvaluated
+
+    println("\n--- Efficiency ---")
+    println("Warehouses saved: $saved")
 }

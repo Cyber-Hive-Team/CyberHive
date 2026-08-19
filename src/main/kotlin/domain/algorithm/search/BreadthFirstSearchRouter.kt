@@ -2,7 +2,9 @@ package org.example.domain.algorithm.search
 
 import org.example.domain.model.Warehouse
 
-class BreadthFirstSearchRouter : Router {
+class BreadthFirstSearchRouter(
+    private val graph: WarehouseGraph
+) : Router {
 
     override fun findPath(start: Warehouse, destination: Warehouse): List<Warehouse> {
         val queue = ArrayDeque<Warehouse>()
@@ -16,7 +18,7 @@ class BreadthFirstSearchRouter : Router {
             if (currentWarehouse == destination) {
                 return buildPath(destination = destination, parent = parent)
             }
-            val neighbors = getNeighbors(currentWarehouse)
+            val neighbors = graph.getNeighbors(currentWarehouse)
             for (neighbor in neighbors) {
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor)
@@ -26,14 +28,6 @@ class BreadthFirstSearchRouter : Router {
             }
         }
         return emptyList()
-    }
-
-    private fun getNeighbors(warehouse: Warehouse): List<Warehouse> {
-        val neighbors = mutableListOf<Warehouse>()
-        for (route in warehouse.getOutgoingRoutes()) {
-            neighbors.add(route.destinationWarehouse)
-        }
-        return neighbors
     }
 
     private fun buildPath(destination: Warehouse, parent: Map<Warehouse, Warehouse?>): List<Warehouse> {
