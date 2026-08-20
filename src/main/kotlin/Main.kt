@@ -29,6 +29,10 @@ import org.example.domain.decorator.FragileHandlingDecorator
 import org.example.domain.model.PackageComponent
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
 import org.example.domain.algorithm.search.DijkstraRouter
+import org.example.domain.algorithm.benchmark.RoutingBenchmark
+import org.example.domain.algorithm.search.RouteWarehouseGraph
+import org.example.domain.algorithm.benchmark.BenchmarkReporter
+
 
 private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
 private const val PACKAGE_FILE = "src/main/resources/packages.csv"
@@ -37,6 +41,7 @@ private const val ROUTE_FILE = "src/main/resources/routes.csv"
 
 private const val MIN_VEHICLES = 4
 private const val FAILURE_SLOT = 40
+private const val MIN_WAREHOUSES_FOR_ROUTING = 2
 
 private data class LoadedData(
     val warehouses: List<Warehouse>,
@@ -76,8 +81,10 @@ fun main() {
     testDecorator(result.success)
     testSorting(result.success)
     runRouting(result.success)
-    compareRoutingAlgorithms(result.success)
-}
+    compareRoutingAlgorithms(
+        result.success,
+        data.routes
+    )}
 
 private fun loadData(): LoadedData {
     val warehouses = loadWarehouses()
@@ -320,42 +327,89 @@ private fun testDecorator(
     println("Transit Rate: ${decoratedPackage.calculateTransitRate()}")
 }
 private fun compareRoutingAlgorithms(
-    warehouses: List<Warehouse>
+    warehouses: List<Warehouse>,
+    routes: List<Route>
 ) {
-    println("\n=== Routing Algorithms Comparison ===")
-
-    if (warehouses.size < 2) {
+    if (warehouses.size < MIN_WAREHOUSES_FOR_ROUTING) {
         println("Not enough warehouses to test routing.")
         return
     }
 
     val start = warehouses.first()
     val destination = warehouses.last()
+    val graph = RouteWarehouseGraph(routes)
 
-    val bfsRouter = BreadthFirstSearchRouter()
-    val dijkstraRouter = DijkstraRouter(warehouses)
+    val bfsPath = BreadthFirstSearchRouter(graph)
+        .findPath(start, destination)
 
-    val bfsPath = bfsRouter.findPath(start, destination)
-    val dijkstraPath = dijkstraRouter.findPath(start, destination)
+    val dijkstraPath = DijkstraRouter(warehouses)
+        .findPath(start, destination)
 
+    printRoutingComparison(
+        start,
+        destination,
+        bfsPath,
+        dijkstraPath
+    )
+
+    runBidirectionalBfsBenchmark(
+        graph,
+        start,
+        destination
+    )
+}
+private fun printRoutingComparison(
+    start: Warehouse,
+    destination: Warehouse,
+    bfsPath: List<Warehouse>,
+    dijkstraPath: List<Warehouse>
+) {
+    println("\n=== Routing Algorithms Comparison ===")
     println("Start: ${start.id}")
     println("Destination: ${destination.id}")
 
-    println("\n--- BFS (Least-Hop Path) ---")
+    printPathResult(
+        "BFS (Least-Hop Path)",
+        bfsPath
+    )
 
-    if (bfsPath.isEmpty()) {
+    printPathResult(
+        "Dijkstra (Shortest-Distance Path)",
+        dijkstraPath
+    )
+}
+private fun printPathResult(
+    algorithmName: String,
+    path: List<Warehouse>
+) {
+    println("\n--- $algorithmName ---")
+
+    if (path.isEmpty()) {
         println("No path found.")
-    } else {
-        println(bfsPath.joinToString(" -> ") { it.id })
-        println("Number of hops: ${bfsPath.size - 1}")
+        return
     }
 
-    println("\n--- Dijkstra (Shortest-Distance Path) ---")
+    println(path.joinToString(" -> ") { it.id })
+    println("Number of hops: ${path.size - 1}")
+}
 
-    if (dijkstraPath.isEmpty()) {
-        println("No path found.")
-    } else {
-        println(dijkstraPath.joinToString(" -> ") { it.id })
-        println("Number of hops: ${dijkstraPath.size - 1}")
-    }
+private fun runBidirectionalBfsBenchmark(
+    graph: RouteWarehouseGraph,
+    start: Warehouse,
+    destination: Warehouse
+) {
+    val benchmark = RoutingBenchmark(graph)
+    val reporter = BenchmarkReporter()
+
+    val result = benchmark.compare(start, destination)
+
+    reporter.printResults(result)
+
+    val valid = benchmark.validate(
+        result,
+        start,
+        destination
+    )
+
+    reporter.printValidation(valid)
 }
