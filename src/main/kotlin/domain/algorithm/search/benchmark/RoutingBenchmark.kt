@@ -10,39 +10,60 @@ class RoutingBenchmark(
     private val graph: WarehouseGraph
 ) {
 
-    fun compare(start: Warehouse, destination: Warehouse): BenchmarkResult {
+    fun compare(
+        start: Warehouse,
+        destination: Warehouse
+    ): BenchmarkResult {
 
-        val bfsGraph = EvaluatingWarehouseGraph(graph)
-        val bidirectionalGraph = EvaluatingWarehouseGraph(graph)
+        val bfsGraph =
+            EvaluatingWarehouseGraph(graph)
 
-        val bfsRouter = BreadthFirstSearchRouter(bfsGraph)
+        val bidirectionalGraph =
+            EvaluatingWarehouseGraph(graph)
+
+        val bfsRouter =
+            BreadthFirstSearchRouter(bfsGraph)
+
         val bidirectionalRouter =
             BidirectionalBfsRouter(bidirectionalGraph)
 
-        val bfsStartTime = System.nanoTime()
+        val bfsStartTime =
+            System.nanoTime()
 
-        val bfsPath =
-            bfsRouter.findPath(start, destination)
+        val bfsResult =
+            bfsRouter.findPath(
+                start,
+                destination
+            )
 
         val bfsTime =
-            System.nanoTime() - bfsStartTime
+            System.nanoTime() -
+                    bfsStartTime
 
-        val bidirectionalStartTime = System.nanoTime()
+        val bidirectionalStartTime =
+            System.nanoTime()
 
-        val bidirectionalPath =
-            bidirectionalRouter.findPath(start, destination)
+        val bidirectionalResult =
+            bidirectionalRouter.findPath(
+                start,
+                destination
+            )
 
         val bidirectionalTime =
-            System.nanoTime() - bidirectionalStartTime
+            System.nanoTime() -
+                    bidirectionalStartTime
 
         return BenchmarkResult(
-            bfsPath = bfsPath,
-            bidirectionalPath = bidirectionalPath,
-            bfsEvaluated = bfsGraph.getEvaluatedCount(),
+            bfsPath = bfsResult.path,
+            bidirectionalPath =
+                bidirectionalResult.path,
+            bfsEvaluated =
+                bfsGraph.getEvaluatedCount(),
             bidirectionalEvaluated =
                 bidirectionalGraph.getEvaluatedCount(),
             bfsTime = bfsTime,
-            bidirectionalTime = bidirectionalTime
+            bidirectionalTime =
+                bidirectionalTime
         )
     }
 

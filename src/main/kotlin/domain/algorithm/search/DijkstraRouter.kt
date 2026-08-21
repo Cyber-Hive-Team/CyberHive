@@ -1,5 +1,6 @@
 package org.example.domain.algorithm.search
 
+import org.example.domain.model.RoutingResult
 import org.example.domain.model.Warehouse
 
 private const val INITIAL_DISTANCE = 0.0
@@ -11,10 +12,13 @@ class DijkstraRouter(
     override fun findPath(
         start: Warehouse,
         destination: Warehouse
-    ): List<Warehouse> {
+    ): RoutingResult {
 
         if (start == destination) {
-            return listOf(start)
+            return RoutingResult(
+                path = listOf(start),
+                distanceKm = INITIAL_DISTANCE
+            )
         }
 
         val distances = initializeDistances(start)
@@ -27,11 +31,22 @@ class DijkstraRouter(
             previousWarehouses,
             processedWarehouses
         )
-
-        return buildPath(start,
+        val path = buildPath(
+            start,
             destination,
             previousWarehouses,
             distances
+        )
+        if (path.isEmpty()) {
+            return RoutingResult(
+                path = emptyList(),
+                distanceKm = Double.POSITIVE_INFINITY
+            )
+        }
+        return RoutingResult(
+            path = path,
+            distanceKm = distances[destination]
+                ?: Double.POSITIVE_INFINITY
         )
     }
 
