@@ -10,39 +10,52 @@ class RoutingBenchmark(
     private val graph: WarehouseGraph
 ) {
 
-    fun compare(start: Warehouse, destination: Warehouse): BenchmarkResult {
+    fun compare(
+        start: Warehouse,
+        destination: Warehouse
+    ): BenchmarkResult {
 
         val bfsGraph = EvaluatingWarehouseGraph(graph)
-        val bidirectionalGraph = EvaluatingWarehouseGraph(graph)
+        val bidirectionalGraph =
+            EvaluatingWarehouseGraph(graph)
 
-        val bfsRouter = BreadthFirstSearchRouter(bfsGraph)
+        val bfsRouter =
+            BreadthFirstSearchRouter(bfsGraph)
+
         val bidirectionalRouter =
-            BidirectionalBfsRouter(bidirectionalGraph)
+            BidirectionalBfsRouter(
+                bidirectionalGraph
+            )
 
-        val bfsStartTime = System.nanoTime()
-
-        val bfsPath =
+        val bfsStart = System.nanoTime()
+        val bfsResult =
             bfsRouter.findPath(start, destination)
-
         val bfsTime =
-            System.nanoTime() - bfsStartTime
+            System.nanoTime() - bfsStart
 
-        val bidirectionalStartTime = System.nanoTime()
+        val bidirectionalStart =
+            System.nanoTime()
 
-        val bidirectionalPath =
-            bidirectionalRouter.findPath(start, destination)
+        val bidirectionalResult =
+            bidirectionalRouter.findPath(
+                start,
+                destination
+            )
 
         val bidirectionalTime =
-            System.nanoTime() - bidirectionalStartTime
+            System.nanoTime() - bidirectionalStart
 
         return BenchmarkResult(
-            bfsPath = bfsPath,
-            bidirectionalPath = bidirectionalPath,
-            bfsEvaluated = bfsGraph.getEvaluatedCount(),
+            bfsPath = bfsResult.path,
+            bidirectionalPath =
+                bidirectionalResult.path,
+            bfsEvaluated =
+                bfsGraph.getEvaluatedCount(),
             bidirectionalEvaluated =
                 bidirectionalGraph.getEvaluatedCount(),
             bfsTime = bfsTime,
-            bidirectionalTime = bidirectionalTime
+            bidirectionalTime =
+                bidirectionalTime
         )
     }
 
@@ -52,26 +65,28 @@ class RoutingBenchmark(
         destination: Warehouse
     ): Boolean {
 
-        if (result.bfsPath.isEmpty() ||
+        if (
+            result.bfsPath.isEmpty() ||
             result.bidirectionalPath.isEmpty()
         ) {
             return false
         }
 
-        val bfsPathIsValid =
+        val bfsValid =
             result.bfsPath.first() == start &&
                     result.bfsPath.last() == destination
 
-        val bidirectionalPathIsValid =
+        val bidirectionalValid =
             result.bidirectionalPath.first() == start &&
-                    result.bidirectionalPath.last() == destination
+                    result.bidirectionalPath.last() ==
+                    destination
 
-        val sameHopCount =
+        val sameHops =
             result.bfsPath.size ==
                     result.bidirectionalPath.size
 
-        return bfsPathIsValid &&
-                bidirectionalPathIsValid &&
-                sameHopCount
+        return bfsValid &&
+                bidirectionalValid &&
+                sameHops
     }
 }
