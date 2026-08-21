@@ -3,8 +3,8 @@ package org.example.data.repository
 import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.mapper.WarehouseMapper
+import org.example.domain.model.Result
 import org.example.domain.model.Warehouse
-import org.example.domain.repository.Result
 import org.example.domain.repository.WarehouseRepository
 
 private const val MIN_LATITUDE = -90.0
