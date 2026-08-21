@@ -13,44 +13,22 @@ class BreadthFirstSearchRouter(
         start: Warehouse,
         destination: Warehouse
     ): RoutingResult {
-
         if (start == destination) {
-            return RoutingResult(
-                path = listOf(start),
-                distanceKm = INITIAL_DISTANCE
-            )
+            return createResult(listOf(start))
         }
 
-        val queue = ArrayDeque<Warehouse>()
-        val visited = mutableSetOf<Warehouse>()
-        val parent = mutableMapOf<Warehouse, Warehouse?>()
+        val search = initializeSearch(start)
 
-        queue.addLast(start)
-        visited.add(start)
-        parent[start] = null
-
-        while (queue.isNotEmpty()) {
-            val current = queue.removeFirst()
+        while (search.queue.isNotEmpty()) {
+            val current = search.queue.removeFirst()
 
             if (current == destination) {
-                val path = buildPath(
-                    destination,
-                    parent
-                )
-
-                return RoutingResult(
-                    path = path,
-                    distanceKm = calculatePathDistance(path)
+                return createResult(
+                    buildPath(destination, search.parent)
                 )
             }
 
-            for (neighbor in graph.getNeighbors(current)) {
-                if (neighbor !in visited) {
-                    visited.add(neighbor)
-                    parent[neighbor] = current
-                    queue.addLast(neighbor)
-                }
-            }
+            addNeighbors(current, search)
         }
 
         return RoutingResult(
@@ -59,11 +37,37 @@ class BreadthFirstSearchRouter(
         )
     }
 
+    private fun initializeSearch(
+        start: Warehouse
+    ): SearchState {
+        val queue = ArrayDeque<Warehouse>()
+        val visited = mutableSetOf<Warehouse>()
+        val parent = mutableMapOf<Warehouse, Warehouse?>()
+
+        queue.addLast(start)
+        visited.add(start)
+        parent[start] = null
+
+        return SearchState(queue, visited, parent)
+    }
+
+    private fun addNeighbors(
+        current: Warehouse,
+        search: SearchState
+    ) {
+        for (neighbor in graph.getNeighbors(current)) {
+            if (neighbor in search.visited) continue
+
+            search.visited.add(neighbor)
+            search.parent[neighbor] = current
+            search.queue.addLast(neighbor)
+        }
+    }
+
     private fun buildPath(
         destination: Warehouse,
         parent: Map<Warehouse, Warehouse?>
     ): List<Warehouse> {
-
         val path = mutableListOf<Warehouse>()
         var current: Warehouse? = destination
 
@@ -76,6 +80,14 @@ class BreadthFirstSearchRouter(
         return path
     }
 
+    private fun createResult(
+        path: List<Warehouse>
+    ): RoutingResult =
+        RoutingResult(
+            path = path,
+            distanceKm = calculatePathDistance(path)
+        )
+
     private fun calculatePathDistance(
         path: List<Warehouse>
     ): Double =
@@ -87,14 +99,13 @@ class BreadthFirstSearchRouter(
         current: Warehouse,
         next: Warehouse
     ): Double {
-
-        val route = current.getOutgoingRoutes()
+        val outgoing = current.getOutgoingRoutes()
             .firstOrNull {
                 it.destinationWarehouse == next
             }
 
-        if (route != null) {
-            return route.distanceKm
+        if (outgoing != null) {
+            return outgoing.distanceKm
         }
 
         return next.getOutgoingRoutes()
@@ -105,3 +116,9 @@ class BreadthFirstSearchRouter(
             ?: INITIAL_DISTANCE
     }
 }
+
+private data class SearchState(
+    val queue: ArrayDeque<Warehouse>,
+    val visited: MutableSet<Warehouse>,
+    val parent: MutableMap<Warehouse, Warehouse?>
+)
