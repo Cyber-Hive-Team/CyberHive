@@ -22,8 +22,8 @@ class BidirectionalBfsRouter(
             )
         }
 
-        val forwardQueue = ArrayDeque<Warehouse>()
-        val backwardQueue = ArrayDeque<Warehouse>()
+        val forward = initializeSearch(start)
+        val backward = initializeSearch(destination)
 
         val forwardVisited = mutableSetOf<Warehouse>()
         val backwardVisited = mutableSetOf<Warehouse>()
@@ -58,15 +58,25 @@ class BidirectionalBfsRouter(
             path = path,
             distanceKm = calculatePathDistance(path)
         )
+        return searchPath(forward, backward)
     }
 
     private fun initializeSearch(
-        warehouse: Warehouse,
-        queue: ArrayDeque<Warehouse>,
-        visited: MutableSet<Warehouse>
-    ) {
+        warehouse: Warehouse
+    ): SearchSide {
+        val queue = ArrayDeque<Warehouse>()
+        val visited = mutableSetOf<Warehouse>()
+        val parents = mutableMapOf<Warehouse, Warehouse?>()
+
         queue.add(warehouse)
         visited.add(warehouse)
+        parents[warehouse] = null
+
+        return SearchSide(
+            queue = queue,
+            visited = visited,
+            parents = parents
+        )
     }
 
     private fun searchPath(
@@ -102,6 +112,14 @@ class BidirectionalBfsRouter(
                     meetingPoint,
                     forwardParents,
                     backwardParents
+    private fun searchPath(forward: SearchSide, backward: SearchSide): List<Warehouse> {
+        while (forward.queue.isNotEmpty() && backward.queue.isNotEmpty()) {
+            val meetingPoint = search(forward, backward.visited)
+            if (meetingPoint != null) {
+                return reconstructPath(
+                    meetingPoint,
+                    forward.parents,
+                    backward.parents
                 )
             }
 
@@ -110,6 +128,8 @@ class BidirectionalBfsRouter(
                 backwardVisited,
                 forwardVisited,
                 backwardParents
+                backward,
+                forward.visited
             )
 
             if (backwardMeetingPoint != null) {
@@ -117,6 +137,8 @@ class BidirectionalBfsRouter(
                     backwardMeetingPoint,
                     forwardParents,
                     backwardParents
+                    forward.parents,
+                    backward.parents
                 )
             }
         }
@@ -125,10 +147,8 @@ class BidirectionalBfsRouter(
     }
 
     private fun search(
-        queue: ArrayDeque<Warehouse>,
-        visited: MutableSet<Warehouse>,
-        oppositeVisited: Set<Warehouse>,
-        parents: MutableMap<Warehouse, Warehouse?>
+        side: SearchSide,
+        oppositeVisited: Set<Warehouse>
     ): Warehouse? {
 
         val current = queue.removeFirst()
@@ -142,11 +162,18 @@ class BidirectionalBfsRouter(
             visited.add(neighbor)
             parents[neighbor] = current
 
+        val current = side.queue.removeFirst()
+        for (neighbor in graph.getNeighbors(current)) {
+            if (neighbor in side.visited) {
+                continue
+            }
+            side.visited.add(neighbor)
+            side.parents[neighbor] = current
             if (neighbor in oppositeVisited) {
                 return neighbor
             }
 
-            queue.addLast(neighbor)
+            side.queue.addLast(neighbor)
         }
 
         return null
@@ -219,3 +246,9 @@ private fun reconstructPath(
     return path
 }
 }
+
+private data class SearchSide(
+    val queue: ArrayDeque<Warehouse>,
+    val visited: MutableSet<Warehouse>,
+    val parents: MutableMap<Warehouse, Warehouse?>
+)
