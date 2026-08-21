@@ -1,7 +1,10 @@
 package org.example.domain.algorithm.search
 
+import org.example.domain.model.RoutingResult
 import org.example.domain.model.Warehouse
 import java.util.*
+
+private const val INITIAL_DISTANCE = 0.0
 
 class BidirectionalBfsRouter(
     private val graph: WarehouseGraph
@@ -10,58 +13,73 @@ class BidirectionalBfsRouter(
     override fun findPath(
         start: Warehouse,
         destination: Warehouse
-    ): List<Warehouse> {
+    ): RoutingResult {
 
         if (start == destination) {
-            return listOf(start)
+            return RoutingResult(
+                path = listOf(start),
+                distanceKm = INITIAL_DISTANCE
+            )
         }
 
         val forward = initializeSearch(start)
         val backward = initializeSearch(destination)
+        val path = searchPath(forward, backward)
 
-        return searchPath(forward, backward)
+        return RoutingResult(
+            path = path,
+            distanceKm = calculatePathDistance(path)
+        )
     }
 
     private fun initializeSearch(
         warehouse: Warehouse
     ): SearchSide {
+
         val queue = ArrayDeque<Warehouse>()
         val visited = mutableSetOf<Warehouse>()
         val parents = mutableMapOf<Warehouse, Warehouse?>()
 
-        queue.add(warehouse)
+        queue.addLast(warehouse)
         visited.add(warehouse)
         parents[warehouse] = null
 
-        return SearchSide(
-            queue = queue,
-            visited = visited,
-            parents = parents
-        )
+        return SearchSide(queue, visited, parents)
     }
 
-    private fun searchPath(forward: SearchSide, backward: SearchSide): List<Warehouse> {
-        while (forward.queue.isNotEmpty() && backward.queue.isNotEmpty()) {
-            val meetingPoint = search(forward, backward.visited)
-            if (meetingPoint != null) {
+    private fun searchPath(
+        forward: SearchSide,
+        backward: SearchSide
+    ): List<Warehouse> {
+
+        while (
+            forward.queue.isNotEmpty() &&
+            backward.queue.isNotEmpty()
+        ) {
+            val meeting = search(forward, backward.visited)
+
+            if (meeting != null) {
                 return reconstructPath(
-                    meetingPoint,
+                    meeting,
                     forward.parents,
                     backward.parents
                 )
             }
-            val backwardMeetingPoint = search(
+
+            val reverseMeeting = search(
                 backward,
                 forward.visited
             )
-            if (backwardMeetingPoint != null) {
+
+            if (reverseMeeting != null) {
                 return reconstructPath(
-                    backwardMeetingPoint,
+                    reverseMeeting,
                     forward.parents,
                     backward.parents
                 )
             }
         }
+
         return emptyList()
     }
 
@@ -69,20 +87,56 @@ class BidirectionalBfsRouter(
         side: SearchSide,
         oppositeVisited: Set<Warehouse>
     ): Warehouse? {
+
         val current = side.queue.removeFirst()
+
         for (neighbor in graph.getNeighbors(current)) {
             if (neighbor in side.visited) {
                 continue
             }
+
             side.visited.add(neighbor)
             side.parents[neighbor] = current
+
             if (neighbor in oppositeVisited) {
                 return neighbor
             }
 
             side.queue.addLast(neighbor)
         }
+
         return null
+    }
+
+    private fun calculatePathDistance(
+        path: List<Warehouse>
+    ): Double {
+
+        return path.zipWithNext().sumOf { (current, next) ->
+            findDistance(current, next)
+        }
+    }
+
+    private fun findDistance(
+        current: Warehouse,
+        next: Warehouse
+    ): Double {
+
+        val route = current.getOutgoingRoutes()
+            .firstOrNull {
+                it.destinationWarehouse == next
+            }
+
+        if (route != null) {
+            return route.distanceKm
+        }
+
+        return next.getOutgoingRoutes()
+            .firstOrNull {
+                it.destinationWarehouse == current
+            }
+            ?.distanceKm
+            ?: INITIAL_DISTANCE
     }
 }
 
@@ -91,18 +145,23 @@ private fun reconstructPath(
     forwardParents: Map<Warehouse, Warehouse?>,
     backwardParents: Map<Warehouse, Warehouse?>
 ): List<Warehouse> {
+
     val path = mutableListOf<Warehouse>()
     var current: Warehouse? = meetingPoint
+
     while (current != null) {
         path.add(current)
         current = forwardParents[current]
     }
+
     path.reverse()
     current = backwardParents[meetingPoint]
+
     while (current != null) {
         path.add(current)
         current = backwardParents[current]
     }
+
     return path
 }
 

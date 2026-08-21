@@ -7,6 +7,7 @@ class RouteWarehouseGraph(
     private val routes: List<Route>
 ) : WarehouseGraph {
 
+
     override fun getNeighbors(
         warehouse: Warehouse
     ): List<Warehouse> {
