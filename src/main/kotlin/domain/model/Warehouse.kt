@@ -44,4 +44,21 @@ class Warehouse(
     fun sortCargoByPriorityThenWeight() {
         sortPackagesByPriorityThenWeight(cargoQueue)
     }
+    fun replacePackageInQueue(
+        packageId: String,
+        updatedPackage: Package
+    ): Boolean {
+
+        val packageIndex = cargoQueue.indexOfFirst {
+            it.id == packageId
+        }
+
+        if (packageIndex == -1) {
+            return false
+        }
+
+        cargoQueue[packageIndex] = updatedPackage
+
+        return true
+    }
 }
