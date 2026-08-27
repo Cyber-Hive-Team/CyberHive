@@ -3,9 +3,9 @@ package org.example.data.repository
 import org.example.data.dataholder.VehicleRaw
 import org.example.data.datasource.VehicleDataSource
 import org.example.data.mapper.VehicleMapper
+import org.example.domain.model.Result
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
-import org.example.domain.repository.Result
 import org.example.domain.repository.VehicleRepository
 
 private const val MIN_CAPACITY_KG = 0.0

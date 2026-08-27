@@ -1,6 +1,6 @@
-package org.example.domain.repository
+package org.example.domain.model
 
 data class Result<T>(
-    val data: T?,
+    val data: T,
     val errorMessage: String? = null
 )
