@@ -3,6 +3,7 @@ package org.example.data.repository
 import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.mapper.WarehouseMapper
+import org.example.domain.model.Package
 import org.example.domain.model.Result
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.WarehouseRepository
@@ -62,5 +63,45 @@ class CsvWarehouseRepository(
             raw.longitude > MAX_LONGITUDE )
         { warnings.add("Warning: Warehouse ${raw.id} skipped - invalid longitude") }
         return warnings
+    }
+    override fun getWarehouseById(
+        warehouseId: String
+    ): Warehouse? {
+
+        return getAllWarehouses()
+            .data
+            .orEmpty()
+            .firstOrNull {
+                it.id == warehouseId
+            }
+    }
+
+    override fun addPackageToCargoQueue(
+        warehouseId: String,
+        cargoPackage: Package
+    ): Boolean {
+
+        val warehouse =
+            getWarehouseById(warehouseId)
+                ?: return false
+
+        warehouse.addPackages(
+            listOf(cargoPackage)
+        )
+
+        return true
+    }
+
+    override fun sortCargoQueue(
+        warehouseId: String
+    ): Boolean {
+
+        val warehouse =
+            getWarehouseById(warehouseId)
+                ?: return false
+
+        warehouse.sortCargoQueue()
+
+        return true
     }
 }

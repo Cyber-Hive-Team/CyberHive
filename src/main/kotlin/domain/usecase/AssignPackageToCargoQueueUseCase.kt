@@ -1,26 +1,26 @@
 package org.example.domain.usecase
 
 import org.example.domain.model.Package
-import org.example.domain.model.Warehouse
+import org.example.domain.repository.WarehouseRepository
 
-class AssignPackageToCargoQueueUseCase {
-
+class AssignPackageToCargoQueueUseCase(
+    private val warehouseRepository: WarehouseRepository
+) {
     operator fun invoke(
-        warehouse: Warehouse,
+        warehouseId: String,
         cargoPackage: Package
-    ) {
-        val alreadyExists = warehouse
-            .getCargoQueue()
-            .any { it.id == cargoPackage.id }
-
-        if (alreadyExists) {
-            return
-        }
-
-        warehouse.addPackages(
-            listOf(cargoPackage)
+    ): Boolean {
+        val added = warehouseRepository.addPackageToCargoQueue(
+            warehouseId,
+            cargoPackage
         )
 
-        warehouse.sortCargoQueue()
+        if (!added) {
+            return false
+        }
+
+        return warehouseRepository.sortCargoQueue(
+            warehouseId
+        )
     }
 }
