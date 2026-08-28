@@ -9,7 +9,7 @@ class FindFewestHopsRouteUseCase(
 ) {
     operator fun invoke(
         start: Warehouse,
-        destination: Warehouse,
+        destination: Warehouse
 
         ): RoutingResult {
         return router.findPath(
