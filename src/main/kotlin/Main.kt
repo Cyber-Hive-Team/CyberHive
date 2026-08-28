@@ -22,12 +22,7 @@ import org.example.domain.builder.DomainGraphBuilder
 import org.example.domain.decorator.ColdChainDecorator
 import org.example.domain.decorator.ExpressInsuranceDecorator
 import org.example.domain.decorator.FragileHandlingDecorator
-import org.example.domain.model.Package
-import org.example.domain.model.PackageComponent
-import org.example.domain.model.Route
-import org.example.domain.model.RoutingResult
-import org.example.domain.model.Vehicle
-import org.example.domain.model.Warehouse
+import org.example.domain.model.*
 import org.example.domain.pricing.EcoStrategy
 import org.example.domain.pricing.ExpressStrategy
 import org.example.domain.pricing.FragileStrategy
@@ -390,8 +385,7 @@ private fun compareRoutingAlgorithms(
     val bfs = BreadthFirstSearchRouter(graph)
         .findPath(start, destination)
 
-    val dijkstra = DijkstraRouter(warehouses)
-        .findPath(start, destination)
+    val dijkstra = DijkstraRouter(graph, warehouses).findPath(start, destination)
 
     printComparison(
         start,
