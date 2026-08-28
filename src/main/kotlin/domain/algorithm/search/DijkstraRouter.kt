@@ -6,6 +6,7 @@ import org.example.domain.model.Warehouse
 private const val INITIAL_DISTANCE = 0.0
 
 class DijkstraRouter(
+    private val graph: WarehouseGraph,
     private val allWarehouses: List<Warehouse>
 ) : Router {
 
@@ -127,15 +128,17 @@ class DijkstraRouter(
         val currentDistance =
             distances[current] ?: return
 
-        for (route in current.getOutgoingRoutes()) {
-            val neighbor = route.destinationWarehouse
-
+        for (neighbor in graph.getNeighbors(current)) {
             if (neighbor in processed) {
                 continue
             }
-
+            val edgeDistance =
+                graph.getDistance(
+                    current,
+                    neighbor
+                ) ?: continue
             val newDistance =
-                currentDistance + route.distanceKm
+                currentDistance + edgeDistance
 
             val oldDistance =
                 distances[neighbor]
