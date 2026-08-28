@@ -1,18 +1,17 @@
 package org.example.domain.usecase
 
-import org.example.domain.algorithm.search.DijkstraRouter
+import org.example.domain.algorithm.search.Router
 import org.example.domain.model.RoutingResult
 import org.example.domain.model.Warehouse
 
 class FindOptimalPathUseCase(
-    private val dijkstraRouter: DijkstraRouter
+    private val router: Router
 ) {
-
     operator fun invoke(
         start: Warehouse,
         destination: Warehouse
     ): RoutingResult {
-        return dijkstraRouter.findPath(
+        return router.findPath(
             start = start,
             destination = destination
         )
