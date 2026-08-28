@@ -11,17 +11,25 @@ class RouteWarehouseGraph(
     override fun getNeighbors(
         warehouse: Warehouse
     ): List<Warehouse> {
-
-        return routes.mapNotNull { route ->
-            when {
-                route.originWarehouse == warehouse ->
-                    route.destinationWarehouse
-
-                route.destinationWarehouse == warehouse ->
-                    route.originWarehouse
-
-                else -> null
+        return routes
+            .filter {
+                it.originWarehouse == warehouse
             }
-        }
+            .map {
+                it.destinationWarehouse
+            }
+    }
+
+    override fun getDistance(
+        currentWarehouse: Warehouse,
+        neighborWarehouse: Warehouse
+    ): Double? {
+
+        return routes
+            .firstOrNull {
+                it.originWarehouse == currentWarehouse &&
+                        it.destinationWarehouse == neighborWarehouse
+            }
+            ?.distanceKm
     }
 }
