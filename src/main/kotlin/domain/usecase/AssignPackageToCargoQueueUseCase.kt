@@ -10,6 +10,15 @@ class AssignPackageToCargoQueueUseCase(
         warehouseId: String,
         cargoPackage: Package
     ): Boolean {
+        val alreadyExists =
+            warehouseRepository.isPackageInCargoQueue(
+                warehouseId,
+                cargoPackage.id
+            )
+
+        if (alreadyExists) {
+            return false
+        }
         val added = warehouseRepository.addPackageToCargoQueue(
             warehouseId,
             cargoPackage
@@ -18,7 +27,6 @@ class AssignPackageToCargoQueueUseCase(
         if (!added) {
             return false
         }
-
         return warehouseRepository.sortCargoQueue(
             warehouseId
         )

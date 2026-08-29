@@ -9,4 +9,5 @@ interface WarehouseRepository {
     fun getWarehouseById(warehouseId: String): Warehouse?
     fun addPackageToCargoQueue(warehouseId: String, cargoPackage: Package): Boolean
     fun sortCargoQueue(warehouseId: String): Boolean
+    fun isPackageInCargoQueue(warehouseId: String, packageId: String): Boolean
 }

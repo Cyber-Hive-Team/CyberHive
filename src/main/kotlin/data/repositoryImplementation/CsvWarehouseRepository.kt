@@ -104,4 +104,15 @@ class CsvWarehouseRepository(
 
         return true
     }
+    override fun isPackageInCargoQueue(
+        warehouseId: String,
+        packageId: String
+    ): Boolean {
+
+        val warehouse = getWarehouseById(warehouseId)
+            ?: return false
+
+        return warehouse.getCargoQueue()
+            .any { it.id == packageId }
+    }
 }
