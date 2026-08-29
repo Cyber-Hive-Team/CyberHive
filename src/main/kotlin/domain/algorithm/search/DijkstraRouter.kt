@@ -124,21 +124,22 @@ class DijkstraRouter(
         previous: MutableMap<Warehouse, Warehouse>,
         processed: Set<Warehouse>
     ) {
-
         val currentDistance =
             distances[current] ?: return
 
-        for (neighbor in graph.getNeighbors(current)) {
-            if (neighbor in processed) {
-                continue
+        graph.getNeighbors(current)
+            .filter { neighbor ->
+                neighbor !in processed
             }
-            val edgeDistance =
-                graph.getDistance(
-                    current,
-                    neighbor
-                ) ?: continue
-            val newDistance =
-                currentDistance + edgeDistance
+            .mapNotNull { neighbor ->
+                graph.getDistance(current, neighbor)
+                    ?.let { edgeDistance ->
+                        neighbor to edgeDistance
+                    }
+            }
+            .forEach { (neighbor, edgeDistance) ->
+                val newDistance =
+                    currentDistance + edgeDistance
 
             val oldDistance =
                 distances[neighbor]

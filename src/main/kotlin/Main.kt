@@ -118,7 +118,7 @@ private fun loadWarehouses(): List<Warehouse> {
         println("WARNING: $it")
     }
 
-    return result.data.orEmpty()
+    return result.data
 }
 
 private fun loadPackages(
@@ -134,7 +134,7 @@ private fun loadPackages(
         println("WARNING: $it")
     }
 
-    return result.data.orEmpty()
+    return result.data
 }
 
 private fun loadVehicles(
@@ -150,7 +150,7 @@ private fun loadVehicles(
         println("WARNING: $it")
     }
 
-    return result.data.orEmpty()
+    return result.data
 }
 
 private fun loadRoutes(
@@ -166,7 +166,7 @@ private fun loadRoutes(
         println("WARNING: $it")
     }
 
-    return result.data.orEmpty()
+    return result.data
 }
 
 private fun testPricing(
