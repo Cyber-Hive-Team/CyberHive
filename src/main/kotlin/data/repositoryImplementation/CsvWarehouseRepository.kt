@@ -70,7 +70,6 @@ class CsvWarehouseRepository(
 
         return getAllWarehouses()
             .data
-            .orEmpty()
             .firstOrNull {
                 it.id == warehouseId
             }
