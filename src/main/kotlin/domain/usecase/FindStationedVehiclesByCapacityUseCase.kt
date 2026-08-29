@@ -2,14 +2,17 @@ package org.example.domain.usecase
 
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
+import org.example.domain.repository.VehicleRepository
 
-class FindStationedVehiclesByCapacityUseCase {
+class FindStationedVehiclesByCapacityUseCase(
+    private val vehicleRepository: VehicleRepository
+) {
+    operator fun invoke(warehouse: Warehouse, requiredWeightKg: Double
+    ): List<Vehicle> {
 
-    operator fun invoke(warehouse: Warehouse, requiredWeightKg: Double): List<Vehicle> {
-        return warehouse
-            .getStationedVehicles()
-            .filter { vehicle ->
-                vehicle.maxCapacityKg >= requiredWeightKg
+        return vehicleRepository.getVehicles().data.filter { vehicle ->
+                vehicle.currentHub.id == warehouse.id &&
+                        vehicle.maxCapacityKg >= requiredWeightKg
             }
     }
 }
