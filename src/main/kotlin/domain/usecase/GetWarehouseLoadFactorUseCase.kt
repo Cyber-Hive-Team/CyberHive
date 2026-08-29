@@ -1,10 +1,15 @@
 package org.example.domain.usecase
 
-import org.example.domain.model.Warehouse
+import org.example.domain.repository.WarehouseRepository
 
-class GetWarehouseLoadFactorUseCase {
+class GetWarehouseLoadFactorUseCase(
+    private val warehouseRepository: WarehouseRepository
+) {
 
-    operator fun invoke(warehouse: Warehouse): Double {
+    operator fun invoke(warehouseId: String): Double {
+        val warehouse = warehouseRepository
+            .getWarehouseById(warehouseId)
+            ?: return 0.0
 
         val totalQueueWeight = warehouse.getCargoQueue()
             .map { it.weight }
