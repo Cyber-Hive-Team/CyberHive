@@ -34,6 +34,7 @@ import org.example.domain.pricing.FragileStrategy
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
+import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 
 private const val WAREHOUSE_FILE =
     "src/main/resources/warehouses.csv"
@@ -56,7 +57,6 @@ private data class LoadedData(
 
 fun main() {
     println("=== Cyber Hive ===")
-
     val data = loadData()
 
     if (data.warehouses.isEmpty()) {
@@ -72,8 +72,7 @@ fun main() {
             data.routes
         )
 
-    println("\n=== Building Domain Graph ===")
-    println("Connected hubs: ${result.success.size}")
+    println("\n=== Building Domain Graph ===\nConnected hubs: ${result.success.size}")
 
     result.warnings.forEach {
         println("WARNING: $it")
@@ -89,6 +88,8 @@ fun main() {
     testSorting(result.success)
     runRouting(result.success)
     compareRoutingAlgorithms(result.success, data.routes)
+
+    AnalyzeTreePerformanceUseCase()()
 }
 
 private fun loadData(): LoadedData {
