@@ -90,8 +90,7 @@ fun main() {
     runRouting(result.success)
     compareRoutingAlgorithms(result.success, data.routes)
 
-    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
-    analyzeTreePerformanceUseCase()
+    AnalyzeTreePerformanceUseCase()()
 }
 
 private fun loadData(): LoadedData {
