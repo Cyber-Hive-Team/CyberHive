@@ -19,42 +19,29 @@ class FindFleetSurplusUseCase(
 ) {
 
     operator fun invoke(): List<FleetSurplusResult> {
-
         return warehouseRepository
             .getAllWarehouses()
             .data
             .mapNotNull { warehouse ->
-
-                val cargoWeight =
-                    packageRepository
+                val cargoWeight = packageRepository
                         .getPackagesByWarehouseId(warehouse.id)
                         .data
                         .sumOf { cargoPackage ->
                             cargoPackage.weight
                         }
-
-                val fleetCapacity =
-                    vehicleRepository
+                val fleetCapacity = vehicleRepository
                         .getVehiclesByWarehouseId(warehouse.id)
                         .data
                         .sumOf { vehicle ->
                             vehicle.maxCapacityKg
                         }
-
-                val surplus =
-                    fleetCapacity - cargoWeight
-
+                val surplus = fleetCapacity - cargoWeight
                 if (surplus > ZERO_SURPLUS) {
-                    FleetSurplusResult(
-                        warehouseId = warehouse.id,
-                        surplusKg = surplus
-                    )
+                    FleetSurplusResult(warehouseId = warehouse.id, surplusKg = surplus)
                 } else {
                     null
                 }
             }
-            .sortedByDescending { result ->
-                result.surplusKg
-            }
+            .sortedByDescending { result -> result.surplusKg }
     }
 }

@@ -20,15 +20,13 @@ class FindFleetShortageUseCase(
         return warehouseRepository
             .getAllWarehouses().data
             .mapNotNull { warehouse ->
-                val totalCargoWeight =
-                    packageRepository
+                val totalCargoWeight = packageRepository
                         .getPackagesByWarehouseId(warehouse.id)
                         .data
                         .sumOf { cargoPackage ->
                             cargoPackage.weight
                         }
-                val totalFleetCapacity =
-                    vehicleRepository
+                val totalFleetCapacity = vehicleRepository
                         .getVehiclesByWarehouseId(warehouse.id)
                         .data
                         .sumOf { vehicle ->
