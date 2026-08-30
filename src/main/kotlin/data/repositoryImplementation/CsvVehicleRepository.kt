@@ -17,9 +17,17 @@ class CsvVehicleRepository(
     private val warehouseMap: Map<String, Warehouse>
 ) : VehicleRepository {
 
+    private val vehicles = mutableListOf<Vehicle>()
+    private var isLoaded = false
+
     override fun getVehicles(): Result<List<Vehicle>> {
+        if (isLoaded) {
+            return Result(
+                data = vehicles.toList(),
+                errorMessage = null
+            )
+        }
         val rawResults = dataSource.getVehicles()
-        val vehicles = mutableListOf<Vehicle>()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawVehicles = rawResults.mapNotNull { it.rawData }
         rawVehicles.forEach { raw ->
@@ -38,7 +46,7 @@ class CsvVehicleRepository(
             }
         }
 
-
+        isLoaded = true
         return Result(
             data = vehicles,
             errorMessage = warnings
@@ -103,4 +111,18 @@ class CsvVehicleRepository(
         } else {
             null
         }
+    override fun getVehiclesByWarehouseId(
+        warehouseId: String
+    ): Result<List<Vehicle>> {
+
+        val result = getVehicles()
+
+        return Result(
+            data = result.data.filter { vehicle ->
+                vehicle.currentHub.id == warehouseId
+            },
+            errorMessage = result.errorMessage
+        )
+    }
+
 }
