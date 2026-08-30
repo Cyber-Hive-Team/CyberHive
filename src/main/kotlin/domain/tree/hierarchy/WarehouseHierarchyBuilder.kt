@@ -30,11 +30,7 @@ class WarehouseHierarchyBuilder(
                 parent = globalNode
             )
             globalNode.children.add(regionalNode)
-            addLocalWarehouses(
-                warehousesInRegion,
-                regionalWarehouse,
-                regionalNode
-            )
+            addLocalWarehouses(warehousesInRegion, regionalWarehouse, regionalNode)
         }
         return globalNode
     }
