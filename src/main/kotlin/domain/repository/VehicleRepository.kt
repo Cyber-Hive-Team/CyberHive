@@ -5,5 +5,7 @@ import org.example.domain.model.Vehicle
 
 interface VehicleRepository {
     fun getVehicles(): Result<List<Vehicle>>
+    fun getVehicleById(vehicleId: String): Vehicle?
+
 }
 
