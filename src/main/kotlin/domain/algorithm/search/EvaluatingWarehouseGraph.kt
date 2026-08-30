@@ -20,4 +20,13 @@ class EvaluatingWarehouseGraph(
     fun getEvaluatedCount(): Int {
         return evaluatedWarehouses.size
     }
+    override fun getDistance(
+        currentWarehouse: Warehouse,
+        neighborWarehouse: Warehouse
+    ): Double? {
+        return graph.getDistance(
+            currentWarehouse,
+            neighborWarehouse
+        )
+    }
 }
