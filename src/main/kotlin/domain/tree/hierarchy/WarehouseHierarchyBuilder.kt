@@ -9,16 +9,12 @@ class WarehouseHierarchyBuilder(
     private val routes: List<Route>
 ) {
     fun build(): WarehouseNode? {
-        val globalWarehouse =
-            findGlobalWarehouse()
-                ?: return null
-
+        val globalWarehouse = findGlobalWarehouse() ?: return null
         val globalNode = WarehouseNode(
             warehouse = globalWarehouse,
             level = WarehouseLevel.GLOBAL,
             parent = null
         )
-
         val warehousesByRegion = warehouses
             .filter { warehouse ->
                 warehouse != globalWarehouse
@@ -26,28 +22,20 @@ class WarehouseHierarchyBuilder(
             .groupBy { warehouse ->
                 warehouse.regionalZone
             }
-
         warehousesByRegion.forEach { (_, warehousesInRegion) ->
-
-            val regionalWarehouse =
-                findRegionalWarehouse(warehousesInRegion)
-                    ?: return@forEach
-
+            val regionalWarehouse = findRegionalWarehouse(warehousesInRegion) ?: return@forEach
             val regionalNode = WarehouseNode(
                 warehouse = regionalWarehouse,
                 level = WarehouseLevel.REGIONAL,
                 parent = globalNode
             )
-
             globalNode.children.add(regionalNode)
-
             addLocalWarehouses(
                 warehousesInRegion,
                 regionalWarehouse,
                 regionalNode
             )
         }
-
         return globalNode
     }
 
