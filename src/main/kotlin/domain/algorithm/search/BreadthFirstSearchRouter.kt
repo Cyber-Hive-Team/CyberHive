@@ -99,21 +99,10 @@ class BreadthFirstSearchRouter(
         current: Warehouse,
         next: Warehouse
     ): Double {
-        val outgoing = current.getOutgoingRoutes()
-            .firstOrNull {
-                it.destinationWarehouse == next
-            }
-
-        if (outgoing != null) {
-            return outgoing.distanceKm
-        }
-
-        return next.getOutgoingRoutes()
-            .firstOrNull {
-                it.destinationWarehouse == current
-            }
-            ?.distanceKm
-            ?: INITIAL_DISTANCE
+        return graph.getDistance(
+            current,
+            next
+        ) ?: INITIAL_DISTANCE
     }
 }
 
