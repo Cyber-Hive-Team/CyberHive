@@ -47,6 +47,11 @@ class CsvVehicleRepository(
         )
     }
 
+    override fun getVehicleById(vehicleId: String): Vehicle? {
+
+        return getVehicles().data.firstOrNull { it.id == vehicleId }
+    }
+
     private fun validate(
         raw: VehicleRaw,
         currentHub: Warehouse?
