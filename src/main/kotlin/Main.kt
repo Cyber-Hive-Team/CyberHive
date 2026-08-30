@@ -72,8 +72,7 @@ fun main() {
             data.routes
         )
 
-    println("\n=== Building Domain Graph ===")
-    println("Connected hubs: ${result.success.size}")
+    println("\n=== Building Domain Graph ===\nConnected hubs: ${result.success.size}")
 
     result.warnings.forEach {
         println("WARNING: $it")
