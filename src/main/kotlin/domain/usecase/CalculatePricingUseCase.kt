@@ -10,6 +10,7 @@ class CalculatePricingUseCase(
     private val routeRepository: RouteRepository,
     private val pricingEngine: RoutePricingEngine
 ) {
+
     operator fun invoke(
         packageId: String,
         routeId: String,
