@@ -1,6 +1,5 @@
 package org.example.domain.usecase
 
-import org.example.domain.model.LatePackageResult
 import org.example.domain.repository.PackageDeliveryTimeRepository
 import java.time.Duration
 
@@ -34,3 +33,8 @@ class FindLatePackagesUseCase(
             }
     }
 }
+
+data class LatePackageResult(
+    val packageId: String,
+    val delayMinutes: Long
+)
