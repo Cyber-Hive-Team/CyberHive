@@ -75,4 +75,14 @@ class CsvPackageRepository(
 
     private fun normalizeId(id: String): String =
         id.trim().uppercase()
+
+    override fun getPackagesByWarehouseId(warehouseId: String): Result<List<Package>> {
+        val result = getAllPackages()
+        return Result(
+            data = result.data.filter { cargoPackage ->
+                cargoPackage.originWarehouse.id == warehouseId
+            },
+            errorMessage = result.errorMessage
+        )
+    }
 }

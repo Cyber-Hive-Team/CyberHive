@@ -5,5 +5,6 @@ import org.example.domain.model.Result
 
 interface PackageRepository {
     fun getAllPackages(): Result<List<Package>>
+    fun getPackagesByWarehouseId(warehouseId: String): Result<List<Package>>
 }
 
