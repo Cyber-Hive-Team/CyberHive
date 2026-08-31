@@ -24,36 +24,22 @@ class CsvVehicleRepository(
             return Result(data = vehicles.toList(), errorMessage = null)
         }
         val rawResults = dataSource.getVehicles()
-        val warnings =
-            rawResults
+        val warnings = rawResults
                 .mapNotNull { it.errorMessage }
                 .toMutableList()
-
-        val rawVehicles =
-            rawResults.mapNotNull { it.rawData }
-
+        val rawVehicles = rawResults.mapNotNull { it.rawData }
         rawVehicles.forEach { raw ->
-
-            val currentHub =
-                warehouseMap[raw.currentHubId]
-
-            val validationWarnings =
-                validate(raw, currentHub)
-
+            val currentHub = warehouseMap[raw.currentHubId]
+            val validationWarnings = validate(raw, currentHub)
             if (validationWarnings.isEmpty()) {
                 vehicles.add(
-                    mapper.map(
-                        raw,
-                        currentHub!!
-                    )
+                    mapper.map(raw, currentHub!!)
                 )
             } else {
                 warnings.addAll(validationWarnings)
             }
         }
-
         isLoaded = true
-
         return Result(
             data = vehicles.toList(),
             errorMessage = warnings

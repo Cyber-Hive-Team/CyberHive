@@ -11,13 +11,8 @@ class RedistributeFleetUseCase(
 ) {
 
     operator fun invoke(): List<VehicleTransfer> {
-
-        val shortages =
-            findFleetShortageUseCase()
-
-        val surpluses =
-            findFleetSurplusUseCase()
-
+        val shortages = findFleetShortageUseCase()
+        val surpluses = findFleetSurplusUseCase()
         return distributeVehicles(
             shortages = shortages,
             surpluses = surpluses
@@ -29,94 +24,99 @@ class RedistributeFleetUseCase(
         surpluses: List<FleetSurplusResult>
     ): List<VehicleTransfer> {
 
-        val transfers =
-            mutableListOf<VehicleTransfer>()
-
-        val remainingSurplus =
-            surpluses
+        val remainingSurplus = surpluses
                 .associate { surplus ->
                     surplus.warehouseId to surplus.surplusKg
                 }
                 .toMutableMap()
 
-        shortages.forEach { shortage ->
+        return shortages.flatMap { shortage ->
+            distributeForShortage(
+                shortage = shortage,
+                surpluses = surpluses,
+                remainingSurplus = remainingSurplus
+            )
+        }
+    }
 
-            var remainingShortage =
-                shortage.shortageKg
+    private fun distributeForShortage(
+        shortage: FleetShortageResult,
+        surpluses: List<FleetSurplusResult>,
+        remainingSurplus: MutableMap<String, Double>
+    ): List<VehicleTransfer> {
+        var remainingShortage = shortage.shortageKg
 
-            surpluses.forEach { surplus ->
-
-                if (remainingShortage <= ZERO_VALUE) {
-                    return@forEach
-                }
-
-                var sourceSurplus =
-                    remainingSurplus[surplus.warehouseId]
-                        ?: ZERO_VALUE
-
-                if (sourceSurplus <= ZERO_VALUE) {
-                    return@forEach
-                }
-
-                val vehicles =
-                    vehicleRepository
-                        .getVehiclesByWarehouseId(
-                            surplus.warehouseId
-                        )
-                        .data
-                        .sortedByDescending { vehicle ->
-                            vehicle.maxCapacityKg
-                        }
-
-                vehicles.forEach { vehicle ->
-
-                    val canTransfer =
-                        remainingShortage > ZERO_VALUE &&
-                                sourceSurplus >=
-                                vehicle.maxCapacityKg
-
-                    if (canTransfer) {
-
-                        val reassigned =
-                            vehicleRepository
-                                .reassignVehicle(
-                                    vehicleId = vehicle.id,
-                                    warehouseId =
-                                        shortage.warehouseId
-                                )
-
-                        if (reassigned) {
-
-                            transfers.add(
-                                VehicleTransfer(
-                                    vehicleId = vehicle.id,
-                                    fromWarehouseId =
-                                        surplus.warehouseId,
-                                    toWarehouseId =
-                                        shortage.warehouseId,
-                                    capacityKg =
-                                        vehicle.maxCapacityKg
-                                )
-                            )
-
-                            remainingShortage -=
-                                vehicle.maxCapacityKg
-
-                            sourceSurplus -=
-                                vehicle.maxCapacityKg
-
-                            remainingSurplus[
-                                surplus.warehouseId
-                            ] = sourceSurplus
-                        }
-                    }
-                }
+        return surpluses.flatMap { surplus ->
+            if (remainingShortage <= ZERO_VALUE) {
+                emptyList()
+            } else {
+                val result = transferFromSurplus(
+                    shortage = shortage,
+                    surplus = surplus,
+                    remainingShortage = remainingShortage,
+                    remainingSurplus = remainingSurplus
+                )
+                remainingShortage = result.remainingShortage
+                result.transfers
             }
         }
+    }
 
-        return transfers
+    private fun transferFromSurplus(
+        shortage: FleetShortageResult, surplus: FleetSurplusResult,
+        remainingShortage: Double, remainingSurplus: MutableMap<String, Double>
+    ): TransferResult {
+        var shortageLeft = remainingShortage
+        var surplusLeft = remainingSurplus[surplus.warehouseId] ?: ZERO_VALUE
+        if (surplusLeft <= ZERO_VALUE) {
+            return TransferResult(transfers = emptyList(), remainingShortage = shortageLeft)
+        }
+        val vehicles = vehicleRepository
+            .getVehiclesByWarehouseId(surplus.warehouseId)
+            .data
+            .sortedByDescending { vehicle ->
+                vehicle.maxCapacityKg
+            }
+        val transfers = vehicles.mapNotNull { vehicle ->
+            val canTransfer = shortageLeft > ZERO_VALUE && surplusLeft >= vehicle.maxCapacityKg
+            if (!canTransfer) {
+                return@mapNotNull null
+            }
+            val transfer = transferVehicle(
+                vehicleId = vehicle.id, vehicleCapacity = vehicle.maxCapacityKg,
+                fromWarehouseId = surplus.warehouseId, toWarehouseId = shortage.warehouseId
+            )
+            shortageLeft -= vehicle.maxCapacityKg
+            surplusLeft -= vehicle.maxCapacityKg
+            transfer
+            }
+        remainingSurplus[surplus.warehouseId] = surplusLeft
+        return TransferResult(transfers = transfers, remainingShortage = shortageLeft)
+    }
+
+    private fun transferVehicle(
+        vehicleId: String,
+        vehicleCapacity: Double,
+        fromWarehouseId: String,
+        toWarehouseId: String
+    ): VehicleTransfer? {
+        val reassigned = vehicleRepository.reassignVehicle(vehicleId = vehicleId, warehouseId = toWarehouseId)
+        if (!reassigned) {
+            return null
+        }
+        return VehicleTransfer(
+            vehicleId = vehicleId,
+            fromWarehouseId = fromWarehouseId,
+            toWarehouseId = toWarehouseId,
+            capacityKg = vehicleCapacity
+        )
     }
 }
+
+private data class TransferResult(
+    val transfers: List<VehicleTransfer>,
+    val remainingShortage: Double
+)
 
 data class VehicleTransfer(
     val vehicleId: String,
