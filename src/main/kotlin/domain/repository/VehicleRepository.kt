@@ -7,6 +7,6 @@ interface VehicleRepository {
     fun getVehicles(): Result<List<Vehicle>>
     fun getVehicleById(vehicleId: String): Vehicle?
     fun getVehiclesByWarehouseId(warehouseId: String): Result<List<Vehicle>>
-
+    fun reassignVehicle(vehicleId: String, warehouseId: String): Boolean
 }
 

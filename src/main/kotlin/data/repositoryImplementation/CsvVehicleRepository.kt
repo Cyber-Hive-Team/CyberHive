@@ -16,15 +16,29 @@ class CsvVehicleRepository(
     private val mapper: VehicleMapper,
     private val warehouseMap: Map<String, Warehouse>
 ) : VehicleRepository {
+    private val vehicles = mutableListOf<Vehicle>()
+    private var isLoaded = false
 
     override fun getVehicles(): Result<List<Vehicle>> {
+        if (isLoaded) {
+            return Result(data = vehicles.toList(), errorMessage = null)
+        }
         val rawResults = dataSource.getVehicles()
-        val vehicles = mutableListOf<Vehicle>()
-        val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
-        val rawVehicles = rawResults.mapNotNull { it.rawData }
+        val warnings =
+            rawResults
+                .mapNotNull { it.errorMessage }
+                .toMutableList()
+
+        val rawVehicles =
+            rawResults.mapNotNull { it.rawData }
+
         rawVehicles.forEach { raw ->
-            val currentHub = warehouseMap[raw.currentHubId]
-            val validationWarnings = validate(raw, currentHub)
+
+            val currentHub =
+                warehouseMap[raw.currentHubId]
+
+            val validationWarnings =
+                validate(raw, currentHub)
 
             if (validationWarnings.isEmpty()) {
                 vehicles.add(
@@ -38,9 +52,10 @@ class CsvVehicleRepository(
             }
         }
 
+        isLoaded = true
 
         return Result(
-            data = vehicles,
+            data = vehicles.toList(),
             errorMessage = warnings
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
@@ -103,7 +118,6 @@ class CsvVehicleRepository(
         } else {
             null
         }
-
     override fun getVehiclesByWarehouseId(
         warehouseId: String
     ): Result<List<Vehicle>> {
@@ -118,4 +132,22 @@ class CsvVehicleRepository(
         )
     }
 
+    override fun reassignVehicle(vehicleId: String, warehouseId: String): Boolean {
+        getVehicles()
+        val index =
+            vehicles.indexOfFirst { vehicle ->
+                vehicle.id == vehicleId
+            }
+        if (index == -1) {
+            return false
+        }
+        val targetWarehouse =
+            warehouseMap[warehouseId]
+                ?: return false
+        vehicles[index] =
+            vehicles[index].copy(
+                currentHub = targetWarehouse
+            )
+        return true
+    }
 }
