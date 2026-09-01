@@ -136,4 +136,10 @@ class CsvVehicleRepository(
             )
         return true
     }
+
+    override fun removeVehicle(vehicleId: String): Boolean {
+        getVehicles()
+
+        return vehicles.removeIf { it.id == vehicleId }
+    }
 }
