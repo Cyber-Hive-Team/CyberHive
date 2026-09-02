@@ -1,7 +1,6 @@
 package org.example.domain.usecase
 
 import org.example.domain.repository.PackageDeliveryTimeRepository
-import java.time.Duration
 
 class FindLatePackagesUseCase(
     private val deliveryTimeRepository: PackageDeliveryTimeRepository
@@ -18,10 +17,9 @@ class FindLatePackagesUseCase(
             .map { delivery ->
 
                 val delayMinutes =
-                    Duration.between(
-                        delivery.expectedArrivalTime,
-                        delivery.actualArrivalTime
-                    ).toMinutes()
+                    (delivery.actualArrivalTime -
+                            delivery.expectedArrivalTime
+                            ).inWholeMinutes
 
                 LatePackageResult(
                     packageId = delivery.packageId,
