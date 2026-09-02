@@ -19,9 +19,14 @@ class AssignPackageToQueueCommand(
     }
 
     override fun undo(): Boolean {
-        if (!addedPackage) return false
-
-        val warehouse = warehouseRepository.getWarehouseById(warehouseId) ?: return false
-        return warehouse.removePackageFromCargoQueue(cargoPackage.id)
+        return if (!addedPackage) {
+            false
+        } else {
+            warehouseRepository.getWarehouseById(warehouseId)
+                ?.let { warehouse ->
+                    warehouse.removePackageFromCargoQueue(cargoPackage.id)
+                }
+                ?: false
+        }
     }
 }

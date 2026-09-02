@@ -2,6 +2,7 @@ package org.example.domain.command
 
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.usecase.AddVehicleToHubUseCase
+import org.example.domain.model.input.AddVehicleToHubInput
 
 class AddVehicleToHubCommand(
     private val vehicleId: String,
@@ -13,7 +14,7 @@ class AddVehicleToHubCommand(
     private var addedVehicle = false
 
     override fun execute(): Boolean {
-        addedVehicle = addVehicleToHubUseCase(vehicleId, warehouseId)
+        addedVehicle = addVehicleToHubUseCase(AddVehicleToHubInput(vehicleId, warehouseId))
         return addedVehicle
     }
 
