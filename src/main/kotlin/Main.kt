@@ -35,6 +35,7 @@ import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
+import org.example.domain.model.input.AnalyzeTreePerformanceInput
 
 private const val WAREHOUSE_FILE =
     "src/main/resources/warehouses.csv"
@@ -89,7 +90,13 @@ fun main() {
     runRouting(result.success)
     compareRoutingAlgorithms(result.success, data.routes)
 
-    AnalyzeTreePerformanceUseCase()()
+    AnalyzeTreePerformanceUseCase()(
+        AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 1_000,
+            trackingIdWidth = 6
+        )
+    )
 }
 
 private fun loadData(): LoadedData {
