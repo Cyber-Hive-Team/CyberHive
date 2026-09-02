@@ -3,17 +3,15 @@ package org.example.domain.usecase
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.WarehouseServices
 import org.example.domain.repository.PackageRepository
-import org.example.domain.repository.PackageRequirementsRepository
 import org.example.domain.repository.WarehouseRepository
 
 class FindPackagesAtRiskOfDamageUseCase(
     private val packageRepository: PackageRepository,
-    private val packageRequirementsRepository: PackageRequirementsRepository,
     private val warehouseRepository: WarehouseRepository
 ) {
 
     operator fun invoke(): List<DamageRiskResult> {
-        val packageRequirements = packageRequirementsRepository.getAllPackageRequirements()
+        val packageRequirements = packageRepository.getAllPackageRequirements()
             .associateBy { requirement -> requirement.packageId }
         val warehouseServices = warehouseRepository.getAllWarehouseServices()
             .associateBy { services -> services.warehouseId }

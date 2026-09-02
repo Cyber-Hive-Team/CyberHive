@@ -4,6 +4,7 @@ import org.example.data.dataholder.PackageRaw
 import org.example.data.datasource.PackageDataSource
 import org.example.data.mapper.PackageMapper
 import org.example.domain.model.Package
+import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.PackageDeliveryTime
@@ -42,7 +43,7 @@ class CsvPackageRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
-        
+
     }
 
     private fun mapPackages(
@@ -158,5 +159,22 @@ class CsvPackageRepository(
 
     }
 
+
+    override fun getAllPackageRequirements(): List<PackageRequirements> {
+        return getAllPackages()
+            .data
+            .map { cargoPackage ->
+                PackageRequirements(
+                    packageId = cargoPackage.id,
+                    isFragile = Random.nextBoolean(),
+                    requiresColdStorage = Random.nextBoolean(),
+                    requiresSpecialHandling = Random.nextBoolean()
+                )
+            }
+    }
+
 }
+
+
+
 

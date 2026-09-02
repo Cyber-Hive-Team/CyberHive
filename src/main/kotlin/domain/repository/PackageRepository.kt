@@ -1,6 +1,7 @@
 package org.example.domain.repository
 
 import org.example.domain.model.Package
+import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.model.result.Result
@@ -10,6 +11,7 @@ interface PackageRepository {
     fun getPackagesByWarehouseId(warehouseId: String): Result<List<Package>>
     fun getAllWarehouseStays(): List<PackageWarehouseStay>
     fun getAllDeliveryTimes(): List<PackageDeliveryTime>
+    fun getAllPackageRequirements(): List<PackageRequirements>
 
 }
 
