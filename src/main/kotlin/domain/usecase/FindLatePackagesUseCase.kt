@@ -32,7 +32,3 @@ class FindLatePackagesUseCase(
     }
 }
 
-data class LatePackageResult(
-    val packageId: String,
-    val delayMinutes: Long
-)
