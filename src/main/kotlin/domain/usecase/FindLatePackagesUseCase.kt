@@ -1,5 +1,6 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.result.LatePackageResult
 import org.example.domain.repository.PackageDeliveryTimeRepository
 
 class FindLatePackagesUseCase(
