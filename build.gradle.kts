@@ -14,6 +14,12 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+detekt {
+    config.setFrom("config/detekt/detekt.yml")
+    baseline = file("config/detekt/baseline.xml")
+    buildUponDefaultConfig = true
+}
+
 kotlin {
     jvmToolchain(21)
 }
