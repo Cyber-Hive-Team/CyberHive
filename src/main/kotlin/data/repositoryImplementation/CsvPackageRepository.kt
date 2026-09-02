@@ -4,7 +4,7 @@ import org.example.data.dataholder.PackageRaw
 import org.example.data.datasource.PackageDataSource
 import org.example.data.mapper.PackageMapper
 import org.example.domain.model.Package
-import org.example.domain.model.Result
+import org.example.domain.model.result.Result
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.PackageRepository
 

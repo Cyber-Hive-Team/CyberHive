@@ -3,8 +3,10 @@ package org.example.data.repositoryImplementation
 import org.example.domain.model.PackageDeliveryTime
 import org.example.domain.repository.PackageDeliveryTimeRepository
 import org.example.domain.repository.PackageRepository
-import java.time.LocalDateTime
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 private const val MIN_EXPECTED_HOURS = 2L
 private const val MAX_EXPECTED_HOURS = 10L
@@ -26,21 +28,17 @@ class GeneratedPackageDeliveryTimeRepository(
             .map { cargoPackage ->
 
                 val expectedArrival =
-                    LocalDateTime.now()
-                        .plusHours(
+                    Clock.System.now() +
                             Random.nextLong(
                                 MIN_EXPECTED_HOURS,
                                 MAX_EXPECTED_HOURS
-                            )
-                        )
-
+                            ).hours
                 val actualArrival =
-                    expectedArrival.plusMinutes(
-                        Random.nextLong(
-                            MIN_ARRIVAL_OFFSET_MINUTES,
-                            MAX_ARRIVAL_OFFSET_MINUTES
-                        )
-                    )
+                    expectedArrival +
+                            Random.nextLong(
+                                MIN_ARRIVAL_OFFSET_MINUTES,
+                                MAX_ARRIVAL_OFFSET_MINUTES
+                            ).minutes
 
                 PackageDeliveryTime(
                     packageId = cargoPackage.id,
