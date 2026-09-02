@@ -3,7 +3,7 @@ package org.example.domain.usecase
 import org.example.domain.algorithm.search.Router
 import org.example.domain.model.Package
 import org.example.domain.model.Route
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository

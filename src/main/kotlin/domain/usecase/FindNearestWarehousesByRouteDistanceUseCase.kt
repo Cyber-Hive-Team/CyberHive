@@ -1,7 +1,7 @@
 package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.Router
-import org.example.domain.model.Result
+import org.example.domain.model.result.Result
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseDistance
 import org.example.domain.repository.WarehouseRepository

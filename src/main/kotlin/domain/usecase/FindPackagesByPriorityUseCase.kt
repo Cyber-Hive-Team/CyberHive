@@ -2,7 +2,7 @@ package org.example.domain.usecase
 
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
-import org.example.domain.model.Result
+import org.example.domain.model.result.Result
 import org.example.domain.repository.PackageRepository
 
 class FindPackagesByPriorityUseCase(
