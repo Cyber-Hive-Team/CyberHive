@@ -2,7 +2,7 @@ package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.DijkstraRouter
 import org.example.domain.algorithm.search.RouteWarehouseGraph
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.RouteRepository
 import org.example.domain.repository.WarehouseRepository
 

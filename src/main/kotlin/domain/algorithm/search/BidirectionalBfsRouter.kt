@@ -1,6 +1,6 @@
 package org.example.domain.algorithm.search
 
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Warehouse
 import java.util.*
 

@@ -1,7 +1,7 @@
 package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
 
 class FindFewestHopsRouteUseCase(

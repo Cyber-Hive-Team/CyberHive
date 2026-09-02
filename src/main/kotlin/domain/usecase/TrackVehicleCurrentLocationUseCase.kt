@@ -1,6 +1,6 @@
 package org.example.domain.usecase
 
-import org.example.domain.model.VehicleTrackingResult
+import org.example.domain.model.result.VehicleTrackingResult
 import org.example.domain.repository.VehicleRepository
 
 class TrackVehicleCurrentLocationUseCase(

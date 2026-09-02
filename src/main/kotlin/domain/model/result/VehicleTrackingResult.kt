@@ -1,4 +1,4 @@
-package org.example.domain.model
+package org.example.domain.model.result
 
 data class VehicleTrackingResult(
     val vehicleId: String,

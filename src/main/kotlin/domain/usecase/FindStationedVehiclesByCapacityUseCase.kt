@@ -7,7 +7,9 @@ import org.example.domain.repository.VehicleRepository
 class FindStationedVehiclesByCapacityUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    operator fun invoke(warehouse: Warehouse, requiredWeightKg: Double
+    operator fun invoke(
+        warehouse: Warehouse,
+        requiredWeightKg: Double
     ): List<Vehicle> {
 
         return vehicleRepository.getVehicles().data.filter { vehicle ->
