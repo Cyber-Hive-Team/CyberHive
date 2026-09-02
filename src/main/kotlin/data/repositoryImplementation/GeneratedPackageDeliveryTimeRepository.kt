@@ -1,6 +1,6 @@
 package org.example.data.repositoryImplementation
 
-import org.example.domain.model.PackageDeliveryTime
+import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.repository.PackageDeliveryTimeRepository
 import org.example.domain.repository.PackageRepository
 import kotlin.random.Random
