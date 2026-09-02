@@ -25,7 +25,7 @@ import org.example.domain.decorator.FragileHandlingDecorator
 import org.example.domain.model.Package
 import org.example.domain.model.PackageComponent
 import org.example.domain.model.Route
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy

@@ -3,7 +3,7 @@ package org.example.data.repository
 import org.example.data.dataholder.VehicleRaw
 import org.example.data.datasource.VehicleDataSource
 import org.example.data.mapper.VehicleMapper
-import org.example.domain.model.Result
+import org.example.domain.model.result.Result
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.VehicleRepository
