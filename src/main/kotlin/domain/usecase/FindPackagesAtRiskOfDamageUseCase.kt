@@ -32,6 +32,7 @@ class FindPackagesAtRiskOfDamageUseCase(
                 )
             }
         }
+
     }
 
     private fun findRiskReason(
@@ -55,6 +56,7 @@ class FindPackagesAtRiskOfDamageUseCase(
             else -> null
         }
     }
+
 }
 
 data class DamageRiskResult(
