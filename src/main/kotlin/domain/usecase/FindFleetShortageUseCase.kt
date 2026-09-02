@@ -1,15 +1,11 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.result.FleetShortageResult
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 
 private const val ZERO_SHORTAGE = 0.0
-
-data class FleetShortageResult(
-    val warehouseId: String,
-    val shortageKg: Double
-)
 
 class FindFleetShortageUseCase(
     private val warehouseRepository: WarehouseRepository,
