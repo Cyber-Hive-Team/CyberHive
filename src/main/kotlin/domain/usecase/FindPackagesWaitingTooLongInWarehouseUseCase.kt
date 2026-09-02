@@ -5,7 +5,7 @@ import org.example.domain.repository.PackageWarehouseStayRepository
 import java.time.Duration
 import java.time.LocalDateTime
 
-class FindPackagesWaitingTooLongUseCase(
+class FindPackagesWaitingTooLongInWarehouseUseCase(
     private val warehouseStayRepository: PackageWarehouseStayRepository
 ) {
 
