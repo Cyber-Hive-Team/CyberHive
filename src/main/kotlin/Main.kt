@@ -90,13 +90,22 @@ fun main() {
     runRouting(result.success)
     compareRoutingAlgorithms(result.success, data.routes)
 
-    AnalyzeTreePerformanceUseCase()(
+    analyzeTreePerformance()
+}
+
+private fun analyzeTreePerformance() {
+    val result = AnalyzeTreePerformanceUseCase()(
         AnalyzeTreePerformanceInput(
             firstPackageNumber = 1,
             packageCount = 1_000,
             trackingIdWidth = 6
         )
     )
+
+    println("Target Tracking ID: ${result.targetTrackingId}")
+    println("Package Count: ${result.packageCount}")
+    println("Unbalanced BST Search Steps: ${result.unbalancedSearchSteps}")
+    println("AVL Tree Search Steps: ${result.avlSearchSteps}")
 }
 
 private fun loadData(): LoadedData {
