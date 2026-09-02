@@ -2,6 +2,7 @@ package org.example.domain.usecase
 
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.WarehouseServices
+import org.example.domain.model.result.DamageRiskResult
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.PackageRequirementsRepository
 import org.example.domain.repository.WarehouseServicesRepository
@@ -59,8 +60,3 @@ class FindPackagesAtRiskOfDamageUseCase(
     }
 }
 
-data class DamageRiskResult(
-    val packageId: String,
-    val warehouseId: String,
-    val reason: String
-)
