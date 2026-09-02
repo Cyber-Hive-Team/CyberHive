@@ -1,15 +1,15 @@
 package org.example.domain.usecase
 
 import org.example.domain.model.input.AddVehicleToHubInput
-import org.example.domain.repository.PackageDeliveryTimeRepository
+import org.example.domain.repository.PackageRepository
 
 class FindLatePackagesUseCase(
-    private val deliveryTimeRepository: PackageDeliveryTimeRepository
+    private val packageRepository: PackageRepository
 ) {
 
     operator fun invoke(input: AddVehicleToHubInput): List<LatePackageResult> {
 
-        return deliveryTimeRepository
+        return packageRepository
             .getAllDeliveryTimes()
             .filter { delivery ->
                 delivery.actualArrivalTime >
