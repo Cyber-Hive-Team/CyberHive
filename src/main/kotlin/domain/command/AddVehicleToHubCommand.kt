@@ -10,15 +10,15 @@ class AddVehicleToHubCommand(
     private val vehicleRepository: VehicleRepository
 ) : Command {
 
-    private var AddedVehicle = false
+    private var addedVehicle = false
 
     override fun execute(): Boolean {
-        AddedVehicle = addVehicleToHubUseCase(vehicleId, warehouseId)
-        return AddedVehicle
+        addedVehicle = addVehicleToHubUseCase(vehicleId, warehouseId)
+        return addedVehicle
     }
 
     override fun undo(): Boolean {
-        if (!AddedVehicle) return false
+        if (!addedVehicle) return false
         return vehicleRepository.removeVehicle(vehicleId)
     }
 

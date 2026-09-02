@@ -11,15 +11,15 @@ class AssignPackageToQueueCommand(
     private val warehouseRepository: WarehouseRepository
 ) : Command {
 
-    private var AddedPackage = false
+    private var addedPackage = false
 
     override fun execute(): Boolean {
-        AddedPackage = assignPackageToCargoQueueUseCase(warehouseId, cargoPackage)
-        return AddedPackage
+        addedPackage = assignPackageToCargoQueueUseCase(warehouseId, cargoPackage)
+        return addedPackage
     }
 
     override fun undo(): Boolean {
-        if (!AddedPackage) return false
+        if (!addedPackage) return false
 
         val warehouse = warehouseRepository.getWarehouseById(warehouseId) ?: return false
         return warehouse.removePackageFromCargoQueue(cargoPackage.id)
