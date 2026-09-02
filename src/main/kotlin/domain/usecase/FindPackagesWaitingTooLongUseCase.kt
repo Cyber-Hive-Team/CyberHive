@@ -35,4 +35,5 @@ class FindPackagesWaitingTooLongUseCase(
                 result.waitingHours
             }
     }
+
 }

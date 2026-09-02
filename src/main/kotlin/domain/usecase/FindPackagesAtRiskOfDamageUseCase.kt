@@ -28,13 +28,10 @@ class FindPackagesAtRiskOfDamageUseCase(
             if (reason == null) {
                 null
             } else {
-                DamageRiskResult(
-                    packageId = cargoPackage.id,
-                    warehouseId = warehouseId,
-                    reason = reason
-                )
+                DamageRiskResult(packageId = cargoPackage.id, warehouseId = warehouseId, reason = reason)
             }
         }
+
     }
 
     private fun findRiskReason(
@@ -58,5 +55,6 @@ class FindPackagesAtRiskOfDamageUseCase(
             else -> null
         }
     }
+
 }
 

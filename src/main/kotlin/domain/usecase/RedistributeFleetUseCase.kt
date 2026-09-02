@@ -21,6 +21,7 @@ class RedistributeFleetUseCase(
             shortages = shortages,
             surpluses = surpluses
         )
+
     }
 
     private fun distributeVehicles(
@@ -41,6 +42,7 @@ class RedistributeFleetUseCase(
                 remainingSurplus = remainingSurplus
             )
         }
+
     }
 
     private fun distributeForShortage(
@@ -64,6 +66,7 @@ class RedistributeFleetUseCase(
                 result.transfers
             }
         }
+
     }
 
     private fun transferFromSurplus(
@@ -96,6 +99,7 @@ class RedistributeFleetUseCase(
             }
         remainingSurplus[surplus.warehouseId] = surplusLeft
         return TransferCalculationResult(transfers = transfers, remainingShortage = shortageLeft)
+
     }
 
     private fun transferVehicle(
@@ -115,6 +119,7 @@ class RedistributeFleetUseCase(
             capacityKg = vehicleCapacity
         )
     }
+
 }
 
 

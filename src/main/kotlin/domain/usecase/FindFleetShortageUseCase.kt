@@ -40,5 +40,6 @@ class FindFleetShortageUseCase(
             }
             .sortedByDescending { result -> result.shortageKg }
     }
+
 }
 
