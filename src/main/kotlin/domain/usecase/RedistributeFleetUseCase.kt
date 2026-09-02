@@ -1,5 +1,9 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.result.FleetShortageResult
+import org.example.domain.model.result.FleetSurplusResult
+import org.example.domain.model.result.TransferCalculationResult
+import org.example.domain.model.result.VehicleTransferResult
 import org.example.domain.repository.VehicleRepository
 
 private const val ZERO_VALUE = 0.0
@@ -10,7 +14,7 @@ class RedistributeFleetUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    operator fun invoke(): List<VehicleTransfer> {
+    operator fun invoke(): List<VehicleTransferResult> {
         val shortages = findFleetShortageUseCase()
         val surpluses = findFleetSurplusUseCase()
         return distributeVehicles(
@@ -22,7 +26,7 @@ class RedistributeFleetUseCase(
     private fun distributeVehicles(
         shortages: List<FleetShortageResult>,
         surpluses: List<FleetSurplusResult>
-    ): List<VehicleTransfer> {
+    ): List<VehicleTransferResult> {
 
         val remainingSurplus = surpluses
                 .associate { surplus ->
@@ -43,7 +47,7 @@ class RedistributeFleetUseCase(
         shortage: FleetShortageResult,
         surpluses: List<FleetSurplusResult>,
         remainingSurplus: MutableMap<String, Double>
-    ): List<VehicleTransfer> {
+    ): List<VehicleTransferResult> {
         var remainingShortage = shortage.shortageKg
 
         return surpluses.flatMap { surplus ->
@@ -65,11 +69,11 @@ class RedistributeFleetUseCase(
     private fun transferFromSurplus(
         shortage: FleetShortageResult, surplus: FleetSurplusResult,
         remainingShortage: Double, remainingSurplus: MutableMap<String, Double>
-    ): TransferResult {
+    ): TransferCalculationResult {
         var shortageLeft = remainingShortage
         var surplusLeft = remainingSurplus[surplus.warehouseId] ?: ZERO_VALUE
         if (surplusLeft <= ZERO_VALUE) {
-            return TransferResult(transfers = emptyList(), remainingShortage = shortageLeft)
+            return TransferCalculationResult(transfers = emptyList(), remainingShortage = shortageLeft)
         }
         val vehicles = vehicleRepository
             .getVehiclesByWarehouseId(surplus.warehouseId)
@@ -91,7 +95,7 @@ class RedistributeFleetUseCase(
             transfer
             }
         remainingSurplus[surplus.warehouseId] = surplusLeft
-        return TransferResult(transfers = transfers, remainingShortage = shortageLeft)
+        return TransferCalculationResult(transfers = transfers, remainingShortage = shortageLeft)
     }
 
     private fun transferVehicle(
@@ -99,12 +103,12 @@ class RedistributeFleetUseCase(
         vehicleCapacity: Double,
         fromWarehouseId: String,
         toWarehouseId: String
-    ): VehicleTransfer? {
+    ): VehicleTransferResult? {
         val reassigned = vehicleRepository.reassignVehicle(vehicleId = vehicleId, warehouseId = toWarehouseId)
         if (!reassigned) {
             return null
         }
-        return VehicleTransfer(
+        return VehicleTransferResult(
             vehicleId = vehicleId,
             fromWarehouseId = fromWarehouseId,
             toWarehouseId = toWarehouseId,
@@ -113,14 +117,5 @@ class RedistributeFleetUseCase(
     }
 }
 
-private data class TransferResult(
-    val transfers: List<VehicleTransfer>,
-    val remainingShortage: Double
-)
 
-data class VehicleTransfer(
-    val vehicleId: String,
-    val fromWarehouseId: String,
-    val toWarehouseId: String,
-    val capacityKg: Double
-)
+
