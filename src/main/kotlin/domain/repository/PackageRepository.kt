@@ -1,7 +1,7 @@
 package org.example.domain.repository
 
 import org.example.domain.model.Package
-import org.example.domain.model.Result
+import org.example.domain.model.result.Result
 
 interface PackageRepository {
     fun getAllPackages(): Result<List<Package>>

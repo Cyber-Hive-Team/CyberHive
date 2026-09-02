@@ -25,7 +25,7 @@ import org.example.domain.decorator.FragileHandlingDecorator
 import org.example.domain.model.Package
 import org.example.domain.model.PackageComponent
 import org.example.domain.model.Route
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.pricing.EcoStrategy
@@ -35,6 +35,7 @@ import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.routing.report.RoutingValidationReporter
 import org.example.domain.routing.service.ConsistentHashVehicleRoutingService
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
+import org.example.domain.model.input.AnalyzeTreePerformanceInput
 
 private const val WAREHOUSE_FILE =
     "src/main/resources/warehouses.csv"
@@ -89,7 +90,22 @@ fun main() {
     runRouting(result.success)
     compareRoutingAlgorithms(result.success, data.routes)
 
-    AnalyzeTreePerformanceUseCase()()
+    analyzeTreePerformance()
+}
+
+private fun analyzeTreePerformance() {
+    val result = AnalyzeTreePerformanceUseCase()(
+        AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 1_000,
+            trackingIdWidth = 6
+        )
+    )
+
+    println("Target Tracking ID: ${result.targetTrackingId}")
+    println("Package Count: ${result.packageCount}")
+    println("Unbalanced BST Search Steps: ${result.unbalancedSearchSteps}")
+    println("AVL Tree Search Steps: ${result.avlSearchSteps}")
 }
 
 private fun loadData(): LoadedData {

@@ -1,6 +1,6 @@
 package org.example.domain.algorithm.search
 
-import org.example.domain.model.RoutingResult
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Warehouse
 
 private const val INITIAL_DISTANCE = 0.0

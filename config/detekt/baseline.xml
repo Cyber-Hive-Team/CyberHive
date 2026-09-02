@@ -1,0 +1,115 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>MagicNumber:ConsistentHashVehicleRoutingService.kt$ConsistentHashVehicleRoutingService$15</ID>
+    <ID>MagicNumber:ConsistentHashVehicleRoutingService.kt$ConsistentHashVehicleRoutingService$4</ID>
+    <ID>MagicNumber:ConsistentHashVehicleRoutingService.kt$ConsistentHashVehicleRoutingService$40</ID>
+    <ID>MagicNumber:ConsistentHashVehicleRoutingService.kt$ConsistentHashVehicleRoutingService$65</ID>
+    <ID>MagicNumber:ConsistentHashVehicleRoutingService.kt$ConsistentHashVehicleRoutingService$90</ID>
+    <ID>MagicNumber:EcoStrategy.kt$EcoStrategy$0.3</ID>
+    <ID>MagicNumber:EcoStrategy.kt$EcoStrategy$0.8</ID>
+    <ID>MagicNumber:ExpressInsuranceDecorator.kt$ExpressInsuranceDecorator$10.0</ID>
+    <ID>MagicNumber:ExpressStrategy.kt$ExpressStrategy$0.8</ID>
+    <ID>MagicNumber:ExpressStrategy.kt$ExpressStrategy$1.5</ID>
+    <ID>MagicNumber:FragileHandlingDecorator.kt$FragileHandlingDecorator$15.0</ID>
+    <ID>MagicNumber:FragileStrategy.kt$FragileStrategy$0.4</ID>
+    <ID>MagicNumber:FragileStrategy.kt$FragileStrategy$1.2</ID>
+    <ID>MagicNumber:FragileStrategy.kt$FragileStrategy$1.3</ID>
+    <ID>MagicNumber:FragileStrategy.kt$FragileStrategy$25.0</ID>
+    <ID>NewLineAtEndOfFile:AddVehicleToHubUseCase.kt$org.example.domain.usecase.AddVehicleToHubUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:AnalyzeTreePerformanceUseCase.kt$org.example.domain.usecase.AnalyzeTreePerformanceUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:AvlPackageTrackingTree.kt$org.example.domain.algorithm.performance.AvlPackageTrackingTree.kt</ID>
+    <ID>NewLineAtEndOfFile:BaseCost.kt$org.example.domain.model.BaseCost.kt</ID>
+    <ID>NewLineAtEndOfFile:BenchmarkReporter.kt$org.example.domain.algorithm.benchmark.BenchmarkReporter.kt</ID>
+    <ID>NewLineAtEndOfFile:BenchmarkResult.kt$org.example.domain.algorithm.benchmark.BenchmarkResult.kt</ID>
+    <ID>NewLineAtEndOfFile:BidirectionalBfsRouter.kt$org.example.domain.algorithm.search.BidirectionalBfsRouter.kt</ID>
+    <ID>NewLineAtEndOfFile:BreadthFirstSearchRouter.kt$org.example.domain.algorithm.search.BreadthFirstSearchRouter.kt</ID>
+    <ID>NewLineAtEndOfFile:BuildResult.kt$org.example.domain.builder.BuildResult.kt</ID>
+    <ID>NewLineAtEndOfFile:CalculatePricingUseCase.kt$org.example.domain.usecase.CalculatePricingUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:ColdChainDecorator.kt$org.example.domain.decorator.ColdChainDecorator.kt</ID>
+    <ID>NewLineAtEndOfFile:ConsistentHashVehicleRoutingService.kt$org.example.domain.routing.service.ConsistentHashVehicleRoutingService.kt</ID>
+    <ID>NewLineAtEndOfFile:ConsistentHashingRing.kt$org.example.domain.routing.ring.ConsistentHashingRing.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvPackageDataSource.kt$org.example.data.datasource.CsvPackageDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvPackageRepository.kt$org.example.data.repository.CsvPackageRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvRouteDataSource.kt$org.example.data.datasource.CsvRouteDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvRouteRepository.kt$org.example.data.repository.CsvRouteRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvVehicleDataSource.kt$org.example.data.datasource.CsvVehicleDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvVehicleRepository.kt$org.example.data.repository.CsvVehicleRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:CsvWarehouseDataSource.kt$org.example.data.datasource.CsvWarehouseDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:DijkstraRouter.kt$org.example.domain.algorithm.search.DijkstraRouter.kt</ID>
+    <ID>NewLineAtEndOfFile:DispatchVehicleUseCase.kt$org.example.domain.usecase.DispatchVehicleUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:DomainGraphBuilder.kt$org.example.domain.builder.DomainGraphBuilder.kt</ID>
+    <ID>NewLineAtEndOfFile:EcoStrategy.kt$org.example.domain.pricing.EcoStrategy.kt</ID>
+    <ID>NewLineAtEndOfFile:EvaluatingWarehouseGraph.kt$org.example.domain.algorithm.search.EvaluatingWarehouseGraph.kt</ID>
+    <ID>NewLineAtEndOfFile:ExpressInsuranceDecorator.kt$org.example.domain.decorator.ExpressInsuranceDecorator.kt</ID>
+    <ID>NewLineAtEndOfFile:ExpressStrategy.kt$org.example.domain.pricing.ExpressStrategy.kt</ID>
+    <ID>NewLineAtEndOfFile:FindFewestHopsRouteUseCase.kt$org.example.domain.usecase.FindFewestHopsRouteUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindFleetSurplusUseCase.kt$org.example.domain.usecase.FindFleetSurplusUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindNearestWarehousesByRouteDistanceUseCase.kt$org.example.domain.usecase.FindNearestWarehousesByRouteDistanceUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindOptimalPathUseCase.kt$org.example.domain.usecase.FindOptimalPathUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindPackagesAtRiskOfDamageUseCase.kt$org.example.domain.usecase.FindPackagesAtRiskOfDamageUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindPackagesByPriorityUseCase.kt$org.example.domain.usecase.FindPackagesByPriorityUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindPackagesWaitingTooLongUseCase.kt$org.example.domain.usecase.FindPackagesWaitingTooLongUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FindStationedVehiclesByCapacityUseCase.kt$org.example.domain.usecase.FindStationedVehiclesByCapacityUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:FleetParser.kt$org.example.data.dataparsing.FleetParser.kt</ID>
+    <ID>NewLineAtEndOfFile:FragileHandlingDecorator.kt$org.example.domain.decorator.FragileHandlingDecorator.kt</ID>
+    <ID>NewLineAtEndOfFile:FragileStrategy.kt$org.example.domain.pricing.FragileStrategy.kt</ID>
+    <ID>NewLineAtEndOfFile:GeneratedPackageRequirementsRepository.kt$org.example.data.repositoryImplementation.GeneratedPackageRequirementsRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:GeneratedWarehouseServicesRepository.kt$org.example.data.repositoryImplementation.GeneratedWarehouseServicesRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:GetWarehouseLoadFactorUseCase.kt$org.example.domain.usecase.GetWarehouseLoadFactorUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:Main.kt$org.example.Main.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageDataSource.kt$org.example.data.datasource.PackageDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageDecorator.kt$org.example.domain.decorator.PackageDecorator.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageDeliveryTimeRepository.kt$org.example.domain.repository.PackageDeliveryTimeRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageMapper.kt$org.example.data.mapper.PackageMapper.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageRaw.kt$org.example.data.dataholder.PackageRaw.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageRequirementsRepository.kt$org.example.domain.repository.PackageRequirementsRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageTrackingTreeNode.kt$org.example.domain.algorithm.performance.PackageTrackingTreeNode.kt</ID>
+    <ID>NewLineAtEndOfFile:PackageWarehouseStayRepository.kt$org.example.domain.repository.PackageWarehouseStayRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:PackagesParser.kt$org.example.data.dataparsing.PackagesParser.kt</ID>
+    <ID>NewLineAtEndOfFile:PackagesSorter.kt$org.example.domain.algorithm.sorting.PackagesSorter.kt</ID>
+    <ID>NewLineAtEndOfFile:Priority.kt$org.example.domain.model.Priority.kt</ID>
+    <ID>NewLineAtEndOfFile:RedistributeFleetUseCase.kt$org.example.domain.usecase.RedistributeFleetUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:RegionalZone.kt$org.example.domain.model.RegionalZone.kt</ID>
+    <ID>NewLineAtEndOfFile:ReroutePackageUseCase.kt$org.example.domain.usecase.ReroutePackageUseCase.kt</ID>
+    <ID>NewLineAtEndOfFile:Result.kt$org.example.domain.model.Result.kt</ID>
+    <ID>NewLineAtEndOfFile:RingSlotCalculator.kt$org.example.domain.routing.calculator.RingSlotCalculator.kt</ID>
+    <ID>NewLineAtEndOfFile:RouteDataSource.kt$org.example.data.datasource.RouteDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:RouteMapper.kt$org.example.data.mapper.RouteMapper.kt</ID>
+    <ID>NewLineAtEndOfFile:RouteRaw.kt$org.example.data.dataholder.RouteRaw.kt</ID>
+    <ID>NewLineAtEndOfFile:RouteRepository.kt$org.example.domain.repository.RouteRepository.kt</ID>
+    <ID>NewLineAtEndOfFile:RoutingBenchmark.kt$org.example.domain.algorithm.benchmark.RoutingBenchmark.kt</ID>
+    <ID>NewLineAtEndOfFile:RoutingResult.kt$org.example.domain.model.RoutingResult.kt</ID>
+    <ID>NewLineAtEndOfFile:RoutingValidationReport.kt$org.example.domain.routing.report.RoutingValidationReport.kt</ID>
+    <ID>NewLineAtEndOfFile:RoutingValidationReporter.kt$org.example.domain.routing.report.RoutingValidationReporter.kt</ID>
+    <ID>NewLineAtEndOfFile:StrategyToDecoratorBridge.kt$org.example.domain.pricing.StrategyToDecoratorBridge.kt</ID>
+    <ID>NewLineAtEndOfFile:UnbalancedPackageTrackingBST.kt$org.example.domain.algorithm.performance.UnbalancedPackageTrackingBST.kt</ID>
+    <ID>NewLineAtEndOfFile:VehicleDataSource.kt$org.example.data.datasource.VehicleDataSource.kt</ID>
+    <ID>NewLineAtEndOfFile:VehicleFailureHandler.kt$org.example.domain.routing.service.VehicleFailureHandler.kt</ID>
+    <ID>NewLineAtEndOfFile:VehicleMapper.kt$org.example.data.mapper.VehicleMapper.kt</ID>
+    <ID>NewLineAtEndOfFile:VehicleRaw.kt$org.example.data.dataholder.VehicleRaw.kt</ID>
+    <ID>NewLineAtEndOfFile:WareHouseRaw.kt$org.example.data.dataholder.WareHouseRaw.kt</ID>
+    <ID>NewLineAtEndOfFile:WarehouseDistance.kt$org.example.domain.model.WarehouseDistance.kt</ID>
+    <ID>NewLineAtEndOfFile:WarehouseGraph.kt$org.example.domain.algorithm.search.WarehouseGraph.kt</ID>
+    <ID>NewLineAtEndOfFile:WarehouseHierarchyBuilder.kt$org.example.domain.tree.hierarchy.WarehouseHierarchyBuilder.kt</ID>
+    <ID>NewLineAtEndOfFile:WarehouseLevel.kt$org.example.domain.tree.hierarchy.WarehouseLevel.kt</ID>
+    <ID>NewLineAtEndOfFile:WarehouseNode.kt$org.example.domain.tree.hierarchy.WarehouseNode.kt</ID>
+    <ID>NewLineAtEndOfFile:WarehouseServicesRepository.kt$org.example.domain.repository.WarehouseServicesRepository.kt</ID>
+    <ID>ReturnCount:AddVehicleToHubUseCase.kt$AddVehicleToHubUseCase$operator fun invoke( vehicleId: String, warehouseId: String ): Boolean</ID>
+    <ID>ReturnCount:AssignPackageToCargoQueueUseCase.kt$AssignPackageToCargoQueueUseCase$operator fun invoke( warehouseId: String, cargoPackage: Package ): Boolean</ID>
+    <ID>ReturnCount:AvlPackageTrackingTree.kt$AvlPackageTrackingTree$private fun insertAndBalance( node: PackageTrackingTreeNode?, trackingId: String ): PackageTrackingTreeNode</ID>
+    <ID>ReturnCount:BidirectionalBfsRouter.kt$BidirectionalBfsRouter$private fun searchPath( forward: SearchSide, backward: SearchSide ): List&lt;Warehouse&gt;</ID>
+    <ID>ReturnCount:BreadthFirstSearchRouter.kt$BreadthFirstSearchRouter$override fun findPath( start: Warehouse, destination: Warehouse ): RoutingResult</ID>
+    <ID>ReturnCount:CalculatePricingUseCase.kt$CalculatePricingUseCase$operator fun invoke( packageId: String, routeId: String, customStrategy: DispatchStrategy? = null ): Double?</ID>
+    <ID>ReturnCount:CsvVehicleRepository.kt$CsvVehicleRepository$override fun reassignVehicle(vehicleId: String, warehouseId: String): Boolean</ID>
+    <ID>ReturnCount:DijkstraRouter.kt$DijkstraRouter$private fun buildPath( start: Warehouse, destination: Warehouse, previous: Map&lt;Warehouse, Warehouse&gt;, distances: Map&lt;Warehouse, Double&gt; ): List&lt;Warehouse&gt;</ID>
+    <ID>ReturnCount:FindFewestHopsRouteUseCase.kt$FindFewestHopsRouteUseCase$operator fun invoke( startWarehouseId: String, destinationWarehouseId: String ): RoutingResult?</ID>
+    <ID>ReturnCount:FleetParser.kt$private fun parseLine( line: String, lineNumber: Int, ): RawResult&lt;VehicleRaw&gt;</ID>
+    <ID>ReturnCount:PackagesParser.kt$private fun parsePackageLine(line: String, lineNumber: Int): RawResult&lt;PackageRaw&gt;</ID>
+    <ID>ReturnCount:PackagesParser.kt$private fun validatePackageFields( id: String, originHubId: String, destinationHubId: String, lineNumber: Int, ): String?</ID>
+    <ID>ReturnCount:ReroutePackageUseCase.kt$ReroutePackageUseCase$operator fun invoke( packageId: String, newDestinationWarehouseId: String ): RoutingResult?</ID>
+    <ID>ReturnCount:RouteParser.kt$private fun processRouteLine( line: String, rowNumber: Int, ): RawResult&lt;RouteRaw&gt;</ID>
+    <ID>ReturnCount:WareHousesParser.kt$fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult&lt;WareHouseRaw&gt;</ID>
+  </CurrentIssues>
+</SmellBaseline>

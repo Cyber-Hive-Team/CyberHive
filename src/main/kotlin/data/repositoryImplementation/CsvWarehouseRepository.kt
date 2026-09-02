@@ -4,7 +4,7 @@ import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.mapper.WarehouseMapper
 import org.example.domain.model.Package
-import org.example.domain.model.Result
+import org.example.domain.model.result.Result
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.WarehouseRepository
 
