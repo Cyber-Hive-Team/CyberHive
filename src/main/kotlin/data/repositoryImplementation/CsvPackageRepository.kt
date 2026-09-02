@@ -4,9 +4,16 @@ import org.example.data.dataholder.PackageRaw
 import org.example.data.datasource.PackageDataSource
 import org.example.data.mapper.PackageMapper
 import org.example.domain.model.Package
-import org.example.domain.model.result.Result
+import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.Warehouse
+import org.example.domain.model.result.Result
 import org.example.domain.repository.PackageRepository
+import java.time.LocalDateTime
+import kotlin.random.Random
+
+private const val MIN_WAITING_HOURS = 1L
+private const val MAX_WAITING_HOURS = 73L
+
 
 class CsvPackageRepository(
     private val dataSource: PackageDataSource,
@@ -84,5 +91,26 @@ class CsvPackageRepository(
             },
             errorMessage = result.errorMessage
         )
+    }
+
+
+    override fun getAllWarehouseStays(): List<PackageWarehouseStay> {
+
+        return getAllPackages()
+            .data
+            .map { cargoPackage ->
+
+                PackageWarehouseStay(
+                    packageId = cargoPackage.id,
+                    arrivedAt =
+                        LocalDateTime.now()
+                            .minusHours(
+                                Random.nextLong(
+                                    MIN_WAITING_HOURS,
+                                    MAX_WAITING_HOURS
+                                )
+                            )
+                )
+            }
     }
 }
