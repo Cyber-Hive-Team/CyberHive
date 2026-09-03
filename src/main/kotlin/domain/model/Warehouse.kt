@@ -40,7 +40,9 @@ class Warehouse(
     fun sortCargoQueue() {
         sortCargoQueueDescendingByWeight(cargoQueue)
     }
-
+    fun removePackageFromCargoQueue(packageId: String): Boolean {
+        return cargoQueue.removeIf { it.id == packageId }
+    }
     fun sortCargoByPriorityThenWeight() {
         sortPackagesByPriorityThenWeight(cargoQueue)
     }

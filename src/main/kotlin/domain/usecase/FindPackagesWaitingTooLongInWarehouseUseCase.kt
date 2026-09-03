@@ -1,6 +1,5 @@
 package org.example.domain.usecase
 
-import org.example.domain.model.result.WaitingPackageResult
 import org.example.domain.repository.PackageWarehouseStayRepository
 import java.time.Duration
 import java.time.LocalDateTime
@@ -37,3 +36,8 @@ class FindPackagesWaitingTooLongInWarehouseUseCase(
     }
 
 }
+
+data class WaitingPackageResult(
+    val packageId: String,
+    val waitingHours: Long
+)

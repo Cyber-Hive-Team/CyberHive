@@ -1,15 +1,17 @@
 package org.example.domain.usecase
 
 import org.example.domain.model.result.LatePackageResult
-import org.example.domain.repository.PackageDeliveryTimeRepository
+import org.example.domain.repository.PackageRepository
+
+
 
 class FindLatePackagesUseCase(
-    private val deliveryTimeRepository: PackageDeliveryTimeRepository
+    private val packageRepository: PackageRepository
 ) {
 
     operator fun invoke(): List<LatePackageResult> {
 
-        return deliveryTimeRepository
+        return packageRepository
             .getAllDeliveryTimes()
             .filter { delivery ->
                 delivery.actualArrivalTime >
@@ -31,6 +33,9 @@ class FindLatePackagesUseCase(
                 result.delayMinutes
             }
     }
-
 }
 
+data class LatePackageResult(
+    val packageId: String,
+    val delayMinutes: Long
+)
