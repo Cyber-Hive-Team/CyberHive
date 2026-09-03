@@ -8,6 +8,7 @@ import org.example.domain.model.Warehouse
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.WarehouseRepository
+import org.example.domain.model.input.ReroutePackageInput
 
 class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
@@ -15,21 +16,31 @@ class ReroutePackageUseCase(
     private val router: Router,
     private val pricingEngine: RoutePricingEngine
 ) {
-    operator fun invoke(
-        packageId: String,
-        newDestinationWarehouseId: String
-    ): RoutingResult? {
+    operator fun invoke(input: ReroutePackageInput): RoutingResult? {
+        var routingResult: RoutingResult? = null
+        val cargoPackage = fetchPackage(input.packageId)
+            ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")
 
-        val cargoPackage = fetchPackage(packageId) ?: return null
+        val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
+            ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")
 
-        val newDestination = fetchWarehouse(newDestinationWarehouseId) ?: return null
+        if (cargoPackage != null && newDestination != null) {
+            val calculatedRoute = calculateNewRoute(
+                cargoPackage.originWarehouse,
+                newDestination
+            )
 
-        val routingResult = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
-            ?: return null
+            if (calculatedRoute != null) {
+                val updatedPackage = createUpdatedPackage(
+                    cargoPackage,
+                    newDestination,
+                    calculatedRoute
+                )
 
-        val updatedPackage = createUpdatedPackage(cargoPackage, newDestination, routingResult)
-
-        updateCargoQueue(newDestination.id, updatedPackage)
+                updateCargoQueue(newDestination.id, updatedPackage)
+                routingResult = calculatedRoute
+            }
+        }
 
         return routingResult
     }
