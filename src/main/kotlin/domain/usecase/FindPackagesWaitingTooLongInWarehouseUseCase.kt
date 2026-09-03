@@ -22,11 +22,7 @@ class FindPackagesWaitingTooLongInWarehouseUseCase(
                         stay.arrivedAt,
                         now
                     ).toHours()
-
-                WaitingPackageResult(
-                    packageId = stay.packageId,
-                    waitingHours = waitingHours
-                )
+                WaitingPackageResult(packageId = stay.packageId, waitingHours = waitingHours)
             }
             .filter { result ->
                 result.waitingHours > maxWaitingHours

@@ -56,8 +56,3 @@ class FindPackagesAtRiskOfDamageUseCase(
 
 }
 
-data class DamageRiskResult(
-    val packageId: String,
-    val warehouseId: String,
-    val reason: String
-)
