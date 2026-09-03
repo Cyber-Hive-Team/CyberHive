@@ -8,6 +8,7 @@ import org.example.domain.model.Warehouse
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.WarehouseRepository
+import org.example.domain.model.input.ReroutePackageInput
 
 class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
@@ -16,16 +17,17 @@ class ReroutePackageUseCase(
     private val pricingEngine: RoutePricingEngine
 ) {
     operator fun invoke(
-        packageId: String,
-        newDestinationWarehouseId: String
+        input : ReroutePackageInput
     ): RoutingResult? {
 
-        val cargoPackage = fetchPackage(packageId) ?: return null
+        val cargoPackage = fetchPackage(input.packageId)
+            ?: throw NoSuchElementException("Package not found with ID: ${input.packageId}")
 
-        val newDestination = fetchWarehouse(newDestinationWarehouseId) ?: return null
+        val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
+            ?: throw NoSuchElementException("Warehouse not found with ID: ${input.newDestinationWarehouseId}")
 
         val routingResult = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
-            ?: return null
+            ?: throw IllegalStateException("Failed to calculate new route")
 
         val updatedPackage = createUpdatedPackage(cargoPackage, newDestination, routingResult)
 
