@@ -13,7 +13,7 @@ class CalculatePricingPackageUseCase(
 ) {
     operator fun invoke(
         input : CalculatePricingInput
-    ): PricingPackage? {
+    ): PricingPackage {
 
         val cargoPackage = packageRepository.getAllPackages().data
             .firstOrNull { it.id == input.packageId }
