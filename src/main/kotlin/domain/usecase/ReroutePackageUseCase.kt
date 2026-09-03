@@ -3,12 +3,12 @@ package org.example.domain.usecase
 import org.example.domain.algorithm.search.Router
 import org.example.domain.model.Package
 import org.example.domain.model.Route
-import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Warehouse
+import org.example.domain.model.input.ReroutePackageInput
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.model.input.ReroutePackageInput
 
 class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
@@ -16,22 +16,28 @@ class ReroutePackageUseCase(
     private val router: Router,
     private val pricingEngine: RoutePricingEngine
 ) {
-    operator fun invoke(
-        input : ReroutePackageInput
-    ): RoutingResult? {
-
+    operator fun invoke(input: ReroutePackageInput): RoutingResult? {
+        var routingResult: RoutingResult? = null
         val cargoPackage = fetchPackage(input.packageId)
-            ?: throw NoSuchElementException("Package not found with ID: ${input.packageId}")
-
         val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
-            ?: throw NoSuchElementException("Warehouse not found with ID: ${input.newDestinationWarehouseId}")
 
-        val routingResult = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
-            ?: throw IllegalStateException("Failed to calculate new route")
+        if (cargoPackage != null && newDestination != null) {
+            val calculatedRoute = calculateNewRoute(
+                cargoPackage.originWarehouse,
+                newDestination
+            )
 
-        val updatedPackage = createUpdatedPackage(cargoPackage, newDestination, routingResult)
+            if (calculatedRoute != null) {
+                val updatedPackage = createUpdatedPackage(
+                    cargoPackage,
+                    newDestination,
+                    calculatedRoute
+                )
 
-        updateCargoQueue(newDestination.id, updatedPackage)
+                updateCargoQueue(newDestination.id, updatedPackage)
+                routingResult = calculatedRoute
+            }
+        }
 
         return routingResult
     }
