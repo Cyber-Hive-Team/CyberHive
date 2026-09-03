@@ -1,11 +1,12 @@
 package org.example.domain.usecase
 
-import org.example.domain.repository.PackageWarehouseStayRepository
+import org.example.domain.model.result.WaitingPackageResult
+import org.example.domain.repository.PackageRepository
 import java.time.Duration
 import java.time.LocalDateTime
 
-class FindPackagesWaitingTooLongUseCase(
-    private val warehouseStayRepository: PackageWarehouseStayRepository
+class FindPackagesWaitingTooLongInWarehouseUseCase(
+    private val packageRepository: PackageRepository
 ) {
 
     operator fun invoke(
@@ -13,7 +14,7 @@ class FindPackagesWaitingTooLongUseCase(
     ): List<WaitingPackageResult> {
 
         val now = LocalDateTime.now()
-        return warehouseStayRepository
+        return packageRepository
             .getAllWarehouseStays()
             .map { stay ->
                 val waitingHours =
@@ -21,11 +22,7 @@ class FindPackagesWaitingTooLongUseCase(
                         stay.arrivedAt,
                         now
                     ).toHours()
-
-                WaitingPackageResult(
-                    packageId = stay.packageId,
-                    waitingHours = waitingHours
-                )
+                WaitingPackageResult(packageId = stay.packageId, waitingHours = waitingHours)
             }
             .filter { result ->
                 result.waitingHours > maxWaitingHours
@@ -34,9 +31,5 @@ class FindPackagesWaitingTooLongUseCase(
                 result.waitingHours
             }
     }
-}
 
-data class WaitingPackageResult(
-    val packageId: String,
-    val waitingHours: Long
-)
+}
