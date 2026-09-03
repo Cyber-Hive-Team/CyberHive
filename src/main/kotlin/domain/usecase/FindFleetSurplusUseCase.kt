@@ -1,16 +1,11 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.result.FleetSurplusResult
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 
 private const val ZERO_SURPLUS = 0.0
-
-
-data class FleetSurplusResult(
-    val warehouseId: String,
-    val surplusKg: Double
-)
 
 class FindFleetSurplusUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -44,4 +39,5 @@ class FindFleetSurplusUseCase(
             }
             .sortedByDescending { result -> result.surplusKg }
     }
+
 }

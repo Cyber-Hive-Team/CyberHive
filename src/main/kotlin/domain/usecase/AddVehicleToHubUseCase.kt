@@ -1,8 +1,8 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.input.AddVehicleToHubInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.model.input.AddVehicleToHubInput
 
 class AddVehicleToHubUseCase(
     private val vehicleRepository: VehicleRepository,
