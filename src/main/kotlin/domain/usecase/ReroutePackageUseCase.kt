@@ -18,7 +18,7 @@ class ReroutePackageUseCase(
 ) {
     operator fun invoke(
         input : ReroutePackageInput
-    ): RoutingResult {
+    ): RoutingResult? {
 
         val cargoPackage = fetchPackage(input.packageId)
             ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")

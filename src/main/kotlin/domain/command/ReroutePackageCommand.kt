@@ -10,7 +10,7 @@ class ReroutePackageCommand(
     private val reroutePackageUseCase: ReroutePackageUseCase
 ) : Command {
 
-    private var reroutedPackage = false
+    private var reroutedPackagesuccufully = false
 
     override fun execute(): Boolean {
         val input = ReroutePackageInput(
@@ -19,8 +19,8 @@ class ReroutePackageCommand(
         )
 
         val result = reroutePackageUseCase(input)
-        reroutedPackage = result != null
-        return reroutedPackage
+        reroutedPackagesuccufully = result != null
+        return reroutedPackagesuccufully
     }
 
     override fun undo(): Boolean {
@@ -28,7 +28,7 @@ class ReroutePackageCommand(
             packageId = packageId,
             newDestinationWarehouseId = oldDestinationWarehouseId
         )
-        if (!reroutedPackage) return false
+        if (!reroutedPackagesuccufully) return false
 
         val reverseResult = reroutePackageUseCase(input)
         return reverseResult != null
