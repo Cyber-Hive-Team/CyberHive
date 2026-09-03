@@ -18,30 +18,19 @@ class ReroutePackageCommand(
             newDestinationWarehouseId = newDestinationWarehouseId
         )
 
-        return try {
-            reroutePackageUseCase(input)
-            reroutedPackage = true
-            true
-        } catch (e: Exception) {
-            reroutedPackage = false
-            false
-        }
-
+        val result = reroutePackageUseCase(input)
+        reroutedPackage = result != null
+        return reroutedPackage
     }
 
     override fun undo(): Boolean {
-        if (!reroutedPackage) return false
-
-        val undoInput = ReroutePackageInput(
+        val input = ReroutePackageInput(
             packageId = packageId,
             newDestinationWarehouseId = oldDestinationWarehouseId
         )
+        if (!reroutedPackage) return false
 
-        return try {
-            reroutePackageUseCase(undoInput)
-            true
-        } catch (e: Exception) {
-            false
-        }
+        val reverseResult = reroutePackageUseCase(input)
+        return reverseResult != null
     }
 }
