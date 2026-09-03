@@ -18,13 +18,13 @@ class ReroutePackageUseCase(
 ) {
     operator fun invoke(
         input : ReroutePackageInput
-    ): RoutingResult? {
+    ): RoutingResult {
 
         val cargoPackage = fetchPackage(input.packageId)
-            ?: throw NoSuchElementException("Package not found with ID: ${input.packageId}")
+            ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")
 
         val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
-            ?: throw NoSuchElementException("Warehouse not found with ID: ${input.newDestinationWarehouseId}")
+            ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")
 
         val routingResult = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
             ?: throw IllegalStateException("Failed to calculate new route")
