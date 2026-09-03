@@ -4,9 +4,11 @@ import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.mapper.WarehouseMapper
 import org.example.domain.model.Package
-import org.example.domain.model.result.Result
 import org.example.domain.model.Warehouse
+import org.example.domain.model.WarehouseServices
+import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
+import kotlin.random.Random
 
 private const val MIN_LATITUDE = -90.0
 private const val MAX_LATITUDE = 90.0
@@ -31,6 +33,7 @@ class CsvWarehouseRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+
     }
 
     private fun mapValidWarehouse(
@@ -45,6 +48,7 @@ class CsvWarehouseRepository(
         }
 
         return mapper.map(raw)
+
     }
 
     private fun validate(raw: WareHouseRaw): List<String> {
@@ -63,6 +67,7 @@ class CsvWarehouseRepository(
             raw.longitude > MAX_LONGITUDE )
         { warnings.add("Warning: Warehouse ${raw.id} skipped - invalid longitude") }
         return warnings
+
     }
     override fun getWarehouseById(
         warehouseId: String
@@ -73,6 +78,7 @@ class CsvWarehouseRepository(
             .firstOrNull {
                 it.id == warehouseId
             }
+
     }
 
     override fun addPackageToCargoQueue(
@@ -89,6 +95,7 @@ class CsvWarehouseRepository(
         )
 
         return true
+
     }
 
     override fun sortCargoQueue(
@@ -102,6 +109,7 @@ class CsvWarehouseRepository(
         warehouse.sortCargoQueue()
 
         return true
+
     }
     override fun isPackageInCargoQueue(
         warehouseId: String,
@@ -113,5 +121,24 @@ class CsvWarehouseRepository(
 
         return warehouse.getCargoQueue()
             .any { it.id == packageId }
+
     }
+
+    override fun getAllWarehouseServices():
+            List<WarehouseServices> {
+
+        return getAllWarehouses()
+            .data
+            .map { warehouse ->
+                WarehouseServices(
+                    warehouseId = warehouse.id,
+                    supportsFragileHandling = Random.nextBoolean(),
+                    supportsColdStorage = Random.nextBoolean(),
+                    supportsSpecialHandling = Random.nextBoolean()
+                )
+            }
+    }
+
 }
+
+

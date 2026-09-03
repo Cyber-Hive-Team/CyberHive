@@ -1,11 +1,11 @@
 package org.example.domain.usecase
 
-import org.example.domain.repository.PackageWarehouseStayRepository
+import org.example.domain.repository.PackageRepository
 import java.time.Duration
 import java.time.LocalDateTime
 
 class FindPackagesWaitingTooLongUseCase(
-    private val warehouseStayRepository: PackageWarehouseStayRepository
+    private val packageRepository: PackageRepository
 ) {
 
     operator fun invoke(
@@ -13,7 +13,7 @@ class FindPackagesWaitingTooLongUseCase(
     ): List<WaitingPackageResult> {
 
         val now = LocalDateTime.now()
-        return warehouseStayRepository
+        return packageRepository
             .getAllWarehouseStays()
             .map { stay ->
                 val waitingHours =
