@@ -17,58 +17,66 @@ class CommandInvoker {
         val success = command.execute()
         if (success) {
             undoStack.push(command)
-            redoStack.clear()
             clearRedoHistory()
             println("EXECUTE -> ${command.describe()}")
-    } else {
+        } else {
         println("EXECUTE FAILED -> ${command.describe()}")
-    }
+        }
         return success
     }
 
     fun undo(steps: Int = 1): Boolean {
+            var stepsDone = 0
+            var stopped = false
+        while (stepsDone < steps && !stopped) {
+            if (undoStack.isEmpty()) {
+                println("UNDO: nothing left to undo")
+                stopped = true
+                continue
+            }
+            val lastCommand = undoStack.pop()
+            val undone = lastCommand.undo()
 
-        repeat(steps) {
-        if (undoStack.isEmpty()) {
-            println("UNDO: nothing left to undo")
-            return false
+            if (undone) {
+                redoStack.push(lastCommand)
+                stepsDone++
+                println("UNDO SUCCESS -> ${lastCommand.describe()}")
+            }else{
+                undoStack.push(lastCommand)
+                println("UNDO FAILED -> ${lastCommand.describe()}")
+                stopped = true
+            }
         }
-        val lastCommand = undoStack.pop()
-        val undone = lastCommand.undo()
-
-        if (!undone) {
-            undoStack.push(lastCommand)
-            println("UNDO FAILED -> ${lastCommand.describe()}")
-            return false
-        }
-            redoStack.push(lastCommand)
-
-            println("UNDO SUCCESS -> ${lastCommand.describe()}")
-        }
-        return true
+      return stepsDone == steps
     }
 
     fun redo(steps: Int = 1): Boolean {
-        repeat(steps) {
+        var stepsDone = 0
+        var stopped = false
+
+        while (stepsDone < steps && !stopped) {
             if (redoStack.isEmpty()) {
                 println("REDO: nothing left to redo")
-                return false
+                stopped = true
+                continue
             }
 
-            val command = redoStack.removeLast()
+            val command = redoStack.pop()
             val redone = command.execute()
 
-            if (!redone) {
-                redoStack.addLast(command)
+            if (redone) {
+                undoStack.push(command)
+                stepsDone++
                 println("REDO FAILED -> ${command.describe()}")
-                return false
-            }
+            }else {
 
-            undoStack.addLast(command)
-            println("REDO SUCCESS -> ${command.describe()}")
+                redoStack.push(command)
+                println("REDO SUCCESS -> ${command.describe()}")
+                stopped = true
+            }
         }
 
-        return true
+        return stepsDone == steps
     }
 
     private fun clearRedoHistory() {

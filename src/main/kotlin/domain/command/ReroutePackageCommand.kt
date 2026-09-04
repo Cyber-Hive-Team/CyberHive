@@ -33,4 +33,6 @@ class ReroutePackageCommand(
         val reverseResult = reroutePackageUseCase(input)
         return reverseResult != null
     }
+    override fun describe(): String =
+        "Reroute package $packageId | $oldDestinationWarehouseId -> $newDestinationWarehouseId"
 }
