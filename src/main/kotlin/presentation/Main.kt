@@ -17,6 +17,5 @@ fun main() {
     SortingDemoRunner(data.warehouses).run()
     ConsistentHashRoutingRunner(data.warehouses).run()
     RoutingComparisonRunner(data.warehouses, data.routes).run()
-    AnalyzeTreePerformanceUseCase()
-
+    TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
 }
