@@ -30,4 +30,9 @@ class DispatchVehicleCommand(
         }
         return isAllRestored
     }
+    override fun describe(): String {
+        val packageIds = dispatchedPackages.joinToString { it.id }
+
+        return "Dispatch vehicle $vehicleId | loaded packages: [$packageIds]"
+    }
 }
