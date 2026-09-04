@@ -41,6 +41,5 @@ fun main() {
     SortingDemoRunner(result.success).run()
     ConsistentHashRoutingRunner(result.success).run()
     RoutingComparisonRunner(result.success, data.routes).run()
-
-    AnalyzeTreePerformanceUseCase()
+    TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
 }
