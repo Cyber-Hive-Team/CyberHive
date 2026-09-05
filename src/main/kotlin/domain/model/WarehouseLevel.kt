@@ -1,4 +1,4 @@
-package org.example.domain.tree.hierarchy
+package org.example.domain.model
 
 enum class WarehouseLevel {
     GLOBAL,

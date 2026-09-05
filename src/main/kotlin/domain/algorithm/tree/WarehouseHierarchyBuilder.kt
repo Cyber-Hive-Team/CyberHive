@@ -1,8 +1,10 @@
-package org.example.domain.tree.hierarchy
+package org.example.domain.algorithm.tree
 
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
+import org.example.domain.model.WarehouseLevel
+import org.example.domain.model.WarehouseNode
 
 class WarehouseHierarchyBuilder(
     private val warehouses: List<Warehouse>,
