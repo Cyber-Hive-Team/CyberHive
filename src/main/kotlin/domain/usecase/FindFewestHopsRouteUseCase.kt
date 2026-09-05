@@ -5,7 +5,6 @@ import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.model.input.FindFewestHopsRouteInput
 import org.example.domain.model.exception.WarehouseNotFoundException
-import org.example.domain.model.exception.RouteNotFoundException
 
 class FindFewestHopsRouteUseCase(
     private val warehouseRepository: WarehouseRepository,
