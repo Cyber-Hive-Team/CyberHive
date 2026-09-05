@@ -67,11 +67,10 @@ class CommandInvoker {
             if (redone) {
                 undoStack.push(command)
                 stepsDone++
-                println("REDO FAILED -> ${command.describe()}")
-            }else {
-
-                redoStack.push(command)
                 println("REDO SUCCESS -> ${command.describe()}")
+            } else {
+                redoStack.push(command)
+                println("REDO FAILED -> ${command.describe()}")
                 stopped = true
             }
         }

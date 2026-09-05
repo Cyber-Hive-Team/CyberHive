@@ -43,4 +43,5 @@ fun main() {
     RoutingComparisonRunner(result.success, data.routes).run()
 
     AnalyzeTreePerformanceUseCase()
+    CommandInvokerDemoRunner(result.success).run()
 }
