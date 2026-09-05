@@ -18,4 +18,6 @@ fun main() {
     ConsistentHashRoutingRunner(data.warehouses).run()
     RoutingComparisonRunner(data.warehouses, data.routes).run()
     TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
+    TraceHubLineageDemoRunner().run("WH-028")
+
 }
