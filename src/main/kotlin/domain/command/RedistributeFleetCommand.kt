@@ -30,6 +30,13 @@ class RedistributeFleetCommand(
         }
         return success
     }
+    override fun describe(): String {
+        if (transfers.isEmpty()) return "Redistribute fleet: no transfers performed"
+        val details = transfers.joinToString {
+            "vehicle ${it.vehicleId} ${it.fromWarehouseId} -> ${it.toWarehouseId} (${it.capacityKg}kg)"
+        }
+        return "Redistribute fleet: ${transfers.size} transfer(s) [$details]"
+    }
 
 }
 
