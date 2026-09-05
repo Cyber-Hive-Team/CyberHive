@@ -9,6 +9,9 @@ import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.model.input.ReroutePackageInput
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.exception.WarehouseNotFoundException
+import org.example.domain.model.exception.RouteNotFoundException
 
 class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
@@ -16,33 +19,26 @@ class ReroutePackageUseCase(
     private val router: Router,
     private val pricingEngine: RoutePricingEngine
 ) {
-    operator fun invoke(input: ReroutePackageInput): RoutingResult? {
-        var routingResult: RoutingResult? = null
+    operator fun invoke(input: ReroutePackageInput
+    ): RoutingResult {
         val cargoPackage = fetchPackage(input.packageId)
-            ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")
+            ?: throw PackageNotFoundException("Package not found with ID: ${input.packageId}")
 
         val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
-            ?: throw NoSuchElementException("Package or Warehouse not found with provided IDs")
+            ?: throw WarehouseNotFoundException("Destination warehouse not found with ID: ${input.newDestinationWarehouseId}")
 
-        if (cargoPackage != null && newDestination != null) {
-            val calculatedRoute = calculateNewRoute(
-                cargoPackage.originWarehouse,
-                newDestination
-            )
+        val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
+            ?: throw RouteNotFoundException("No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}")
 
-            if (calculatedRoute != null) {
-                val updatedPackage = createUpdatedPackage(
-                    cargoPackage,
-                    newDestination,
-                    calculatedRoute
-                )
+        val updatedPackage = createUpdatedPackage(
+            cargoPackage,
+            newDestination,
+            calculatedRoute
+        )
 
-                updateCargoQueue(newDestination.id, updatedPackage)
-                routingResult = calculatedRoute
-            }
-        }
+        updateCargoQueue(newDestination.id, updatedPackage)
 
-        return routingResult
+        return calculatedRoute
     }
 
     private fun fetchPackage(packageId: String): Package? {

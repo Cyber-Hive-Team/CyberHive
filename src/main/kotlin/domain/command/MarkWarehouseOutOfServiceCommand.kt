@@ -3,6 +3,8 @@ package org.example.domain.command
 import org.example.domain.model.WarehouseStatus
 import org.example.domain.repository.WarehouseStatusRepository
 import org.example.domain.usecase.MarkWarehouseOutOfServiceUseCase
+import org.example.domain.model.exception.CommandExecutionException
+
 
 class MarkWarehouseOutOfServiceCommand(
     private val warehouseId: String,
@@ -15,16 +17,34 @@ class MarkWarehouseOutOfServiceCommand(
     override fun execute(): Boolean {
         previousStatus = warehouseStatusRepository.getStatus(warehouseId)
         updated = markWarehouseOutOfServiceUseCase(warehouseId)
-        return updated
+
+        if (!updated) {
+            throw CommandExecutionException("Failed to mark warehouse '$warehouseId' as out of service.")
+        }
+
+        return true
 
     }
 
     override fun undo(): Boolean {
-        if (!updated || previousStatus == null) return false
-        return warehouseStatusRepository.updateStatus(
+        val statusToRestore = previousStatus
+            ?: throw CommandExecutionException("Cannot undo: Previous status for warehouse '$warehouseId' is missing or command was not executed.")
+
+        if (!updated) {
+            throw CommandExecutionException("Cannot undo: Command was not executed successfully prior to undo.")
+        }
+
+        val restored = warehouseStatusRepository.updateStatus(
             warehouseId = warehouseId,
-            status = previousStatus!!
+            status = statusToRestore
         )
+
+        if (!restored) {
+            throw CommandExecutionException("Failed to restore previous status for warehouse '$warehouseId'.")
+        }
+
+        updated = false
+        return true
     }
 
 }

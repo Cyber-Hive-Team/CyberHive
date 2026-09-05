@@ -2,6 +2,8 @@ package org.example.domain.command
 
 import org.example.domain.usecase.ReroutePackageUseCase
 import org.example.domain.model.input.ReroutePackageInput
+import org.example.domain.model.exception.CommandExecutionException
+
 
 class ReroutePackageCommand(
     private val packageId: String,
@@ -18,19 +20,22 @@ class ReroutePackageCommand(
             newDestinationWarehouseId = newDestinationWarehouseId
         )
 
-        val result = reroutePackageUseCase(input)
-        reroutedPackagesuccufully = result != null
-        return reroutedPackagesuccufully
+        reroutePackageUseCase(input)
+        reroutedPackagesuccufully = true
+        return true
     }
 
     override fun undo(): Boolean {
-        val input = ReroutePackageInput(
+        if (!reroutedPackagesuccufully) {
+            throw CommandExecutionException("Cannot undo: Reroute package command was not executed successfully prior to undo.")
+        }
+
+        val reverseResult = ReroutePackageInput(
             packageId = packageId,
             newDestinationWarehouseId = oldDestinationWarehouseId
         )
-        if (!reroutedPackagesuccufully) return false
-
-        val reverseResult = reroutePackageUseCase(input)
-        return reverseResult != null
+        reroutePackageUseCase(reverseResult)
+        reroutedPackagesuccufully = false
+        return true
     }
 }
