@@ -1,6 +1,6 @@
 package org.example.domain.usecase
 
-import org.example.domain.tree.hierarchy.WarehouseNode
+import org.example.domain.model.WarehouseNode
 
 class TraceHubLineageUseCase(
     private val tree: WarehouseNode
