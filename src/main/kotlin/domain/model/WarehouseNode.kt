@@ -1,6 +1,4 @@
-package org.example.domain.tree.hierarchy
-
-import org.example.domain.model.Warehouse
+package org.example.domain.model
 
 data class WarehouseNode(
     val warehouse: Warehouse,
