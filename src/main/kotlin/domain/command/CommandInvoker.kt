@@ -2,7 +2,14 @@ package org.example.domain.command
 
 import java.util.Stack
 
+
 class CommandInvoker {
+
+    companion object {
+        private const val DEFAULT_STEPS = 1
+        private const val STEPS_DONE = 0
+        private const val SINGLE_ENTRY_COUNT= 1
+    }
 
     private val undoStack = Stack<Command>()
     private val redoStack = Stack<Command>()
@@ -25,8 +32,8 @@ class CommandInvoker {
         return success
     }
 
-    fun undo(steps: Int = 1): Boolean {
-            var stepsDone = 0
+    fun undo(steps: Int = DEFAULT_STEPS): Boolean {
+            var stepsDone = STEPS_DONE
             var stopped = false
         while (stepsDone < steps && !stopped) {
             if (undoStack.isEmpty()) {
@@ -50,8 +57,8 @@ class CommandInvoker {
       return stepsDone == steps
     }
 
-    fun redo(steps: Int = 1): Boolean {
-        var stepsDone = 0
+    fun redo(steps: Int = DEFAULT_STEPS): Boolean {
+        var stepsDone = STEPS_DONE
         var stopped = false
 
         while (stepsDone < steps && !stopped) {
@@ -83,7 +90,7 @@ class CommandInvoker {
 
         println(
             "HISTORY CLEARED: discarded ${redoStack.size} redo entr" +
-                    if (redoStack.size == 1) "y" else "ies"
+                    if (redoStack.size == SINGLE_ENTRY_COUNT) "y" else "ies"
         )
         redoStack.clear()
     }

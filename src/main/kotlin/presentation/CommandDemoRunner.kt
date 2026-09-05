@@ -47,6 +47,13 @@ class InMemoryWarehouseRepository(
 class CommandInvokerDemoRunner(
     private val warehouses: List<Warehouse>
 ) {
+    companion object {
+        private const val DEMO_PACKAGE_1_WEIGHT_KG = 5.0
+        private const val DEMO_PACKAGE_2_WEIGHT_KG = 8.0
+        private const val DEMO_PACKAGE_3_WEIGHT_KG = 2.5
+        private const val UNDO_STEPS_TO_DEMO = 2
+        private const val REDO_STEPS_TO_DEMO= 1
+    }
     fun run() {
         println("\n=== Time-Machine Dispatch Panel Demo ===")
 
@@ -60,10 +67,11 @@ class CommandInvokerDemoRunner(
         val invoker = CommandInvoker()
         val targetWarehouse = warehouses.first()
 
+
         val demoPackages = listOf(
-            Package("DEMO-1", 5.0, Priority.STANDARD, targetWarehouse, targetWarehouse),
-            Package("DEMO-2", 8.0, Priority.URGENT, targetWarehouse, targetWarehouse),
-            Package("DEMO-3", 2.5, Priority.LOW, targetWarehouse, targetWarehouse)
+            Package("DEMO-1", DEMO_PACKAGE_1_WEIGHT_KG, Priority.STANDARD, targetWarehouse, targetWarehouse),
+            Package("DEMO-2", DEMO_PACKAGE_2_WEIGHT_KG, Priority.URGENT, targetWarehouse, targetWarehouse),
+            Package("DEMO-3", DEMO_PACKAGE_3_WEIGHT_KG, Priority.LOW, targetWarehouse, targetWarehouse)
         )
 
         printQueue(targetWarehouse, "BEFORE")
@@ -76,11 +84,11 @@ class CommandInvokerDemoRunner(
         printQueue(targetWarehouse, "AFTER 3 EXECUTES")
 
         println("\n-- Undo 2 steps --")
-        invoker.undo(2)
+        invoker.undo(UNDO_STEPS_TO_DEMO)
         printQueue(targetWarehouse, "AFTER UNDO x2")
 
         println("\n-- Redo 1 step --")
-        invoker.redo(1)
+        invoker.redo(REDO_STEPS_TO_DEMO)
         printQueue(targetWarehouse, "AFTER REDO x1")
 
         println("\nUndo history size: ${invoker.undoHistorySize}, Redo history size: ${invoker.redoHistorySize}")
