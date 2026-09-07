@@ -26,6 +26,10 @@ class MarkWarehouseOutOfServiceCommand(
             status = previousStatus!!
         )
     }
+    override fun describe(): String {
+        val previous = previousStatus?.let { " (was $it)" } ?: ""
+        return "Mark warehouse $warehouseId out of service$previous"
+    }
 
 }
 
