@@ -25,7 +25,9 @@ class AddVehicleToHubCommand(
 
     override fun undo(): Boolean {
         if (!addedVehicle) {
-            throw CommandExecutionException("Cannot undo: Vehicle '$vehicleId' was not successfully added prior to undo.")
+            throw CommandExecutionException(
+                "Cannot undo: Vehicle '$vehicleId' was not successfully added prior to undo."
+            )
 
         }
 

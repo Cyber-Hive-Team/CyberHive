@@ -19,16 +19,23 @@ class ReroutePackageUseCase(
     private val router: Router,
     private val pricingEngine: RoutePricingEngine
 ) {
+    @Suppress("ThrowsCount")
     operator fun invoke(input: ReroutePackageInput
     ): RoutingResult {
         val cargoPackage = fetchPackage(input.packageId)
-            ?: throw PackageNotFoundException("Package not found with ID: ${input.packageId}")
+            ?: throw PackageNotFoundException(
+                "Package not found with ID: ${input.packageId}"
+            )
 
         val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
-            ?: throw WarehouseNotFoundException("Destination warehouse not found with ID: ${input.newDestinationWarehouseId}")
+            ?: throw WarehouseNotFoundException(
+                "Destination warehouse not found with ID: ${input.newDestinationWarehouseId}"
+            )
 
         val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
-            ?: throw RouteNotFoundException("No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}")
+            ?: throw RouteNotFoundException(
+                "No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}"
+            )
 
         val updatedPackage = createUpdatedPackage(
             cargoPackage,

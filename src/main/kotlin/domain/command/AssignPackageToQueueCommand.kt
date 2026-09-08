@@ -17,22 +17,30 @@ class AssignPackageToQueueCommand(
     override fun execute(): Boolean {
         addedPackage = assignPackageToCargoQueueUseCase(warehouseId, cargoPackage)
         if (!addedPackage) {
-            throw CommandExecutionException("Failed to assign package '${cargoPackage.id}' to cargo queue in warehouse '$warehouseId'.")
+            throw CommandExecutionException(
+                "Failed to assign package '${cargoPackage.id}' to cargo queue in warehouse '$warehouseId'."
+            )
         }
         return true
     }
 
     override fun undo(): Boolean {
         if (!addedPackage) {
-            throw CommandExecutionException("Cannot undo: Package '${cargoPackage.id}' was not assigned to queue prior to undo.")
+            throw CommandExecutionException(
+                "Cannot undo: Package '${cargoPackage.id}' was not assigned to queue prior to undo."
+            )
         }
 
         val warehouse = warehouseRepository.getWarehouseById(warehouseId)
-            ?: throw CommandExecutionException("Failed to undo: Warehouse '$warehouseId' not found.")
+            ?: throw CommandExecutionException(
+                "Failed to undo: Warehouse '$warehouseId' not found."
+            )
 
         val removed = warehouse.removePackageFromCargoQueue(cargoPackage.id)
         if (!removed) {
-            throw CommandExecutionException("Failed to remove package '${cargoPackage.id}' from cargo queue in warehouse '$warehouseId'.")
+            throw CommandExecutionException(
+                "Failed to remove package '${cargoPackage.id}' from cargo queue in warehouse '$warehouseId'."
+            )
         }
 
         addedPackage = false

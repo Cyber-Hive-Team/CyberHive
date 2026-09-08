@@ -28,7 +28,9 @@ class MarkWarehouseOutOfServiceCommand(
 
     override fun undo(): Boolean {
         val statusToRestore = previousStatus
-            ?: throw CommandExecutionException("Cannot undo: Previous status for warehouse '$warehouseId' is missing or command was not executed.")
+            ?: throw CommandExecutionException(
+                "Cannot undo: Previous status for warehouse '$warehouseId' is missing or command was not executed."
+            )
 
         if (!updated) {
             throw CommandExecutionException("Cannot undo: Command was not executed successfully prior to undo.")

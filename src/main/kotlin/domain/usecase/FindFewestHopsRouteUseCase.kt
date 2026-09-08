@@ -16,10 +16,14 @@ class FindFewestHopsRouteUseCase(
     ): RoutingResult {
 
         val startWarehouse = warehouseRepository.getWarehouseById(input.startWarehouseId)
-            ?: throw WarehouseNotFoundException("Start warehouse not found with ID: ${input.startWarehouseId}")
+            ?: throw WarehouseNotFoundException(
+                "Start warehouse not found with ID: ${input.startWarehouseId}"
+            )
 
         val destinationWarehouse = warehouseRepository.getWarehouseById(input.destinationWarehouseId)
-            ?: throw WarehouseNotFoundException("Destination warehouse not found with ID: ${input.destinationWarehouseId}")
+            ?: throw WarehouseNotFoundException(
+                "Destination warehouse not found with ID: ${input.destinationWarehouseId}"
+            )
 
         return router.findPath(
             start = startWarehouse,

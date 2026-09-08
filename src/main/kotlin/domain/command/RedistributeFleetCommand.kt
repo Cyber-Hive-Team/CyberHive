@@ -33,7 +33,9 @@ class RedistributeFleetCommand(
                 warehouseId = transfer.fromWarehouseId
             )
             if (!undone) {
-                throw CommandExecutionException("Failed to revert vehicle '${transfer.vehicleId}' to warehouse '${transfer.fromWarehouseId}'.")
+                throw CommandExecutionException(
+                    "Failed to revert vehicle '${transfer.vehicleId}' to warehouse '${transfer.fromWarehouseId}'."
+                )
             }
         }
 
