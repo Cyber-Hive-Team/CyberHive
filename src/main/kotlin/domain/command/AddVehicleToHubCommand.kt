@@ -37,5 +37,10 @@ class AddVehicleToHubCommand(
         addedVehicle = false
         return true
     }
+    override fun describe(): String {
+        val currentHub = vehicleRepository.getVehicleById(vehicleId)?.currentHub?.id
 
+        return "Add vehicle $vehicleId -> warehouse $warehouseId " +
+                "| currently at: $currentHub"
+    }
 }

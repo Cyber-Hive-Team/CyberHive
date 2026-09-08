@@ -3,7 +3,6 @@ package org.example.domain.command
 import org.example.domain.model.Package
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 import org.example.domain.usecase.DispatchVehicleUseCase
-import org.example.domain.model.exception.CommandExecutionException
 
 class DispatchVehicleCommand(
     private val vehicleId: String,
@@ -28,6 +27,7 @@ class DispatchVehicleCommand(
             throw CommandExecutionException("Cannot undo: No dispatched packages found to restore for vehicle '$vehicleId'.")
         }
 
+        var isAllRestored = true
         dispatchedPackages.forEach { cargoPackage ->
             val restored = assignPackageToCargoQueueUseCase(
                 warehouseId = cargoPackage.originWarehouse.id,
@@ -44,4 +44,9 @@ class DispatchVehicleCommand(
 
     }
 
+    override fun describe(): String {
+        val packageIds = dispatchedPackages.joinToString { it.id }
+
+        return "Dispatch vehicle $vehicleId | loaded packages: [$packageIds]"
+    }
 }

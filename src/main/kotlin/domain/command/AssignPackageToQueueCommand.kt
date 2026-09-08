@@ -39,4 +39,14 @@ class AssignPackageToQueueCommand(
         return true
 
     }
+
+    override fun describe(): String {
+        val queueIds = warehouseRepository.getWarehouseById(warehouseId)
+            ?.getCargoQueue()
+            ?.joinToString { it.id }
+            .orEmpty()
+
+        return "Assign package ${cargoPackage.id} -> warehouse $warehouseId " +
+                "| queue now: [$queueIds]"
+    }
 }
