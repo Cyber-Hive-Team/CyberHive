@@ -37,8 +37,8 @@ class FindFleetSurplusUseCase(
         val vehicles = vehicleRepository
             .getVehiclesByWarehouseId(warehouseId)
             .data
-        validatePackages(packages, warehouseId)
-        validateVehicles(vehicles, warehouseId)
+        validatePackages(packages)
+        validateVehicles(vehicles)
         val surplus = vehicles.sumOf { it.maxCapacityKg } -
                 packages.sumOf { it.weight }
         return surplus.takeIf { it > ZERO_SURPLUS }
@@ -47,8 +47,7 @@ class FindFleetSurplusUseCase(
     }
 
     private fun validatePackages(
-        packages: List<Package>,
-        warehouseId: String
+        packages: List<Package>
     ) {
         if (packages.any { it.weight < ZERO_SURPLUS }) {
             throw InvalidPackageWeightException()
@@ -57,8 +56,7 @@ class FindFleetSurplusUseCase(
     }
 
     private fun validateVehicles(
-        vehicles: List<Vehicle>,
-        warehouseId: String
+        vehicles: List<Vehicle>
     ) {
         if (vehicles.any { it.maxCapacityKg < ZERO_SURPLUS }) {
             throw InvalidVehicleCapacityException()

@@ -30,8 +30,8 @@ class FindFleetShortageUseCase(
     ): FleetShortageResult? {
         val packages = packageRepository.getPackagesByWarehouseId(warehouseId).data
         val vehicles = vehicleRepository.getVehiclesByWarehouseId(warehouseId).data
-        validatePackages(packages, warehouseId)
-        validateVehicles(vehicles, warehouseId)
+        validatePackages(packages)
+        validateVehicles(vehicles)
 
         val shortage = packages.sumOf { it.weight } -
                 vehicles.sumOf { it.maxCapacityKg }
@@ -42,8 +42,7 @@ class FindFleetShortageUseCase(
     }
 
     private fun validatePackages(
-        packages: List<Package>,
-        warehouseId: String
+        packages: List<Package>
     ) {
         if (packages.any { it.weight < ZERO_SHORTAGE }) {
             throw InvalidPackageWeightException()
@@ -52,8 +51,7 @@ class FindFleetShortageUseCase(
     }
 
     private fun validateVehicles(
-        vehicles: List<Vehicle>,
-        warehouseId: String
+        vehicles: List<Vehicle>
     ) {
         if (vehicles.any { it.maxCapacityKg < ZERO_SHORTAGE }) {
             throw InvalidVehicleCapacityException()
