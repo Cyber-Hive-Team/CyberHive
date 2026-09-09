@@ -14,10 +14,9 @@ open class DomainException(message: String) : Exception(message) {
 }
 
 class WarehouseNotFoundException(message: String = WAREHOUSE_NOT_FOUND) : DomainException(message)
-class VehicleNotFoundException(message: String = DomainException.VEHICLE_NOT_FOUND) : DomainException(message)
-class PackageNotFoundException(message: String = DomainException.PACKAGE_NOT_FOUND) : DomainException(message)
-class InvalidLimitException(message: String = DomainException.INVALID_LIMIT) : DomainException(message)
-class RouteNotFoundException(message: String = DomainException.ROUTE_NOT_FOUND) : DomainException(message)
-class InvalidRequiredWeightException(message: String = DomainException.INVALID_REQUIRED_WEIGHT) :
-    DomainException(message)
-class InvalidPackageCountException(message: String = DomainException.INVALID_PACKAGE_COUNT) : DomainException(message)
+class VehicleNotFoundException(message: String = VEHICLE_NOT_FOUND) : DomainException(message)
+class PackageNotFoundException(message: String = PACKAGE_NOT_FOUND) : DomainException(message)
+class InvalidLimitException(message: String = INVALID_LIMIT) : DomainException(message)
+class RouteNotFoundException(message: String = ROUTE_NOT_FOUND) : DomainException(message)
+class InvalidRequiredWeightException(message: String = INVALID_REQUIRED_WEIGHT) : DomainException(message)
+class InvalidPackageCountException(message: String = INVALID_PACKAGE_COUNT) : DomainException(message)
