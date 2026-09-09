@@ -46,7 +46,7 @@ class FindFleetShortageUseCase(
         warehouseId: String
     ) {
         if (packages.any { it.weight < ZERO_SHORTAGE }) {
-            throw InvalidPackageWeightException("Negative package weight in warehouse: $warehouseId")
+            throw InvalidPackageWeightException()
         }
 
     }
@@ -56,7 +56,7 @@ class FindFleetShortageUseCase(
         warehouseId: String
     ) {
         if (vehicles.any { it.maxCapacityKg < ZERO_SHORTAGE }) {
-            throw InvalidVehicleCapacityException("Negative vehicle capacity in warehouse: $warehouseId")
+            throw InvalidVehicleCapacityException()
         }
     }
 
