@@ -20,5 +20,4 @@ class InvalidLimitException(message: String = DomainException.INVALID_LIMIT) : D
 class RouteNotFoundException(message: String = DomainException.ROUTE_NOT_FOUND) : DomainException(message)
 class InvalidRequiredWeightException(message: String = DomainException.INVALID_REQUIRED_WEIGHT) :
     DomainException(message)
-
 class InvalidPackageCountException(message: String = DomainException.INVALID_PACKAGE_COUNT) : DomainException(message)
