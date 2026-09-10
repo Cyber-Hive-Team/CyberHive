@@ -1,6 +1,8 @@
 package org.example.domain.usecase
 
 import org.example.domain.model.Package
+import org.example.domain.model.exception.VehicleNotFoundException
+import org.example.domain.model.result.Result
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.VehicleRepository
 
@@ -9,29 +11,31 @@ class DispatchVehicleUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    operator fun invoke(vehicleId: String): List<Package> {
+    operator fun invoke(vehicleId: String): Result<List<Package>> {
 
         val vehicle = vehicleRepository.getVehicles().data
             .firstOrNull { it.id == vehicleId }
-            ?: return emptyList()
+            ?: throw VehicleNotFoundException()
 
         val availablePackages = packageRepository.getAllPackages().data
             .filter { packageItem ->
                 packageItem.originWarehouse.id == vehicle.currentHub.id
             }
 
-        val loadedPackages = mutableListOf<Package>()
-
-        availablePackages.fold(0.0) { currentWeight, packageItem ->
+        val loadedPackages = availablePackages.fold(
+            initial = Pair(0.0, emptyList<Package>())
+        ) { (currentWeight, packages), packageItem ->
 
             if (currentWeight + packageItem.weight <= vehicle.maxCapacityKg) {
-                loadedPackages.add(packageItem)
-                currentWeight + packageItem.weight
+                Pair(
+                    currentWeight + packageItem.weight,
+                    packages + packageItem
+                )
             } else {
-                currentWeight
+                Pair(currentWeight, packages)
             }
         }
 
-        return loadedPackages
+        return Result(loadedPackages.second)
     }
 }

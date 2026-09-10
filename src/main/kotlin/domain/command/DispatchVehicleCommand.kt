@@ -1,9 +1,9 @@
 package org.example.domain.command
 
 import org.example.domain.model.Package
+import org.example.domain.model.exception.CommandExecutionException
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 import org.example.domain.usecase.DispatchVehicleUseCase
-import org.example.domain.model.exception.CommandExecutionException
 
 class DispatchVehicleCommand(
     private val vehicleId: String,
@@ -14,7 +14,8 @@ class DispatchVehicleCommand(
     private var dispatchedPackages: List<Package> = emptyList()
 
     override fun execute(): Boolean {
-        dispatchedPackages = dispatchVehicleUseCase(vehicleId)
+        val result = dispatchVehicleUseCase(vehicleId)
+        dispatchedPackages = result.data
 
         if (dispatchedPackages.isEmpty()) {
             throw CommandExecutionException(
@@ -26,7 +27,7 @@ class DispatchVehicleCommand(
     }
 
     override fun undo(): Boolean {
-        if (dispatchedPackages.isEmpty()){
+        if (dispatchedPackages.isEmpty()) {
             throw CommandExecutionException(
                 "Cannot undo: No dispatched packages found to restore for vehicle '$vehicleId'."
             )
@@ -37,6 +38,7 @@ class DispatchVehicleCommand(
                 warehouseId = cargoPackage.originWarehouse.id,
                 cargoPackage = cargoPackage
             )
+
             if (!restored) {
                 throw CommandExecutionException(
                     "Failed to restore package '${cargoPackage.id}' to origin warehouse " +
@@ -44,9 +46,9 @@ class DispatchVehicleCommand(
                 )
             }
         }
+
         dispatchedPackages = emptyList()
         return true
-
     }
 
     override fun describe(): String {

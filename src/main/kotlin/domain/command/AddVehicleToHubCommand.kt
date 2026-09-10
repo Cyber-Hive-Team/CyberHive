@@ -1,9 +1,9 @@
 package org.example.domain.command
 
+import org.example.domain.model.exception.CommandExecutionException
+import org.example.domain.model.input.AddVehicleToHubInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.usecase.AddVehicleToHubUseCase
-import org.example.domain.model.input.AddVehicleToHubInput
-import org.example.domain.model.exception.CommandExecutionException
 
 class AddVehicleToHubCommand(
     private val vehicleId: String,
@@ -15,11 +15,11 @@ class AddVehicleToHubCommand(
     private var addedVehicle = false
 
     override fun execute(): Boolean {
-        addedVehicle = addVehicleToHubUseCase(AddVehicleToHubInput(vehicleId, warehouseId))
-        if (!addedVehicle) {
-            throw CommandExecutionException("Failed to add vehicle '$vehicleId' to warehouse '$warehouseId'.")
-        }
+        addVehicleToHubUseCase(
+            AddVehicleToHubInput(vehicleId, warehouseId)
+        )
 
+        addedVehicle = true
         return true
     }
 
@@ -28,17 +28,20 @@ class AddVehicleToHubCommand(
             throw CommandExecutionException(
                 "Cannot undo: Vehicle '$vehicleId' was not successfully added prior to undo."
             )
-
         }
 
         val removed = vehicleRepository.removeVehicle(vehicleId)
+
         if (!removed) {
-            throw CommandExecutionException("Failed to remove vehicle '$vehicleId' during undo execution.")
+            throw CommandExecutionException(
+                "Failed to remove vehicle '$vehicleId' during undo execution."
+            )
         }
 
         addedVehicle = false
         return true
     }
+
     override fun describe(): String {
         val currentHub = vehicleRepository.getVehicleById(vehicleId)?.currentHub?.id
 
