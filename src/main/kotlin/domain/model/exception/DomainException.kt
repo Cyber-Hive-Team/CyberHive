@@ -13,6 +13,8 @@ open class DomainException(message: String) : Exception(message) {
         const val Failed_to_execute_or_undo_command ="Failed_to_execute_or_undo_command"
         const val INVALID_PACKAGE_WEIGHT = "INVALID_PACKAGE_WEIGHT"
         const val INVALID_VEHICLE_CAPACITY = "INVALID_VEHICLE_CAPACITY"
+        const val INVALID_WAITING_HOURS = "INVALID_WAITING_HOURS"
+        const val VEHICLE_REASSIGNMENT_FAILED = "Vehicle reassignment failed"
     }
 }
 
@@ -26,3 +28,5 @@ class PackageNotFoundException(message: String = PACKAGE_NOT_FOUND) : DomainExce
 class CommandExecutionException(message: String = Failed_to_execute_or_undo_command) : DomainException(message)
 class InvalidPackageWeightException(message: String = INVALID_PACKAGE_WEIGHT) : DomainException(message)
 class InvalidVehicleCapacityException(message: String = INVALID_VEHICLE_CAPACITY) : DomainException(message)
+class InvalidWaitingHoursException(message: String = INVALID_WAITING_HOURS) : DomainException(message)
+class VehicleReassignmentFailedException(message: String = VEHICLE_REASSIGNMENT_FAILED) : DomainException(message)

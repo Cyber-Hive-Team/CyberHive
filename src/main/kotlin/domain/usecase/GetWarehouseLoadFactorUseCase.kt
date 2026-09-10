@@ -1,5 +1,6 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 
 private const val ZERO_VALUE = 0.0
@@ -11,7 +12,7 @@ class GetWarehouseLoadFactorUseCase(
     operator fun invoke(warehouseId: String): Double {
         val warehouse = warehouseRepository
             .getWarehouseById(warehouseId)
-            ?: return ZERO_VALUE
+            ?: throw WarehouseNotFoundException()
 
         val totalQueueWeight = warehouse.getCargoQueue()
             .map { it.weight }
