@@ -13,7 +13,8 @@ class DispatchVehicleCommand(
     private var dispatchedPackages: List<Package> = emptyList()
 
     override fun execute(): Boolean {
-        dispatchedPackages = dispatchVehicleUseCase(vehicleId)
+        val result = dispatchVehicleUseCase(vehicleId)
+        dispatchedPackages = result.data
         return dispatchedPackages.isNotEmpty()
     }
 

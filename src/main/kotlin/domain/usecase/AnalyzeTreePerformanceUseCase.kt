@@ -4,12 +4,15 @@ import org.example.domain.algorithm.performance.AvlPackageTrackingTree
 import org.example.domain.algorithm.performance.UnbalancedPackageTrackingBST
 import org.example.domain.model.result.AnalyzeTreePerformanceResult
 import org.example.domain.model.input.AnalyzeTreePerformanceInput
+import org.example.domain.model.exception.InvalidPackageCountException
 
 class AnalyzeTreePerformanceUseCase {
 
     operator fun invoke(
         input: AnalyzeTreePerformanceInput
     ): AnalyzeTreePerformanceResult {
+        input.packageCount.takeIf { it > 0 } ?: throw InvalidPackageCountException()
+
         val trackingIds = generateSequentialTrackingIds(input)
 
         val unbalancedTree = UnbalancedPackageTrackingBST()

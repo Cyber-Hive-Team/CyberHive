@@ -14,7 +14,11 @@ class AddVehicleToHubCommand(
     private var addedVehicle = false
 
     override fun execute(): Boolean {
-        addedVehicle = addVehicleToHubUseCase(AddVehicleToHubInput(vehicleId, warehouseId))
+        val result = addVehicleToHubUseCase(
+            AddVehicleToHubInput(vehicleId, warehouseId)
+        )
+
+        addedVehicle = result.errorMessage == null
         return addedVehicle
     }
 
