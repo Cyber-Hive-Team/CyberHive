@@ -32,6 +32,7 @@ class CsvPackageRepository(
     private val warehouseMap: Map<String, Warehouse>
 ) : PackageRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllPackages(): Result<List<Package>> {
         return try {
         val rawResults = dataSource.getPackages()

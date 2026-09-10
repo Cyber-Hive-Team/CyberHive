@@ -20,6 +20,7 @@ class CsvWarehouseRepository(
     private val mapper: WarehouseMapper
 ) : WarehouseRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllWarehouses(): Result<List<Warehouse>> {
         return try {
         val rawResults = dataSource.getWarehouses()

@@ -13,6 +13,7 @@ class CsvRouteRepository(
     private val warehouseMap: Map<String, Warehouse>
 ) : RouteRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllRoutes(): Result<List<Route>> {
         return try {
         val rawResults = dataSource.getRoutes()
