@@ -2,6 +2,8 @@ package org.example.domain.command
 
 import org.example.domain.usecase.ReroutePackageUseCase
 import org.example.domain.model.input.ReroutePackageInput
+import org.example.domain.model.exception.CommandExecutionException
+
 
 class ReroutePackageCommand(
     private val packageId: String,
@@ -10,7 +12,7 @@ class ReroutePackageCommand(
     private val reroutePackageUseCase: ReroutePackageUseCase
 ) : Command {
 
-    private var reroutedPackageSuccufully = false
+    private var isReroutedSuccessfully = false
 
     override fun execute(): Boolean {
         val input = ReroutePackageInput(
@@ -18,21 +20,28 @@ class ReroutePackageCommand(
             newDestinationWarehouseId = newDestinationWarehouseId
         )
 
-        val result = reroutePackageUseCase(input)
-        reroutedPackageSuccufully = result != null
-        return reroutedPackageSuccufully
+        reroutePackageUseCase(input)
+        isReroutedSuccessfully = true
+        return true
     }
 
     override fun undo(): Boolean {
-        val input = ReroutePackageInput(
+        if (!isReroutedSuccessfully) {
+            throw CommandExecutionException(
+                "Cannot undo: Reroute package command was not executed successfully prior to undo."
+            )
+        }
+
+        val reverseInput = ReroutePackageInput(
             packageId = packageId,
             newDestinationWarehouseId = oldDestinationWarehouseId
         )
-        if (!reroutedPackageSuccufully) return false
 
-        val reverseResult = reroutePackageUseCase(input)
-        return reverseResult != null
+        reroutePackageUseCase(reverseInput)
+        isReroutedSuccessfully = false
+        return true
     }
+
     override fun describe(): String =
         "Reroute package $packageId | $oldDestinationWarehouseId -> $newDestinationWarehouseId"
 }
