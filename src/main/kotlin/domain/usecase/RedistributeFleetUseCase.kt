@@ -1,5 +1,6 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.exception.VehicleReassignmentFailedException
 import org.example.domain.model.result.FleetShortageResult
 import org.example.domain.model.result.FleetSurplusResult
 import org.example.domain.model.result.TransferCalculationResult
@@ -107,10 +108,10 @@ class RedistributeFleetUseCase(
         vehicleCapacity: Double,
         fromWarehouseId: String,
         toWarehouseId: String
-    ): VehicleTransferResult? {
+    ): VehicleTransferResult {
         val reassigned = vehicleRepository.reassignVehicle(vehicleId = vehicleId, warehouseId = toWarehouseId)
         if (!reassigned) {
-            return null
+            throw VehicleReassignmentFailedException()
         }
         return VehicleTransferResult(
             vehicleId = vehicleId,
