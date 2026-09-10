@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.benchmark
+package org.example.presentation.benchmark
 
 import org.example.domain.algorithm.search.BidirectionalBfsRouter
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
