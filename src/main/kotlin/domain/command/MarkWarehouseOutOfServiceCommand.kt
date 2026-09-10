@@ -14,9 +14,11 @@ class MarkWarehouseOutOfServiceCommand(
 
     override fun execute(): Boolean {
         previousStatus = warehouseStatusRepository.getStatus(warehouseId)
-        updated = markWarehouseOutOfServiceUseCase(warehouseId)
-        return updated
 
+        markWarehouseOutOfServiceUseCase(warehouseId)
+
+        updated = true
+        return updated
     }
 
     override fun undo(): Boolean {

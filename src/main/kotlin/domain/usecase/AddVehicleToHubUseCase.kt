@@ -3,6 +3,11 @@ package org.example.domain.usecase
 import org.example.domain.model.input.AddVehicleToHubInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
+import org.example.domain.model.exception.VehicleNotFoundException
+import org.example.domain.model.exception.WarehouseNotFoundException
+import org.example.domain.model.result.Result
+import org.example.domain.model.Vehicle
+
 
 class AddVehicleToHubUseCase(
     private val vehicleRepository: VehicleRepository,
@@ -11,17 +16,18 @@ class AddVehicleToHubUseCase(
 
     operator fun invoke(
         input: AddVehicleToHubInput
-    ): Boolean {
+    ): Result<Vehicle> {
 
-        return vehicleRepository.getVehicleById(input.vehicleId)
-            ?.let { vehicle ->
-                warehouseRepository.getWarehouseById(input.warehouseId)
-                    ?.let { warehouse ->
-                        warehouse.addVehicles(listOf(vehicle))
-                        true
-                    }
-            }
-            ?: false
+        val vehicle = vehicleRepository.getVehicleById(input.vehicleId)
+            ?: throw VehicleNotFoundException()
+
+        val warehouse = warehouseRepository.getWarehouseById(input.warehouseId)
+            ?: throw WarehouseNotFoundException()
+
+        warehouse.addVehicles(listOf(vehicle))
+
+        return Result(vehicle)
     }
-
 }
+
+

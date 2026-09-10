@@ -1,9 +1,10 @@
 package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.Router
-import org.example.domain.model.result.Result
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseDistance
+import org.example.domain.model.exception.InvalidLimitException
+import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 
 class FindNearestWarehousesByRouteDistanceUseCase(
@@ -16,14 +17,10 @@ class FindNearestWarehousesByRouteDistanceUseCase(
         limit: Int
     ): Result<List<WarehouseDistance>> {
 
-        if (limit <= 0) {
-            return Result(
-                data = emptyList(),
-                errorMessage = "Limit must be greater than zero."
-            )
-        }
+        limit.takeIf { it > 0 } ?: throw InvalidLimitException()
 
         val result = warehouseRepository.getAllWarehouses()
+
         val nearestWarehouses = findNearestWarehouses(
             warehouse,
             result.data,
