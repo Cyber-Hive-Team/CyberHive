@@ -20,6 +20,7 @@ class CsvVehicleRepository(
     private var isLoaded = false
 
     override fun getVehicles(): Result<List<Vehicle>> {
+        return try {
         if (isLoaded) {
             return Result(data = vehicles.toList(), errorMessage = null)
         }
@@ -46,6 +47,9 @@ class CsvVehicleRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+        } catch (e: Exception) {
+            Result(data = emptyList(), errorMessage = "Failed to load vehicles: ${e.message}")
+        }
     }
 
     override fun getVehicleById(vehicleId: String): Vehicle? {
