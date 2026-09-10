@@ -1,5 +1,9 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.Package
+import org.example.domain.model.Vehicle
+import org.example.domain.model.exception.InvalidPackageWeightException
+import org.example.domain.model.exception.InvalidVehicleCapacityException
 import org.example.domain.model.result.FleetSurplusResult
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.VehicleRepository
@@ -18,26 +22,45 @@ class FindFleetSurplusUseCase(
             .getAllWarehouses()
             .data
             .mapNotNull { warehouse ->
-                val cargoWeight = packageRepository
-                        .getPackagesByWarehouseId(warehouse.id)
-                        .data
-                        .sumOf { cargoPackage ->
-                            cargoPackage.weight
-                        }
-                val fleetCapacity = vehicleRepository
-                        .getVehiclesByWarehouseId(warehouse.id)
-                        .data
-                        .sumOf { vehicle ->
-                            vehicle.maxCapacityKg
-                        }
-                val surplus = fleetCapacity - cargoWeight
-                if (surplus > ZERO_SURPLUS) {
-                    FleetSurplusResult(warehouseId = warehouse.id, surplusKg = surplus)
-                } else {
-                    null
-                }
+                calculateSurplus(warehouse.id)
             }
-            .sortedByDescending { result -> result.surplusKg }
+            .sortedByDescending { it.surplusKg }
+
+    }
+
+    private fun calculateSurplus(
+        warehouseId: String
+    ): FleetSurplusResult? {
+        val packages = packageRepository
+            .getPackagesByWarehouseId(warehouseId)
+            .data
+        val vehicles = vehicleRepository
+            .getVehiclesByWarehouseId(warehouseId)
+            .data
+        validatePackages(packages)
+        validateVehicles(vehicles)
+        val surplus = vehicles.sumOf { it.maxCapacityKg } -
+                packages.sumOf { it.weight }
+        return surplus.takeIf { it > ZERO_SURPLUS }
+            ?.let { FleetSurplusResult(warehouseId, it) }
+
+    }
+
+    private fun validatePackages(
+        packages: List<Package>
+    ) {
+        if (packages.any { it.weight < ZERO_SURPLUS }) {
+            throw InvalidPackageWeightException()
+        }
+
+    }
+
+    private fun validateVehicles(
+        vehicles: List<Vehicle>
+    ) {
+        if (vehicles.any { it.maxCapacityKg < ZERO_SURPLUS }) {
+            throw InvalidVehicleCapacityException()
+        }
     }
 
 }
