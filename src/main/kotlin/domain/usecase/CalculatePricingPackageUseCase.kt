@@ -5,6 +5,8 @@ import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.RouteRepository
 import org.example.domain.model.result.PricingPackage
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.exception.RouteNotFoundException
 
 class CalculatePricingPackageUseCase(
     private val packageRepository: PackageRepository,
@@ -17,11 +19,11 @@ class CalculatePricingPackageUseCase(
 
         val cargoPackage = packageRepository.getAllPackages().data
             .firstOrNull { it.id == input.packageId }
-            ?: throw NoSuchElementException("Package not found with ID: ${input.packageId}")
+            ?: throw PackageNotFoundException("Package not found with ID: ${input.packageId}")
 
         val route = routeRepository.getAllRoutes().data
             .firstOrNull { it.id == input.routeId }
-            ?: throw NoSuchElementException("Route not found with ID: ${input.routeId}")
+            ?: throw RouteNotFoundException("Route not found with ID: ${input.routeId}")
 
         input.customStrategy?.let { strategy ->
             pricingEngine.setStrategy(strategy)
