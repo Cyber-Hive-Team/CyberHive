@@ -18,7 +18,9 @@ class CsvWarehouseRepository(
 
 ) : WarehouseRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllWarehouses(): Result<List<Warehouse>> {
+        return try {
         val rawResults = dataSource.getWarehouses()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawWarehouses = rawResults.mapNotNull { it.rawData }
@@ -31,6 +33,9 @@ class CsvWarehouseRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+    } catch (e: Exception) {
+        Result(data = emptyList(), errorMessage = "Failed to load warehouses: ${e.message}")
+    }
 
     }
 

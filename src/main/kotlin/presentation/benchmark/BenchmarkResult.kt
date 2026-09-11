@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.benchmark
+package org.example.presentation.benchmark
 
 import org.example.domain.model.Warehouse
 
