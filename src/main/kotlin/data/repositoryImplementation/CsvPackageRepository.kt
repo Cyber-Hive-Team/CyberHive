@@ -32,7 +32,9 @@ class CsvPackageRepository(
     private val warehouseMap: Map<String, Warehouse>
 ) : PackageRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllPackages(): Result<List<Package>> {
+        return try {
         val rawResults = dataSource.getPackages()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawPackages = rawResults.mapNotNull { it.rawData }
@@ -43,6 +45,12 @@ class CsvPackageRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+        } catch (e: Exception) {
+            Result(
+                data = emptyList(),
+                errorMessage = "Failed to load packages: ${e.message}"
+            )
+        }
 
     }
 

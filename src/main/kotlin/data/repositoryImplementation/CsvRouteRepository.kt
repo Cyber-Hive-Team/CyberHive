@@ -13,7 +13,9 @@ class CsvRouteRepository(
     private val warehouseMap: Map<String, Warehouse>
 ) : RouteRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllRoutes(): Result<List<Route>> {
+        return try {
         val rawResults = dataSource.getRoutes()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawRoutes = rawResults.mapNotNull { it.rawData }
@@ -23,6 +25,9 @@ class CsvRouteRepository(
             errorMessage = warnings.takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+        } catch (e: Exception) {
+            Result(data = emptyList(), errorMessage = "Failed to load routes: ${e.message}")
+        }
     }
 
     private fun mapRoutes(

@@ -19,7 +19,9 @@ class CsvVehicleRepository(
     private val vehicles = mutableListOf<Vehicle>()
     private var isLoaded = false
 
+    @Suppress("TooGenericExceptionCaught", "LongMethod", "ReturnCount")
     override fun getVehicles(): Result<List<Vehicle>> {
+        return try {
         if (isLoaded) {
             return Result(data = vehicles.toList(), errorMessage = null)
         }
@@ -46,6 +48,9 @@ class CsvVehicleRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+        } catch (e: Exception) {
+            Result(data = emptyList(), errorMessage = "Failed to load vehicles: ${e.message}")
+        }
     }
 
     override fun getVehicleById(vehicleId: String): Vehicle? {
