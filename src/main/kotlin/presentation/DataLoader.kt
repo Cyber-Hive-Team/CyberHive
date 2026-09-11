@@ -12,6 +12,10 @@ import org.example.data.repository.CsvPackageRepository
 import org.example.data.repository.CsvRouteRepository
 import org.example.data.repository.CsvVehicleRepository
 import org.example.data.repository.CsvWarehouseRepository
+import org.example.data.validation.PackageValidator
+import org.example.data.validation.RouteValidator
+import org.example.data.validation.VehicleValidator
+import org.example.data.validation.WarehouseValidator
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
@@ -51,7 +55,9 @@ class DataLoader {
     private fun loadWarehouses(): List<Warehouse> {
         val result = CsvWarehouseRepository(
             CsvWarehouseDataSource(WAREHOUSE_FILE),
-            WarehouseMapper()
+            WarehouseMapper(),
+            WarehouseValidator()
+
         ).getAllWarehouses()
 
         result.errorMessage?.let { println("WARNING: $it") }
@@ -63,7 +69,8 @@ class DataLoader {
         val result = CsvPackageRepository(
             CsvPackageDataSource(PACKAGE_FILE),
             PackageMapper(),
-            map
+            map,
+            PackageValidator()
         ).getAllPackages()
 
         result.errorMessage?.let { println("WARNING: $it") }
@@ -75,7 +82,8 @@ class DataLoader {
         val result = CsvVehicleRepository(
             CsvVehicleDataSource(VEHICLE_FILE),
             VehicleMapper(),
-            map
+            map,
+            VehicleValidator()
         ).getVehicles()
 
         result.errorMessage?.let { println("WARNING: $it") }
@@ -87,7 +95,8 @@ class DataLoader {
         val result = CsvRouteRepository(
             CsvRouteDataSource(ROUTE_FILE),
             RouteMapper(),
-            map
+            map,
+            RouteValidator()
         ).getAllRoutes()
 
         result.errorMessage?.let { println("WARNING: $it") }

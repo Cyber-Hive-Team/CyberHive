@@ -3,6 +3,7 @@ package org.example.data.repository
 import org.example.data.dataholder.PackageRaw
 import org.example.data.datasource.PackageDataSource
 import org.example.data.mapper.PackageMapper
+import org.example.data.validation.PackageValidator
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
@@ -29,7 +30,9 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 class CsvPackageRepository(
     private val dataSource: PackageDataSource,
     private val mapper: PackageMapper,
-    private val warehouseMap: Map<String, Warehouse>
+    private val warehouseMap: Map<String, Warehouse>,
+    private val validator: PackageValidator
+
 ) : PackageRepository {
 
     @Suppress("TooGenericExceptionCaught")
@@ -61,8 +64,7 @@ class CsvPackageRepository(
         rawPackages.mapNotNull { raw ->
             val origin = warehouseMap[normalizeId(raw.originHubId)]
             val destination = warehouseMap[normalizeId(raw.destinationHubId)]
-
-            val validation = validate(raw, origin, destination)
+            val validation = validator.validate(raw, origin, destination)
 
             if (validation.isNotEmpty()) {
                 warnings.addAll(validation)
@@ -72,35 +74,6 @@ class CsvPackageRepository(
             }
 
         }
-
-    private fun validate(
-        raw: PackageRaw,
-        origin: Warehouse?,
-        destination: Warehouse?
-    ): List<String> {
-        val warnings = mutableListOf<String>()
-
-        if (raw.id.isBlank()) {
-            warnings.add("Warning: Package skipped - missing id")
-        }
-
-        if (origin == null) {
-            warnings.add(
-                "Warning: Package ${raw.id} skipped - " +
-                        "origin warehouse not found: ${raw.originHubId}"
-            )
-        }
-
-        if (destination == null) {
-            warnings.add(
-                "Warning: Package ${raw.id} skipped - " +
-                        "destination warehouse not found: ${raw.destinationHubId}"
-            )
-        }
-
-        return warnings
-
-    }
 
     private fun normalizeId(id: String): String =
         id.trim().uppercase()
