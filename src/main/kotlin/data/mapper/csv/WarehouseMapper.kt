@@ -1,4 +1,4 @@
-package org.example.data.mapper
+package data.mapper.csv
 
 import org.example.data.dataholder.WareHouseRaw
 import org.example.domain.model.Warehouse
@@ -15,4 +15,3 @@ class WarehouseMapper {
         )
     }
 }
-

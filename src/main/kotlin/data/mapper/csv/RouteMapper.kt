@@ -1,4 +1,4 @@
-package org.example.data.mapper
+package data.mapper.csv
 
 import org.example.data.dataholder.RouteRaw
 import org.example.domain.model.Route
