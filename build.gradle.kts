@@ -34,3 +34,4 @@ kotlin {
 tasks.test {
     useJUnitPlatform()
 }
+
