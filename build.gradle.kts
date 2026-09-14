@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.4.0"
     id("io.gitlab.arturbosch.detekt") version "1.23.5"
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 group = "org.example"
@@ -12,6 +13,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 
 detekt {
