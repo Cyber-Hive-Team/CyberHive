@@ -1,9 +1,20 @@
 package org.example.presentation
 
+import data.remote.config.SupabaseConfig
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 
 
 fun main() {
+    val supabaseConfig = SupabaseConfig(
+        url = requireNotNull(
+            System.getenv("SUPABASE_URL")
+        ),
+        publishableKey = requireNotNull(
+            System.getenv("SUPABASE_PUBLISHABLE_KEY")
+        )
+    )
+
+
     println("=== Cyber Hive ===")
     val data = DataLoader().load()
 
@@ -20,5 +31,6 @@ fun main() {
     TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
     TraceHubLineageDemoRunner().run("WH-028")
     CommandInvokerDemoRunner(data.warehouses).run()
+
 
 }
