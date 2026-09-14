@@ -1,7 +1,7 @@
 package org.example.data.repository
 
 import org.example.data.datasource.RouteDataSource
-import org.example.data.mapper.RouteMapper
+import data.mapper.csv.RouteMapper
 import org.example.data.validation.RouteValidator
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
