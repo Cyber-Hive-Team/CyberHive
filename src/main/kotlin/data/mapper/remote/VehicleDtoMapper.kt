@@ -1,4 +1,4 @@
-package data.mapper.dto
+package data.mapper.remote
 
 import data.remote.dto.VehicleDto
 import org.example.domain.model.Vehicle
