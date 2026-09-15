@@ -2,7 +2,7 @@ package org.example.data.repository
 
 import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
-import org.example.data.mapper.WarehouseMapper
+import data.mapper.csv.WarehouseMapper
 import org.example.data.validation.WarehouseValidator
 import org.example.domain.model.Package
 import org.example.domain.model.Warehouse
