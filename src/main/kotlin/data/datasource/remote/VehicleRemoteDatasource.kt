@@ -1,6 +1,6 @@
 package org.example.data.datasource.remote
 
-import org.example.data.remote.dto.VehicleDto
+import data.remote.dto.VehicleDto
 
 interface VehicleRemoteDatasource {
 

@@ -1,7 +1,7 @@
 package org.example.data.datasource.remote.supabase
 
 import org.example.data.datasource.remote.RouteRemoteDatasource
-import org.example.data.remote.dto.RouteDto
+import data.remote.dto.RouteDto
 
 class SupabaseRouteRemoteDatasource :
     RouteRemoteDatasource {

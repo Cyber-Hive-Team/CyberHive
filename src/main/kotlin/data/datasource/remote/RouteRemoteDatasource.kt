@@ -1,6 +1,6 @@
 package org.example.data.datasource.remote
 
-import org.example.data.remote.dto.RouteDto
+import data.remote.dto.RouteDto
 
 interface RouteRemoteDatasource {
 

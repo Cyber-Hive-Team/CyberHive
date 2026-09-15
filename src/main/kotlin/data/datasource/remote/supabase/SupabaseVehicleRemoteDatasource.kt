@@ -1,7 +1,7 @@
 package org.example.data.datasource.remote.supabase
 
 import org.example.data.datasource.remote.VehicleRemoteDatasource
-import org.example.data.remote.dto.VehicleDto
+import data.remote.dto.VehicleDto
 
 class SupabaseVehicleRemoteDatasource :
     VehicleRemoteDatasource {
