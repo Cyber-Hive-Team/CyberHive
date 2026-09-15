@@ -1,10 +1,10 @@
-package data.remote.dto
+package data.remote.dto.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class VehicleDto(
+data class VehicleResponseDto(
     @SerialName("vehicleId")
     val vehicleId: String,
 
