@@ -1,7 +1,7 @@
 package org.example.presentation
 
-import org.example.domain.algorithm.benchmark.BenchmarkReporter
-import org.example.domain.algorithm.benchmark.RoutingBenchmark
+import org.example.presentation.benchmark.RoutingBenchmark
+import org.example.presentation.benchmark.BenchmarkReporter
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
 import org.example.domain.algorithm.search.DijkstraRouter
 import org.example.domain.algorithm.search.RouteWarehouseGraph
