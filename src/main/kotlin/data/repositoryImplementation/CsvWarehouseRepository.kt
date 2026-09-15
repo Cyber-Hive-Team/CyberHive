@@ -2,7 +2,8 @@ package org.example.data.repository
 
 import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
-import org.example.data.mapper.WarehouseMapper
+import data.mapper.csv.WarehouseMapper
+import org.example.data.validation.WarehouseValidator
 import org.example.domain.model.Package
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
@@ -10,17 +11,16 @@ import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 import kotlin.random.Random
 
-private const val MIN_LATITUDE = -90.0
-private const val MAX_LATITUDE = 90.0
-private const val MIN_LONGITUDE = -180.0
-private const val MAX_LONGITUDE = 180.0
-
 class CsvWarehouseRepository(
     private val dataSource: WarehouseDataSource,
-    private val mapper: WarehouseMapper
+    private val mapper: WarehouseMapper,
+    private val validator: WarehouseValidator
+
 ) : WarehouseRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override fun getAllWarehouses(): Result<List<Warehouse>> {
+        return try {
         val rawResults = dataSource.getWarehouses()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawWarehouses = rawResults.mapNotNull { it.rawData }
@@ -33,6 +33,9 @@ class CsvWarehouseRepository(
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString("; ")
         )
+    } catch (e: Exception) {
+        Result(data = emptyList(), errorMessage = "Failed to load warehouses: ${e.message}")
+    }
 
     }
 
@@ -40,7 +43,7 @@ class CsvWarehouseRepository(
         raw: WareHouseRaw,
         warnings: MutableList<String>
     ): Warehouse? {
-        val validation = validate(raw)
+        val validation = validator.validate(raw)
 
         if (validation.isNotEmpty()) {
             warnings.addAll(validation)
@@ -51,24 +54,6 @@ class CsvWarehouseRepository(
 
     }
 
-    private fun validate(raw: WareHouseRaw): List<String> {
-        val warnings = mutableListOf<String>()
-
-        if (raw.id.isBlank()) {
-            warnings.add("Warning: Warehouse skipped - ID is missing")
-        }
-        if (raw.latitude == null ||
-            raw.latitude < MIN_LATITUDE ||
-            raw.latitude > MAX_LATITUDE)
-        { warnings.add("Warning: Warehouse ${raw.id} skipped - invalid latitude") }
-
-        if (raw.longitude == null ||
-            raw.longitude < MIN_LONGITUDE ||
-            raw.longitude > MAX_LONGITUDE )
-        { warnings.add("Warning: Warehouse ${raw.id} skipped - invalid longitude") }
-        return warnings
-
-    }
     override fun getWarehouseById(
         warehouseId: String
     ): Warehouse? {
