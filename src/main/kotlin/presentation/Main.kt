@@ -4,6 +4,7 @@ import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 
 
 fun main() {
+
     println("=== Cyber Hive ===")
     val data = DataLoader().load()
 
@@ -20,5 +21,6 @@ fun main() {
     TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
     TraceHubLineageDemoRunner().run("WH-028")
     CommandInvokerDemoRunner(data.warehouses).run()
+
 
 }
