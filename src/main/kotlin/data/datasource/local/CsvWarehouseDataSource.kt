@@ -1,8 +1,9 @@
-package org.example.data.datasource
+package org.example.data.datasource.local
 
 import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.WareHouseRaw
 import org.example.data.dataparsing.convertCsvRowToWarehouseRawObject
+import org.example.data.datasource.WarehouseDataSource
 import java.io.File
 
 private const val FIRST_DATA_ROW_INDEX = 1
@@ -37,4 +38,5 @@ class CsvWarehouseDataSource(
 
         return file.readLines()
     }
+
 }
