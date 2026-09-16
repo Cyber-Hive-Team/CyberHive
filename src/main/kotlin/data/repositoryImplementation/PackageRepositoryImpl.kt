@@ -2,15 +2,19 @@ package org.example.data.repository
 
 import org.example.data.dataholder.PackageRaw
 import org.example.data.datasource.PackageDataSource
+import org.example.data.datasource.remote.PackageRemoteDatasource
 import org.example.data.mapper.csv.PackageMapper
+import org.example.data.mapper.remote.PackageRemoteMapper
 import org.example.data.validation.PackageValidator
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
+import org.example.domain.model.Priority
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.model.result.Result
 import org.example.domain.repository.PackageRepository
+import org.example.domain.repository.WarehouseRepository
 import java.time.LocalDateTime
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -28,17 +32,20 @@ private const val MIN_ARRIVAL_OFFSET_MINUTES = -60L
 private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 
 class PackageRepositoryImpl(
-    private val dataSource: PackageDataSource,
+    private val csvDataSource: PackageDataSource,
     private val mapper: PackageMapper,
     private val warehouseMap: Map<String, Warehouse>,
-    private val validator: PackageValidator
+    private val validator: PackageValidator,
+    private val remoteDataSource: PackageRemoteDatasource,
+    private val remoteMapper: PackageRemoteMapper,
+    private val warehouseRepository: WarehouseRepository
 
 ) : PackageRepository {
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllPackages(): Result<List<Package>> {
         return try {
-        val rawResults = dataSource.getPackages()
+            val rawResults = csvDataSource.getPackages()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawPackages = rawResults.mapNotNull { it.rawData }
         val packages = mapPackages(rawPackages = rawPackages, warnings = warnings)
@@ -152,6 +159,87 @@ class PackageRepositoryImpl(
                     requiresSpecialHandling = Random.nextBoolean()
                 )
             }
+    }
+
+
+    override suspend fun getRemoteById(
+        id: String
+    ): Package? {
+        val responseDto = remoteDataSource.getById(id) ?: return null
+
+        val originWarehouse =
+            warehouseRepository.getWarehouseById(responseDto.originHubId)
+                ?: return null
+
+        val destinationWarehouse =
+            warehouseRepository.getWarehouseById(responseDto.destinationHubId)
+                ?: return null
+
+        return remoteMapper.mapToDomainModel(
+            dto = responseDto,
+            originWarehouse = originWarehouse,
+            destinationWarehouse = destinationWarehouse
+        )
+    }
+
+    override suspend fun save(
+        cargoPackage: Package
+    ): Package {
+        val request = remoteMapper.mapToCreateRequest(
+            id = cargoPackage.id,
+            weight = cargoPackage.weight,
+            priority = cargoPackage.priority,
+            originHubId = cargoPackage.originWarehouse.id,
+            destinationHubId = cargoPackage.destinationWarehouse.id
+        )
+
+        val dto = remoteDataSource.save(request)
+
+        return remoteMapper.mapToDomainModel(
+            dto = dto,
+            originWarehouse = cargoPackage.originWarehouse,
+            destinationWarehouse = cargoPackage.destinationWarehouse
+        )
+    }
+
+    override suspend fun update(
+        id: String,
+        weight: Double?,
+        priority: Priority?,
+        originHubId: String,
+        destinationHubId: String
+    ): Package {
+        val request = remoteMapper.mapToUpdateRequest(
+            weight = weight,
+            priority = priority,
+            originHubId = originHubId,
+            destinationHubId = destinationHubId
+        )
+
+        val dto = remoteDataSource.update(
+            id = id,
+            request = request
+        )
+
+        val originWarehouse =
+            warehouseRepository.getWarehouseById(dto.originHubId)
+                ?: return getRemoteById(id)!!
+
+        val destinationWarehouse =
+            warehouseRepository.getWarehouseById(dto.destinationHubId)
+                ?: return getRemoteById(id)!!
+
+        return remoteMapper.mapToDomainModel(
+            dto = dto,
+            originWarehouse = originWarehouse,
+            destinationWarehouse = destinationWarehouse
+        )
+    }
+
+    override suspend fun delete(
+        id: String
+    ): Boolean {
+        return remoteDataSource.delete(id)
     }
 
 }
