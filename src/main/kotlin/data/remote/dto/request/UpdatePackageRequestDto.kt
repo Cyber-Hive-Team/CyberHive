@@ -8,9 +8,9 @@ data class UpdatePackageRequestDto(
     @SerialName("weight")
     val weight: Double? = null,
     @SerialName("originHubId")
-    val originHubId: String? = null,
+    val originHubId: String,
     @SerialName("destinationHubId")
-    val destinationHubId: String? = null,
+    val destinationHubId: String,
     @SerialName("priority")
     val priority: String? = null
 )

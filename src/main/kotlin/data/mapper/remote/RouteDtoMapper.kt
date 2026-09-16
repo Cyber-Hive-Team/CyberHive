@@ -1,4 +1,4 @@
-package data.mapper.dto
+package data.mapper.remote
 
 import data.remote.dto.response.RouteResponseDto
 import data.remote.dto.request.CreateRouteRequestDto

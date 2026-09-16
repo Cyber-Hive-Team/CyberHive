@@ -1,23 +1,25 @@
 package org.example.data.datasource.remote
 
-import data.remote.dto.RouteDto
+import data.remote.dto.request.CreateRouteRequestDto
+import data.remote.dto.request.UpdateRouteRequestDto
+import data.remote.dto.response.RouteResponseDto
 
 interface RouteRemoteDatasource {
 
-    suspend fun getAll(): List<RouteDto>
+    suspend fun getAll(): List<RouteResponseDto>
 
     suspend fun getById(
         id: String
-    ): RouteDto?
+    ): RouteResponseDto?
 
     suspend fun save(
-        route: RouteDto
-    ): RouteDto
+        request: CreateRouteRequestDto
+    ): RouteResponseDto
 
     suspend fun update(
         id: String,
-        route: RouteDto
-    ): RouteDto
+        request: UpdateRouteRequestDto
+    ): RouteResponseDto
 
     suspend fun delete(
         id: String
