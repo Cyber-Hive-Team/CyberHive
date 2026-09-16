@@ -45,8 +45,8 @@ class PackageRemoteMapper {
     fun mapToUpdateRequest(
         weight: Double? = null,
         priority: Priority? = null,
-        originHubId: String? = null,
-        destinationHubId: String? = null
+        originHubId: String,
+        destinationHubId: String
     ): UpdatePackageRequestDto {
         return UpdatePackageRequestDto(
             weight = weight,
