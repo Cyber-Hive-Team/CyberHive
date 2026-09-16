@@ -69,12 +69,12 @@ class RouteRepositoryImpl(
 
         val originWarehouse =
             responseDto.originHubId
-                ?.let { warehouseRepository.getWarehouseById(it) }
+                .let { warehouseRepository.getWarehouseById(it) }
                 ?: return null
 
         val destinationWarehouse =
             responseDto.destinationHubId
-                ?.let { warehouseRepository.getWarehouseById(it) }
+                .let { warehouseRepository.getWarehouseById(it) }
                 ?: return null
 
         return remoteMapper.mapToDomain(
@@ -89,9 +89,9 @@ class RouteRepositoryImpl(
         val request = remoteMapper.mapToCreateRequest(route)
         val responseDto = remoteDataSource.save(request)
         val originWarehouse = responseDto.originHubId
-            ?.let { warehouseRepository.getWarehouseById(it) }
+            .let { warehouseRepository.getWarehouseById(it) }
         val destinationWarehouse = responseDto.destinationHubId
-            ?.let { warehouseRepository.getWarehouseById(it) }
+            .let { warehouseRepository.getWarehouseById(it) }
         if (originWarehouse == null || destinationWarehouse == null) {
             return route
         }
@@ -108,10 +108,10 @@ class RouteRepositoryImpl(
         val request = remoteMapper.mapToUpdateRequest(route)
         val responseDto = remoteDataSource.update(id = route.id, request = request)
         val originWarehouse = responseDto.originHubId
-            ?.let { warehouseRepository.getWarehouseById(it) }
+            .let { warehouseRepository.getWarehouseById(it) }
 
         val destinationWarehouse = responseDto.destinationHubId
-            ?.let { warehouseRepository.getWarehouseById(it) }
+            .let { warehouseRepository.getWarehouseById(it) }
 
         if (originWarehouse == null || destinationWarehouse == null) {
             return route
