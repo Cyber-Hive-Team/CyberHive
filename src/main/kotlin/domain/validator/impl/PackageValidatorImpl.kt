@@ -40,7 +40,12 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         violations.addAll(validateBaseRate(input.baseRate))
         violations.addAll(validateOriginWarehouse(input))
         violations.addAll(validateDestinationWarehouse(input))
-        violations.addAll(validateDifferentWarehouses(input))
+        violations.addAll(
+            validateDifferentWarehouses(
+                input.originWarehouse?.id,
+                input.destinationWarehouse?.id
+            )
+        )
 
         return toResult(violations)
     }
@@ -189,25 +194,27 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
     }
 
     private fun validateDifferentWarehouses(
-        input: UpdatePackageInput
+        originId: String?,
+        destinationId: String?
     ): List<FieldViolation> {
-        val origin = input.originWarehouse ?: return emptyList()
-        val destination = input.destinationWarehouse ?: return emptyList()
 
-        return if (
-            origin.id.isNotBlank() &&
-            destination.id.isNotBlank() &&
-            origin.id == destination.id
+        val violations = mutableListOf<FieldViolation>()
+
+        if (originId != null &&
+            destinationId != null &&
+            originId.isNotBlank() &&
+            destinationId.isNotBlank() &&
+            originId == destinationId
         ) {
-            listOf(
+            violations.add(
                 FieldViolation(
                     "destinationWarehouse",
                     "Origin and Destination warehouses cannot be the same."
                 )
             )
-        } else {
-            emptyList()
         }
+
+        return violations
     }
 
     private fun toResult(violations: List<FieldViolation>): ValidationResult {
