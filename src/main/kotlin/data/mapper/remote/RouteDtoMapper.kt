@@ -1,13 +1,15 @@
 package data.mapper.remote
 
-import data.remote.dto.RouteDto
+import data.remote.dto.response.RouteResponseDto
+import data.remote.dto.request.CreateRouteRequestDto
+import data.remote.dto.request.UpdateRouteRequestDto
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 
 class RouteDtoMapper {
 
-    fun map(
-        raw: RouteDto,
+    fun mapToDomain(
+        raw: RouteResponseDto,
         originWarehouse: Warehouse,
         destinationWarehouse: Warehouse
     ): Route {
@@ -20,8 +22,8 @@ class RouteDtoMapper {
         )
     }
 
-    fun mapToDto(domain: Route): RouteDto {
-        return RouteDto(
+    fun mapToCreateRequest(domain: Route): CreateRouteRequestDto {
+        return CreateRouteRequestDto(
             routeId = domain.id,
             originHubId = domain.originWarehouse.id,
             destinationHubId = domain.destinationWarehouse.id,
@@ -29,4 +31,15 @@ class RouteDtoMapper {
             typicalDelayMinutes = domain.typicalDelayMin
         )
     }
+
+    fun mapToUpdateRequest(domain: Route): UpdateRouteRequestDto {
+        return UpdateRouteRequestDto(
+            routeId = domain.id,
+            originHubId = domain.originWarehouse.id,
+            destinationHubId = domain.destinationWarehouse.id,
+            distanceKm = domain.distanceKm,
+            typicalDelayMinutes = domain.typicalDelayMin
+        )
+    }
+
 }

@@ -1,21 +1,21 @@
-package data.remote.dto
+package data.remote.dto.request
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RouteDto(
+data class UpdateRouteRequestDto(
     @SerialName("routeId")
     val routeId: String,
 
     @SerialName("originHubId")
-    val originHubId: String,
+    val originHubId: String? = null,
 
     @SerialName("destinationHubId")
-    val destinationHubId: String,
+    val destinationHubId: String? = null,
 
     @SerialName("distanceKm")
-    val distanceKm: Double,
+    val distanceKm: Double? = null,
 
     @SerialName("typicalDelayMinutes")
     val typicalDelayMinutes: Int? = null
