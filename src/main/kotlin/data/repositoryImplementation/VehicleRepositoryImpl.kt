@@ -1,18 +1,24 @@
 package org.example.data.repository
 
 import org.example.data.datasource.VehicleDataSource
+import org.example.data.datasource.remote.VehicleRemoteDatasource
 import org.example.data.mapper.csv.VehicleMapper
+import org.example.data.mapper.remote.VehicleDtoMapper
 import org.example.data.validation.VehicleValidator
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.model.result.Result
 import org.example.domain.repository.VehicleRepository
+import org.example.domain.repository.WarehouseRepository
 
 class VehicleRepositoryImpl(
     private val dataSource: VehicleDataSource,
     private val mapper: VehicleMapper,
     private val warehouseMap: Map<String, Warehouse>,
-    private val validator: VehicleValidator
+    private val validator: VehicleValidator,
+    private val remoteDataSource: VehicleRemoteDatasource,
+    private val remoteMapper: VehicleDtoMapper,
+    private val warehouseRepository: WarehouseRepository
 
 ) : VehicleRepository {
     private val vehicles = mutableListOf<Vehicle>()
@@ -99,4 +105,72 @@ class VehicleRepositoryImpl(
         return vehicles.removeIf { it.id == vehicleId }
     }
 
+
+    override suspend fun getRemoteById(
+        vehicleId: String
+    ): Vehicle? {
+        val responseDto =
+            remoteDataSource.getById(vehicleId)
+                ?: return null
+
+        val currentHub =
+            responseDto.currentHubId
+                ?.let { warehouseRepository.getWarehouseById(it) }
+                ?: return null
+
+        return remoteMapper.mapToDomain(
+            raw = responseDto,
+            currentHub = currentHub
+        )
+    }
+
+    override suspend fun save(
+        vehicle: Vehicle
+    ): Vehicle {
+        val request =
+            remoteMapper.mapToCreateRequest(vehicle)
+
+        val responseDto =
+            remoteDataSource.save(request)
+
+        val currentHub =
+            responseDto.currentHubId
+                ?.let { warehouseRepository.getWarehouseById(it) }
+                ?: return vehicle
+
+        return remoteMapper.mapToDomain(
+            raw = responseDto,
+            currentHub = currentHub
+        )
+    }
+
+    override suspend fun update(
+        vehicle: Vehicle
+    ): Vehicle {
+        val request =
+            remoteMapper.mapToUpdateRequest(vehicle)
+        val responseDto =
+            remoteDataSource.update(
+                id = vehicle.id,
+                request = request
+            )
+
+        val currentHub =
+            responseDto.currentHubId
+                ?.let { warehouseRepository.getWarehouseById(it) }
+                ?: return vehicle
+
+        return remoteMapper.mapToDomain(
+            raw = responseDto,
+            currentHub = currentHub
+        )
+    }
+
+    override suspend fun delete(
+        id: String
+    ): Boolean {
+        return remoteDataSource.delete(id)
+    }
 }
+
+
