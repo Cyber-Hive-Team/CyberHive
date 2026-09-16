@@ -1,5 +1,7 @@
 package org.example.data.datasource.remote
 
+import data.remote.dto.request.CreateVehicleRequestDto
+import data.remote.dto.request.UpdateVehicleRequestDto
 import data.remote.dto.response.VehicleResponseDto
 
 interface VehicleRemoteDatasource {
@@ -11,12 +13,12 @@ interface VehicleRemoteDatasource {
     ): VehicleResponseDto?
 
     suspend fun save(
-        vehicle: VehicleResponseDto
+        request: CreateVehicleRequestDto
     ): VehicleResponseDto
 
     suspend fun update(
         id: String,
-        vehicle: VehicleResponseDto
+        request: UpdateVehicleRequestDto
     ): VehicleResponseDto
 
     suspend fun delete(

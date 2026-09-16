@@ -1,5 +1,7 @@
 package org.example.data.datasource.remote
 
+import data.remote.dto.request.CreateRouteRequestDto
+import data.remote.dto.request.UpdateRouteRequestDto
 import data.remote.dto.response.RouteResponseDto
 
 interface RouteRemoteDatasource {
@@ -11,12 +13,12 @@ interface RouteRemoteDatasource {
     ): RouteResponseDto?
 
     suspend fun save(
-        route: RouteResponseDto
+        request: CreateRouteRequestDto
     ): RouteResponseDto
 
     suspend fun update(
         id: String,
-        route: RouteResponseDto
+        request: UpdateRouteRequestDto
     ): RouteResponseDto
 
     suspend fun delete(
