@@ -8,7 +8,7 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.result.Result
 import org.example.domain.repository.RouteRepository
 
-class CsvRouteRepository(
+class RouteRepositoryImpl(
     private val dataSource: RouteDataSource,
     private val mapper: RouteMapper,
     private val warehouseMap: Map<String, Warehouse>,
