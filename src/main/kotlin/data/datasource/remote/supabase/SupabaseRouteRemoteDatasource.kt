@@ -1,31 +1,34 @@
 package org.example.data.datasource.remote.supabase
 
+import data.remote.dto.request.CreateRouteRequestDto
+import data.remote.dto.request.UpdateRouteRequestDto
+import data.remote.dto.response.RouteResponseDto
 import org.example.data.datasource.remote.RouteRemoteDatasource
-import data.remote.dto.RouteDto
+
 
 class SupabaseRouteRemoteDatasource :
     RouteRemoteDatasource {
 
-    override suspend fun getAll(): List<RouteDto> {
+    override suspend fun getAll(): List<RouteResponseDto> {
         TODO("Implement Supabase")
     }
 
     override suspend fun getById(
         id: String
-    ): RouteDto? {
+    ): RouteResponseDto? {
         TODO("Implement Supabase")
     }
 
     override suspend fun save(
-        route: RouteDto
-    ): RouteDto {
+        request: CreateRouteRequestDto
+    ): RouteResponseDto {
         TODO("Implement Supabase")
     }
 
     override suspend fun update(
         id: String,
-        route: RouteDto
-    ): RouteDto {
+        request: UpdateRouteRequestDto
+    ): RouteResponseDto {
         TODO("Implement Supabase")
     }
 

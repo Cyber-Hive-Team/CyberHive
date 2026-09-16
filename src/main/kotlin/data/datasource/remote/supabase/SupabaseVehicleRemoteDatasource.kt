@@ -1,31 +1,34 @@
 package org.example.data.datasource.remote.supabase
 
+import data.remote.dto.request.CreateVehicleRequestDto
+import data.remote.dto.request.UpdateVehicleRequestDto
+import data.remote.dto.response.VehicleResponseDto
 import org.example.data.datasource.remote.VehicleRemoteDatasource
-import data.remote.dto.VehicleDto
+
 
 class SupabaseVehicleRemoteDatasource :
     VehicleRemoteDatasource {
 
-    override suspend fun getAll(): List<VehicleDto> {
+    override suspend fun getAll(): List<VehicleResponseDto> {
         TODO("Implement Supabase")
     }
 
     override suspend fun getById(
         id: String
-    ): VehicleDto? {
+    ): VehicleResponseDto? {
         TODO("Implement Supabase")
     }
 
     override suspend fun save(
-        vehicle: VehicleDto
-    ): VehicleDto {
+        request: CreateVehicleRequestDto
+    ): VehicleResponseDto {
         TODO("Implement Supabase")
     }
 
     override suspend fun update(
         id: String,
-        vehicle: VehicleDto
-    ): VehicleDto {
+        request: UpdateVehicleRequestDto
+    ): VehicleResponseDto {
         TODO("Implement Supabase")
     }
 
