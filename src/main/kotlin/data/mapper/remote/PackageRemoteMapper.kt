@@ -17,7 +17,8 @@ class PackageRemoteMapper {
         return Package(
             id = dto.id,
             weight = dto.weight,
-            priority = Priority.valueOf(dto.priority), originWarehouse = originWarehouse,
+            priority = Priority.valueOf(dto.priority),
+            originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )
 
