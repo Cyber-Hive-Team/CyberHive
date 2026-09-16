@@ -26,6 +26,7 @@ class WarehouseRemoteMapper {
             latitude = warehouse.latitude,
             longitude = warehouse.longitude
         )
+
     }
 
     fun mapToUpdateRequest(
@@ -40,5 +41,7 @@ class WarehouseRemoteMapper {
             latitude = latitude,
             longitude = longitude
         )
+
     }
+
 }
