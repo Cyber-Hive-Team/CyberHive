@@ -1,12 +1,14 @@
 package data.mapper.dto
 
-import data.remote.dto.VehicleDto
+import data.remote.dto.request.CreateVehicleRequestDto
+import data.remote.dto.request.UpdateVehicleRequestDto
+import data.remote.dto.response.VehicleResponseDto
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 
 class VehicleDtoMapper {
 
-    fun map(raw: VehicleDto, currentHub: Warehouse): Vehicle {
+    fun mapToDomain(raw: VehicleResponseDto, currentHub: Warehouse): Vehicle {
         return Vehicle(
             id = raw.vehicleId,
             maxCapacityKg = raw.maxCapacityKg ?: 0.0,
@@ -15,8 +17,17 @@ class VehicleDtoMapper {
         )
     }
 
-    fun mapToDto(domain: Vehicle): VehicleDto {
-        return VehicleDto(
+    fun mapToCreateRequest(domain: Vehicle): CreateVehicleRequestDto {
+        return CreateVehicleRequestDto(
+            vehicleId = domain.id,
+            currentHubId = domain.currentHub.id,
+            maxCapacityKg = domain.maxCapacityKg,
+            costPerKm = domain.costPerKm
+        )
+    }
+
+    fun mapToUpdateRequest(domain: Vehicle): UpdateVehicleRequestDto {
+        return UpdateVehicleRequestDto(
             vehicleId = domain.id,
             currentHubId = domain.currentHub.id,
             maxCapacityKg = domain.maxCapacityKg,
