@@ -4,10 +4,14 @@ import org.example.data.datasource.local.CsvPackageDataSource
 import org.example.data.datasource.local.CsvRouteDataSource
 import org.example.data.datasource.local.CsvVehicleDataSource
 import org.example.data.datasource.local.CsvWarehouseDataSource
+import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDatasource
 import org.example.data.mapper.csv.PackageMapper
 import org.example.data.mapper.csv.RouteMapper
 import org.example.data.mapper.csv.VehicleMapper
 import org.example.data.mapper.csv.WarehouseMapper
+import org.example.data.mapper.remote.WarehouseRemoteMapper
+import org.example.data.remote.client.SupabaseHttpClient
+import org.example.data.remote.config.SupabaseConfig
 import org.example.data.repository.CsvPackageRepository
 import org.example.data.repository.CsvRouteRepository
 import org.example.data.repository.CsvVehicleRepository
@@ -33,7 +37,10 @@ data class LoadedData(
     val routes: List<Route>
 )
 
-class DataLoader {
+class DataLoader(
+    private val httpClient: SupabaseHttpClient,
+    private val supabaseConfig: SupabaseConfig
+) {
 
     fun load(): LoadedData {
         val warehouses = loadWarehouses()
@@ -54,12 +61,15 @@ class DataLoader {
 
     private fun loadWarehouses(): List<Warehouse> {
         val result = WarehouseRepositoryImpl(
-            CsvWarehouseDataSource(WAREHOUSE_FILE),
-            WarehouseMapper(),
-            WarehouseValidator()
-
+            csvDataSource = CsvWarehouseDataSource(WAREHOUSE_FILE),
+            csvMapper = WarehouseMapper(),
+            validator = WarehouseValidator(),
+            remoteDataSource = SupabaseWarehouseRemoteDatasource(
+                client = httpClient.create(),
+                baseUrl = "${supabaseConfig.url}/rest/v1"
+            ),
+            remoteMapper = WarehouseRemoteMapper()
         ).getAllWarehouses()
-
         result.errorMessage?.let { println("WARNING: $it") }
 
         return result.data
