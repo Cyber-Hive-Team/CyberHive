@@ -27,7 +27,7 @@ private const val MAX_EXPECTED_HOURS = 10L
 private const val MIN_ARRIVAL_OFFSET_MINUTES = -60L
 private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 
-class CsvPackageRepository(
+class PackageRepositoryImpl(
     private val dataSource: PackageDataSource,
     private val mapper: PackageMapper,
     private val warehouseMap: Map<String, Warehouse>,
