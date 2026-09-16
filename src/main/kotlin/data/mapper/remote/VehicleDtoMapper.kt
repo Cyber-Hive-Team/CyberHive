@@ -1,8 +1,8 @@
-package data.mapper.remote
+package org.example.data.mapper.remote
 
-import data.remote.dto.request.CreateVehicleRequestDto
-import data.remote.dto.request.UpdateVehicleRequestDto
-import data.remote.dto.response.VehicleResponseDto
+import org.example.data.remote.dto.request.CreateVehicleRequestDto
+import org.example.data.remote.dto.request.UpdateVehicleRequestDto
+import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 
