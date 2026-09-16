@@ -1,7 +1,7 @@
 package org.example.data.repository
 
 import org.example.data.datasource.VehicleDataSource
-import data.mapper.csv.VehicleMapper
+import org.example.data.mapper.csv.VehicleMapper
 import org.example.data.validation.VehicleValidator
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse

@@ -1,4 +1,4 @@
-package data.remote.config
+package org.example.data.remote.config
 
 data class SupabaseConfig(
     val url: String,

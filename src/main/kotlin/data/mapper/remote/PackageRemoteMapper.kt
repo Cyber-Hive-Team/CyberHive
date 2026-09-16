@@ -1,4 +1,4 @@
-package data.mapper.remote
+package org.example.data.mapper.remote
 
 import org.example.data.remote.dto.request.CreatePackageRequestDto
 import org.example.data.remote.dto.request.UpdatePackageRequestDto

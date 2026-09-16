@@ -2,7 +2,7 @@ package org.example.data.repository
 
 import org.example.data.dataholder.PackageRaw
 import org.example.data.datasource.PackageDataSource
-import data.mapper.csv.PackageMapper
+import org.example.data.mapper.csv.PackageMapper
 import org.example.data.validation.PackageValidator
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements

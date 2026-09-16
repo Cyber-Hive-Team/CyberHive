@@ -1,9 +1,9 @@
 package org.example.presentation
 
-import data.mapper.csv.PackageMapper
-import data.mapper.csv.RouteMapper
-import data.mapper.csv.VehicleMapper
-import data.mapper.csv.WarehouseMapper
+import org.example.data.mapper.csv.PackageMapper
+import org.example.data.mapper.csv.RouteMapper
+import org.example.data.mapper.csv.VehicleMapper
+import org.example.data.mapper.csv.WarehouseMapper
 import org.example.data.datasource.local.CsvPackageDataSource
 import org.example.data.datasource.local.CsvRouteDataSource
 import org.example.data.datasource.local.CsvVehicleDataSource

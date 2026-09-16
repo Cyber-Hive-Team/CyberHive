@@ -1,8 +1,8 @@
-package data.mapper.remote
+package org.example.data.mapper.remote
 
-import data.remote.dto.response.RouteResponseDto
-import data.remote.dto.request.CreateRouteRequestDto
-import data.remote.dto.request.UpdateRouteRequestDto
+import org.example.data.remote.dto.response.RouteResponseDto
+import org.example.data.remote.dto.request.CreateRouteRequestDto
+import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 

@@ -1,8 +1,8 @@
 package org.example.data.datasource.remote
 
-import data.remote.dto.request.CreateRouteRequestDto
-import data.remote.dto.request.UpdateRouteRequestDto
-import data.remote.dto.response.RouteResponseDto
+import org.example.data.remote.dto.request.CreateRouteRequestDto
+import org.example.data.remote.dto.request.UpdateRouteRequestDto
+import org.example.data.remote.dto.response.RouteResponseDto
 
 interface RouteRemoteDatasource {
 
