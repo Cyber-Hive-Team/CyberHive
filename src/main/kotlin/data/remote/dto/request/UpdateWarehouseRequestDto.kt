@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UpdateWarehouseRequestDto(
     @SerialName("name")
-    val name: String,
+    val name: String? = null,
     @SerialName("regionalZone")
-    val regionalZone: String,
+    val regionalZone: String? = null,
     @SerialName("latitude")
     val latitude: Double? = null,
     @SerialName("longitude")
