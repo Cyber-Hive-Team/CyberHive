@@ -4,36 +4,59 @@ import org.example.data.datasource.remote.PackageRemoteDatasource
 import org.example.data.remote.dto.request.CreatePackageRequestDto
 import org.example.data.remote.dto.request.UpdatePackageRequestDto
 import org.example.data.remote.dto.response.PackageResponseDto
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.patch
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 
-class SupabasePackageRemoteDatasource :
-    PackageRemoteDatasource {
+class SupabasePackageRemoteDatasource(
+    private val client: HttpClient,
+    private val baseUrl: String
+) : PackageRemoteDatasource {
 
     override suspend fun getAll(): List<PackageResponseDto> {
-        TODO("Implement Supabase")
+        return client
+            .get("$baseUrl/package")
+            .body()
     }
 
     override suspend fun getById(
         id: String
     ): PackageResponseDto? {
-        TODO("Implement Supabase")
+        return client
+            .get("$baseUrl/packages?packageId=eq.$id")
+            .body<List<PackageResponseDto>>()
+            .firstOrNull()
     }
 
     override suspend fun save(
         request: CreatePackageRequestDto
     ): PackageResponseDto {
-        TODO("Implement Supabase")
+        return client
+            .post("$baseUrl/packages") {
+                setBody(request)
+            }
+            .body()
     }
 
     override suspend fun update(
         id: String,
         request: UpdatePackageRequestDto
     ): PackageResponseDto {
-        TODO("Implement Supabase")
+        return client
+            .patch("$baseUrl/packages?packageId=eq.$id") {
+                setBody(request)
+            }
+            .body()
     }
 
     override suspend fun delete(
         id: String
     ): Boolean {
-        TODO("Implement Supabase")
+        client.delete("$baseUrl/packages?packageId=eq.$id")
+        return true
     }
 }
