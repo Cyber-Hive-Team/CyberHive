@@ -24,6 +24,7 @@ class PackageRemoteMapper {
 
     }
 
+
     fun mapToCreateRequest(
         id: String,
         weight: Double,
