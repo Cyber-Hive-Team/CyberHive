@@ -28,7 +28,6 @@ class VehicleDtoMapper {
 
     fun mapToUpdateRequest(domain: Vehicle): UpdateVehicleRequestDto {
         return UpdateVehicleRequestDto(
-            vehicleId = domain.id,
             currentHubId = domain.currentHub.id,
             maxCapacityKg = domain.maxCapacityKg,
             costPerKm = domain.costPerKm

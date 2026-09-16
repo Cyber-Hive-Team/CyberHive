@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateRouteRequestDto(
-    @SerialName("routeId")
-    val routeId: String,
-
     @SerialName("originHubId")
     val originHubId: String? = null,
 
@@ -17,6 +14,6 @@ data class UpdateRouteRequestDto(
     @SerialName("distanceKm")
     val distanceKm: Double? = null,
 
-    @SerialName("typicalDelayMinutes")
-    val typicalDelayMinutes: Int? = null
+    @SerialName("typicalDelayMin")
+    val typicalDelayMin: Int? = null
 )

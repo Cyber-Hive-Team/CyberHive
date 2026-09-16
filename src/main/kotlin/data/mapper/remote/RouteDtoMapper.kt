@@ -16,7 +16,7 @@ class RouteDtoMapper {
         return Route(
             id = raw.routeId,
             distanceKm = raw.distanceKm,
-            typicalDelayMin = raw.typicalDelayMinutes ?: 0,
+            typicalDelayMin = raw.typicalDelayMin ?: 0,
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )
@@ -28,17 +28,16 @@ class RouteDtoMapper {
             originHubId = domain.originWarehouse.id,
             destinationHubId = domain.destinationWarehouse.id,
             distanceKm = domain.distanceKm,
-            typicalDelayMinutes = domain.typicalDelayMin
+            typicalDelayMin = domain.typicalDelayMin
         )
     }
 
     fun mapToUpdateRequest(domain: Route): UpdateRouteRequestDto {
         return UpdateRouteRequestDto(
-            routeId = domain.id,
             originHubId = domain.originWarehouse.id,
             destinationHubId = domain.destinationWarehouse.id,
             distanceKm = domain.distanceKm,
-            typicalDelayMinutes = domain.typicalDelayMin
+            typicalDelayMin = domain.typicalDelayMin
         )
     }
 

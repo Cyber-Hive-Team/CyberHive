@@ -17,6 +17,6 @@ data class RouteResponseDto(
     @SerialName("distanceKm")
     val distanceKm: Double,
 
-    @SerialName("typicalDelayMinutes")
-    val typicalDelayMinutes: Int? = null
+    @SerialName("typicalDelayMin")
+    val typicalDelayMin: Int? = null
 )
