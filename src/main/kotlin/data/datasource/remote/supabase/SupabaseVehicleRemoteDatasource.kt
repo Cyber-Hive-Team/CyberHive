@@ -1,40 +1,76 @@
 package org.example.data.datasource.remote.supabase
 
-import data.remote.dto.request.CreateVehicleRequestDto
-import data.remote.dto.request.UpdateVehicleRequestDto
-import data.remote.dto.response.VehicleResponseDto
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.patch
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import org.example.data.datasource.remote.VehicleRemoteDatasource
+import org.example.data.remote.dto.request.CreateVehicleRequestDto
+import org.example.data.remote.dto.request.UpdateVehicleRequestDto
+import org.example.data.remote.dto.response.VehicleResponseDto
 
 
-class SupabaseVehicleRemoteDatasource :
-    VehicleRemoteDatasource {
+class SupabaseVehicleRemoteDatasource(
+    private val client: HttpClient,
+    private val baseUrl: String
+) : VehicleRemoteDatasource {
+
 
     override suspend fun getAll(): List<VehicleResponseDto> {
-        TODO("Implement Supabase")
+
+        return client
+            .get("$baseUrl/vehicles")
+            .body()
     }
+
 
     override suspend fun getById(
         id: String
     ): VehicleResponseDto? {
-        TODO("Implement Supabase")
+
+        return client
+            .get("$baseUrl/vehicles?vehicleId=eq.$id")
+            .body<List<VehicleResponseDto>>()
+            .firstOrNull()
     }
+
 
     override suspend fun save(
         request: CreateVehicleRequestDto
     ): VehicleResponseDto {
-        TODO("Implement Supabase")
+
+        return client
+            .post("$baseUrl/vehicles") {
+                setBody(request)
+            }
+            .body()
     }
+
 
     override suspend fun update(
         id: String,
         request: UpdateVehicleRequestDto
     ): VehicleResponseDto {
-        TODO("Implement Supabase")
+
+        return client
+            .patch("$baseUrl/vehicles?vehicleId=eq.$id") {
+                setBody(request)
+            }
+            .body()
     }
+
 
     override suspend fun delete(
         id: String
     ): Boolean {
-        TODO("Implement Supabase")
+
+        client.delete(
+            "$baseUrl/vehicles?vehicleId=eq.$id"
+        )
+
+        return true
     }
 }
