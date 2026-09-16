@@ -1,68 +1,110 @@
-package org.example.data.repository
+package org.example.data.repositoryImplementation
 
-import org.example.data.datasource.VehicleDataSource
-import org.example.data.datasource.remote.VehicleRemoteDatasource
-import org.example.data.mapper.csv.VehicleMapper
-import org.example.data.mapper.remote.VehicleDtoMapper
-import org.example.data.validation.VehicleValidator
+import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
-import org.example.domain.model.Warehouse
 import org.example.domain.model.result.Result
 import org.example.domain.repository.VehicleRepository
-import org.example.domain.repository.WarehouseRepository
 
 class VehicleRepositoryImpl(
-    private val dataSource: VehicleDataSource,
-    private val mapper: VehicleMapper,
-    private val warehouseMap: Map<String, Warehouse>,
-    private val validator: VehicleValidator,
-    private val remoteDataSource: VehicleRemoteDatasource,
-    private val remoteMapper: VehicleDtoMapper,
-    private val warehouseRepository: WarehouseRepository
-
+    private val dependencies: VehicleRepositoryDependencies
 ) : VehicleRepository {
+
     private val vehicles = mutableListOf<Vehicle>()
     private var isLoaded = false
 
+
     @Suppress("TooGenericExceptionCaught", "LongMethod", "ReturnCount")
     override fun getVehicles(): Result<List<Vehicle>> {
+
         return try {
-        if (isLoaded) {
-            return Result(data = vehicles.toList(), errorMessage = null)
-        }
-        val rawResults = dataSource.getVehicles()
-        val warnings = rawResults
-                .mapNotNull { it.errorMessage }
-                .toMutableList()
-        val rawVehicles = rawResults.mapNotNull { it.rawData }
-        rawVehicles.forEach { raw ->
-            val currentHub = warehouseMap[raw.currentHubId]
-            val validationWarnings = validator.validate(raw, currentHub)
-            if (validationWarnings.isEmpty()) {
-                vehicles.add(
-                    mapper.map(raw, currentHub!!)
+
+            if (isLoaded) {
+                return Result(
+                    data = vehicles.toList(),
+                    errorMessage = null
                 )
-            } else {
-                warnings.addAll(validationWarnings)
             }
-        }
-        isLoaded = true
-        return Result(
-            data = vehicles.toList(),
-            errorMessage = warnings
-                .takeIf { it.isNotEmpty() }
-                ?.joinToString("; ")
-        )
+
+
+            val rawResults =
+                dependencies.localDataSource.getVehicles()
+
+
+            val warnings =
+                rawResults
+                    .mapNotNull { it.errorMessage }
+                    .toMutableList()
+
+
+            val rawVehicles =
+                rawResults
+                    .mapNotNull { it.rawData }
+
+
+            rawVehicles.forEach { raw ->
+
+                val currentHub =
+                    dependencies.warehouseMap[raw.currentHubId]
+
+
+                val validationWarnings =
+                    dependencies.validator.validate(
+                        raw,
+                        currentHub
+                    )
+
+
+                if (validationWarnings.isEmpty()) {
+
+                    vehicles.add(
+                        dependencies.localMapper.map(
+                            raw,
+                            currentHub!!
+                        )
+                    )
+
+                } else {
+
+                    warnings.addAll(validationWarnings)
+
+                }
+            }
+
+
+            isLoaded = true
+
+
+            Result(
+                data = vehicles.toList(),
+                errorMessage =
+                    warnings
+                        .takeIf { it.isNotEmpty() }
+                        ?.joinToString("; ")
+            )
+
+
         } catch (e: Exception) {
-            Result(data = emptyList(), errorMessage = "Failed to load vehicles: ${e.message}")
+
+            Result(
+                data = emptyList(),
+                errorMessage =
+                    "Failed to load vehicles: ${e.message}"
+            )
         }
-
     }
 
-    override fun getVehicleById(vehicleId: String): Vehicle? {
 
-        return getVehicles().data.firstOrNull { it.id == vehicleId }
+    override fun getVehicleById(
+        vehicleId: String
+    ): Vehicle? {
+
+        return getVehicles()
+            .data
+            .firstOrNull {
+                it.id == vehicleId
+            }
     }
+
 
     override fun getVehiclesByWarehouseId(
         warehouseId: String
@@ -76,106 +118,169 @@ class VehicleRepositoryImpl(
             },
             errorMessage = result.errorMessage
         )
-
     }
 
-    override fun reassignVehicle(vehicleId: String, warehouseId: String): Boolean {
+
+    override fun reassignVehicle(
+        vehicleId: String,
+        warehouseId: String
+    ): Boolean {
+
         getVehicles()
+
+
         val index =
             vehicles.indexOfFirst { vehicle ->
                 vehicle.id == vehicleId
             }
+
+
         if (index == -1) {
             return false
         }
-        val targetWarehouse =
-            warehouseMap[warehouseId]
-                ?: return false
-        vehicles[index] =
-            vehicles[index].copy(
-                currentHub = targetWarehouse
-            )
-        return true
 
+
+        val targetWarehouse =
+            dependencies.warehouseMap[warehouseId]
+                ?: return false
+
+
+        vehicles[index] =
+            Vehicle(
+                id = vehicles[index].id,
+                currentHub = targetWarehouse,
+                maxCapacityKg = vehicles[index].maxCapacityKg,
+                costPerKm = vehicles[index].costPerKm
+            )
+
+
+        return true
     }
 
-    override fun removeVehicle(vehicleId: String): Boolean {
+
+    override fun removeVehicle(
+        vehicleId: String
+    ): Boolean {
+
         getVehicles()
 
-        return vehicles.removeIf { it.id == vehicleId }
+        return vehicles.removeIf {
+            it.id == vehicleId
+        }
     }
+
 
 
     override suspend fun getRemoteById(
         vehicleId: String
     ): Vehicle? {
+
+
         val responseDto =
-            remoteDataSource.getById(vehicleId)
+            dependencies.remoteDataSource
+                .getById(vehicleId)
                 ?: return null
+
 
         val currentHub =
             responseDto.currentHubId
-                ?.let { warehouseRepository.getWarehouseById(it) }
+                ?.let {
+                    dependencies
+                        .warehouseRepository
+                        .getWarehouseById(it)
+                }
                 ?: return null
 
-        return remoteMapper.mapToDomain(
-            raw = responseDto,
-            currentHub = currentHub
-        )
 
+
+        return dependencies.remoteMapper
+            .mapToDomain(
+                raw = responseDto,
+                currentHub = currentHub
+            )
     }
+
+
 
     override suspend fun save(
         vehicle: Vehicle
     ): Vehicle {
+
+
         val request =
-            remoteMapper.mapToCreateRequest(vehicle)
+            dependencies.remoteMapper
+                .mapToCreateRequest(vehicle)
+
+
 
         val responseDto =
-            remoteDataSource.save(request)
+            dependencies.remoteDataSource
+                .save(request)
+
+
 
         val currentHub =
             responseDto.currentHubId
-                ?.let { warehouseRepository.getWarehouseById(it) }
+                ?.let {
+                    dependencies
+                        .warehouseRepository
+                        .getWarehouseById(it)
+                }
                 ?: return vehicle
 
-        return remoteMapper.mapToDomain(
-            raw = responseDto,
-            currentHub = currentHub
-        )
 
+
+        return dependencies.remoteMapper
+            .mapToDomain(
+                raw = responseDto,
+                currentHub = currentHub
+            )
     }
+
 
     override suspend fun update(
         vehicle: Vehicle
     ): Vehicle {
+
+
         val request =
-            remoteMapper.mapToUpdateRequest(vehicle)
+            dependencies.remoteMapper
+                .mapToUpdateRequest(vehicle)
+
+
+
         val responseDto =
-            remoteDataSource.update(
-                id = vehicle.id,
-                request = request
-            )
+            dependencies.remoteDataSource
+                .update(
+                    id = vehicle.id,
+                    request = request
+                )
+
 
         val currentHub =
             responseDto.currentHubId
-                ?.let { warehouseRepository.getWarehouseById(it) }
+                ?.let {
+                    dependencies
+                        .warehouseRepository
+                        .getWarehouseById(it)
+                }
                 ?: return vehicle
 
-        return remoteMapper.mapToDomain(
-            raw = responseDto,
-            currentHub = currentHub
-        )
 
+
+        return dependencies.remoteMapper
+            .mapToDomain(
+                raw = responseDto,
+                currentHub = currentHub
+            )
     }
+
 
     override suspend fun delete(
         id: String
     ): Boolean {
-        return remoteDataSource.delete(id)
 
+        return dependencies.remoteDataSource
+            .delete(id)
     }
-
 }
-
-
