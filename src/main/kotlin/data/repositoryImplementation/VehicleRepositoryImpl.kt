@@ -8,7 +8,7 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.result.Result
 import org.example.domain.repository.VehicleRepository
 
-class CsvVehicleRepository(
+class VehicleRepositoryImpl(
     private val dataSource: VehicleDataSource,
     private val mapper: VehicleMapper,
     private val warehouseMap: Map<String, Warehouse>,
