@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateVehicleRequestDto(
-    @SerialName("vehicleId")
-    val vehicleId: String,
-
     @SerialName("currentHubId")
     val currentHubId: String? = null,
 
