@@ -2,9 +2,12 @@ package org.example.data.repository
 
 import org.example.data.dataholder.WareHouseRaw
 import org.example.data.datasource.WarehouseDataSource
+import org.example.data.datasource.remote.WarehouseRemoteDatasource
 import org.example.data.mapper.csv.WarehouseMapper
+import org.example.data.mapper.remote.WarehouseRemoteMapper
 import org.example.data.validation.WarehouseValidator
 import org.example.domain.model.Package
+import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.result.Result
@@ -12,16 +15,17 @@ import org.example.domain.repository.WarehouseRepository
 import kotlin.random.Random
 
 class WarehouseRepositoryImpl(
-    private val dataSource: WarehouseDataSource,
-    private val mapper: WarehouseMapper,
-    private val validator: WarehouseValidator
-
+    private val csvDataSource: WarehouseDataSource,
+    private val csvMapper: WarehouseMapper,
+    private val validator: WarehouseValidator,
+    private val remoteDataSource: WarehouseRemoteDatasource,
+    private val remoteMapper: WarehouseRemoteMapper
 ) : WarehouseRepository {
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllWarehouses(): Result<List<Warehouse>> {
         return try {
-        val rawResults = dataSource.getWarehouses()
+            val rawResults = csvDataSource.getWarehouses()
         val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
         val rawWarehouses = rawResults.mapNotNull { it.rawData }
         val warehouses = rawWarehouses.mapNotNull { raw ->
@@ -50,7 +54,7 @@ class WarehouseRepositoryImpl(
             return null
         }
 
-        return mapper.map(raw)
+        return csvMapper.map(raw)
 
     }
 
@@ -122,8 +126,50 @@ class WarehouseRepositoryImpl(
                     supportsSpecialHandling = Random.nextBoolean()
                 )
             }
+
     }
 
+    override suspend fun getRemoteById(
+        id: String
+    ): Warehouse? {
+        val responseDto = remoteDataSource.getById(id)
+            ?: return null
+
+        return remoteMapper.mapToDomainModel(responseDto)
+
+    }
+
+    override suspend fun save(
+        warehouse: Warehouse
+    ): Warehouse {
+        val requestDto = remoteMapper.mapToCreateRequest(warehouse)
+        val responseDto = remoteDataSource.save(requestDto)
+        return remoteMapper.mapToDomainModel(responseDto)
+
+    }
+
+    override suspend fun update(
+        id: String,
+        name: String?,
+        regionalZone: RegionalZone?,
+        latitude: Double?,
+        longitude: Double?
+    ): Warehouse {
+        val requestDto = remoteMapper.mapToUpdateRequest(
+            name = name,
+            regionalZone = regionalZone,
+            latitude = latitude,
+            longitude = longitude
+        )
+        val responseDto = remoteDataSource.update(id = id, request = requestDto)
+        return remoteMapper.mapToDomainModel(responseDto)
+
+    }
+
+    override suspend fun delete(id: String): Boolean {
+        return remoteDataSource.delete(id)
+
+    }
 }
 
 

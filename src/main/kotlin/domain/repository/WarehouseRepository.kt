@@ -13,7 +13,7 @@ interface WarehouseRepository {
     fun sortCargoQueue(warehouseId: String): Boolean
     fun isPackageInCargoQueue(warehouseId: String, packageId: String): Boolean
     fun getAllWarehouseServices(): List<WarehouseServices>
-    suspend fun getById(id: String): Warehouse
+    suspend fun getRemoteById(id: String): Warehouse?
     suspend fun save(warehouse: Warehouse): Warehouse
     suspend fun update(
         id: String, name: String? = null,
