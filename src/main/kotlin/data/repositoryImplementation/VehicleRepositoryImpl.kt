@@ -122,6 +122,7 @@ class VehicleRepositoryImpl(
             raw = responseDto,
             currentHub = currentHub
         )
+
     }
 
     override suspend fun save(
@@ -142,6 +143,7 @@ class VehicleRepositoryImpl(
             raw = responseDto,
             currentHub = currentHub
         )
+
     }
 
     override suspend fun update(
@@ -164,13 +166,16 @@ class VehicleRepositoryImpl(
             raw = responseDto,
             currentHub = currentHub
         )
+
     }
 
     override suspend fun delete(
         id: String
     ): Boolean {
         return remoteDataSource.delete(id)
+
     }
+
 }
 
 
