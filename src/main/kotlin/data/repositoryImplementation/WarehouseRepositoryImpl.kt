@@ -11,7 +11,7 @@ import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 import kotlin.random.Random
 
-class CsvWarehouseRepository(
+class WarehouseRepositoryImpl(
     private val dataSource: WarehouseDataSource,
     private val mapper: WarehouseMapper,
     private val validator: WarehouseValidator

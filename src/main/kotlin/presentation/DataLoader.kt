@@ -1,18 +1,17 @@
 package org.example.presentation
 
-import org.example.data.mapper.csv.PackageMapper
-import org.example.data.mapper.csv.RouteMapper
-import org.example.data.mapper.csv.VehicleMapper
-import org.example.data.mapper.csv.WarehouseMapper
 import org.example.data.datasource.local.CsvPackageDataSource
 import org.example.data.datasource.local.CsvRouteDataSource
 import org.example.data.datasource.local.CsvVehicleDataSource
 import org.example.data.datasource.local.CsvWarehouseDataSource
-
+import org.example.data.mapper.csv.PackageMapper
+import org.example.data.mapper.csv.RouteMapper
+import org.example.data.mapper.csv.VehicleMapper
+import org.example.data.mapper.csv.WarehouseMapper
 import org.example.data.repository.CsvPackageRepository
 import org.example.data.repository.CsvRouteRepository
 import org.example.data.repository.CsvVehicleRepository
-import org.example.data.repository.CsvWarehouseRepository
+import org.example.data.repository.WarehouseRepositoryImpl
 import org.example.data.validation.PackageValidator
 import org.example.data.validation.RouteValidator
 import org.example.data.validation.VehicleValidator
@@ -54,7 +53,7 @@ class DataLoader {
     }
 
     private fun loadWarehouses(): List<Warehouse> {
-        val result = CsvWarehouseRepository(
+        val result = WarehouseRepositoryImpl(
             CsvWarehouseDataSource(WAREHOUSE_FILE),
             WarehouseMapper(),
             WarehouseValidator()
