@@ -8,17 +8,17 @@ object IdValidator {
         entityName: String
     ): List<FieldViolation> {
 
+        val violations = mutableListOf<FieldViolation>()
+
         if (id.isBlank()) {
-            return listOf(
+            violations.add(
                 FieldViolation(
                     "id",
                     "$entityName ID cannot be blank."
                 )
             )
-        }
-
-        if (!id.startsWith(prefix) && !isUuid(id)) {
-            return listOf(
+        }else if (!id.startsWith(prefix) && !isUuid(id)) {
+            violations.add(
                 FieldViolation(
                     "id",
                     "$entityName ID must start with '$prefix' or be a valid UUID."
@@ -26,7 +26,7 @@ object IdValidator {
             )
         }
 
-        return emptyList()
+        return violations
     }
 
     private fun isUuid(id: String): Boolean {
