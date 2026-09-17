@@ -115,10 +115,10 @@ class PackageRepositoryImpl(
         if (remoteDto != null) {
             val originWarehouse =
                 dependencies.warehouseRepository
-                    .getWarehouseById(remoteDto.originHubId)
+                    .getById(remoteDto.originHubId)
             val destinationWarehouse =
                 dependencies.warehouseRepository
-                    .getWarehouseById(remoteDto.destinationHubId)
+                    .getById(remoteDto.destinationHubId)
             if (originWarehouse != null && destinationWarehouse != null) {
                 return dependencies.remoteMapper.mapToDomainModel(
                     dto = remoteDto,
@@ -256,10 +256,10 @@ class PackageRepositoryImpl(
         val dto = dependencies.remoteDataSource.update(id = id, request = request)
         val originWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(dto.originHubId)
+                .getById(dto.originHubId)
         val destinationWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(dto.destinationHubId)
+                .getById(dto.destinationHubId)
         return if (originWarehouse != null && destinationWarehouse != null) {
             dependencies.remoteMapper.mapToDomainModel(
                 dto = dto,
