@@ -205,12 +205,13 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
                 destinationId.isNotBlank() &&
                 originId == destinationId
             ) {
-            violations.add(
-                FieldViolation(
-                    "destinationWarehouse",
-                    "Origin and Destination warehouses cannot be the same."
+                violations.add(
+                    FieldViolation(
+                        "destinationWarehouse",
+                        "Origin and Destination warehouses cannot be the same."
+                    )
                 )
-            )
+            }
         }
 
         return violations
