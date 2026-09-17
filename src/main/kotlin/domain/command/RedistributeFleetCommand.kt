@@ -1,9 +1,9 @@
 package org.example.domain.command
 
+import org.example.domain.model.exception.CommandExecutionException
 import org.example.domain.model.result.VehicleTransferResult
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.usecase.RedistributeFleetUseCase
-import org.example.domain.model.exception.CommandExecutionException
 
 class RedistributeFleetCommand(
     private val redistributeFleetUseCase: RedistributeFleetUseCase,
@@ -11,7 +11,7 @@ class RedistributeFleetCommand(
 ) : Command {
     private var transfers: List<VehicleTransferResult> = emptyList()
 
-    override fun execute(): Boolean {
+    override suspend fun execute(): Boolean {
         transfers = redistributeFleetUseCase()
 
         if (transfers.isEmpty()) {
@@ -22,7 +22,7 @@ class RedistributeFleetCommand(
 
     }
 
-    override fun undo(): Boolean {
+    override suspend fun undo(): Boolean {
         if (transfers.isEmpty()) {
             throw CommandExecutionException("Cannot undo: No fleet transfers were executed to revert.")
         }
@@ -42,7 +42,8 @@ class RedistributeFleetCommand(
         transfers = emptyList()
         return true
     }
-    override fun describe(): String {
+
+    override suspend fun describe(): String {
         if (transfers.isEmpty()) return "Redistribute fleet: no transfers performed"
         val details = transfers.joinToString {
             "vehicle ${it.vehicleId} ${it.fromWarehouseId} -> ${it.toWarehouseId} (${it.capacityKg}kg)"

@@ -14,7 +14,7 @@ class AddVehicleToHubCommand(
 
     private var addedVehicle = false
 
-    override fun execute(): Boolean {
+    override suspend fun execute(): Boolean {
         addVehicleToHubUseCase(
             AddVehicleToHubInput(vehicleId, warehouseId)
         )
@@ -23,7 +23,7 @@ class AddVehicleToHubCommand(
         return true
     }
 
-    override fun undo(): Boolean {
+    override suspend fun undo(): Boolean {
         if (!addedVehicle) {
             throw CommandExecutionException(
                 "Cannot undo: Vehicle '$vehicleId' was not successfully added prior to undo."
@@ -42,8 +42,8 @@ class AddVehicleToHubCommand(
         return true
     }
 
-    override fun describe(): String {
-        val currentHub = vehicleRepository.getVehicleById(vehicleId)?.currentHub?.id
+    override suspend fun describe(): String {
+        val currentHub = vehicleRepository.getById(vehicleId)?.currentHub?.id
 
         return "Add vehicle $vehicleId -> warehouse $warehouseId " +
                 "| currently at: $currentHub"

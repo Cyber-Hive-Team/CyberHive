@@ -1,9 +1,9 @@
 package org.example.domain.command
 
 import org.example.domain.model.Package
+import org.example.domain.model.exception.CommandExecutionException
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
-import org.example.domain.model.exception.CommandExecutionException
 
 class AssignPackageToQueueCommand(
     private val warehouseId: String,
@@ -14,7 +14,7 @@ class AssignPackageToQueueCommand(
 
     private var addedPackage = false
 
-    override fun execute(): Boolean {
+    override suspend fun execute(): Boolean {
         addedPackage = assignPackageToCargoQueueUseCase(warehouseId, cargoPackage)
         if (!addedPackage) {
             throw CommandExecutionException(
@@ -24,14 +24,14 @@ class AssignPackageToQueueCommand(
         return true
     }
 
-    override fun undo(): Boolean {
+    override suspend fun undo(): Boolean {
         if (!addedPackage) {
             throw CommandExecutionException(
                 "Cannot undo: Package '${cargoPackage.id}' was not assigned to queue prior to undo."
             )
         }
 
-        val warehouse = warehouseRepository.getWarehouseById(warehouseId)
+        val warehouse = warehouseRepository.getById(warehouseId)
             ?: throw CommandExecutionException(
                 "Failed to undo: Warehouse '$warehouseId' not found."
             )
@@ -48,8 +48,8 @@ class AssignPackageToQueueCommand(
 
     }
 
-    override fun describe(): String {
-        val queueIds = warehouseRepository.getWarehouseById(warehouseId)
+    override suspend fun describe(): String {
+        val queueIds = warehouseRepository.getById(warehouseId)
             ?.getCargoQueue()
             ?.joinToString { it.id }
             .orEmpty()
