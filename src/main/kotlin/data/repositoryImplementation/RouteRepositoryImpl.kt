@@ -125,26 +125,16 @@ class RouteRepositoryImpl(
     override suspend fun save(
         route: Route
     ): Route {
-        val request =
-            dependencies.remoteMapper
-                .mapToCreateRequest(route)
-        val responseDto =
-            dependencies.remoteDataSource
-                .save(request)
+        val request = dependencies.remoteMapper.mapToCreateRequest(route)
+        val responseDto = dependencies.remoteDataSource.save(request)
         val originWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.originHubId
-                )
+                .getWarehouseById(responseDto.originHubId)
         val destinationWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.destinationHubId
-                )
+                .getWarehouseById(responseDto.destinationHubId)
         if (
-            originWarehouse == null ||
-            destinationWarehouse == null
-        ) {
+            originWarehouse == null || destinationWarehouse == null) {
             return route
         }
         return dependencies.remoteMapper
@@ -163,25 +153,13 @@ class RouteRepositoryImpl(
             dependencies.remoteMapper
                 .mapToUpdateRequest(route)
         val responseDto =
-            dependencies.remoteDataSource
-                .update(
-                    id = route.id,
-                    request = request
-                )
+            dependencies.remoteDataSource.update(id = route.id, request = request)
         val originWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.originHubId
-                )
+                .getWarehouseById(responseDto.originHubId)
         val destinationWarehouse =
-            dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.destinationHubId
-                )
-        if (
-            originWarehouse == null ||
-            destinationWarehouse == null
-        ) {
+            dependencies.warehouseRepository.getWarehouseById(responseDto.destinationHubId)
+        if (originWarehouse == null || destinationWarehouse == null) {
             return route
         }
         return dependencies.remoteMapper

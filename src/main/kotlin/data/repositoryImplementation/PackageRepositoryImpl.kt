@@ -205,13 +205,12 @@ class PackageRepositoryImpl(
 
 
     override suspend fun getRemoteById(
-        id: String
+        packageId: String
     ): Package? {
-
 
         val responseDto =
             dependencies.remoteDataSource
-                .getById(id)
+                .getById(packageId)
                 ?: return null
 
         val originWarehouse =
@@ -289,16 +288,10 @@ class PackageRepositoryImpl(
         val originWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(dto.originHubId)
-
         val destinationWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(dto.destinationHubId)
-
-
-        return if (
-            originWarehouse != null &&
-            destinationWarehouse != null
-        ) {
+        return if (originWarehouse != null && destinationWarehouse != null) {
             dependencies.remoteMapper.mapToDomainModel(
                 dto = dto,
                 originWarehouse = originWarehouse,
