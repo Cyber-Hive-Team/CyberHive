@@ -214,32 +214,30 @@ class PackageRepositoryImpl(
                 .getById(id)
                 ?: return null
 
-
-
         val originWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(
                     responseDto.originHubId
                 )
-                ?: return null
-
 
         val destinationWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(
                     responseDto.destinationHubId
                 )
-                ?: return null
 
-
-
-        return dependencies.remoteMapper
-            .mapToDomainModel(
-                dto = responseDto,
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
+        return if (originWarehouse != null && destinationWarehouse != null) {
+            dependencies.remoteMapper
+                .mapToDomainModel(
+                    dto = responseDto,
+                    originWarehouse = originWarehouse,
+                    destinationWarehouse = destinationWarehouse
+                )
+        } else {
+            null
+        }
     }
+
 
 
     override suspend fun save(
@@ -291,25 +289,32 @@ class PackageRepositoryImpl(
         val originWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(dto.originHubId)
-                ?: return getRemoteById(id)!!
+
         val destinationWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(dto.destinationHubId)
-                ?: return getRemoteById(id)!!
 
-        return dependencies.remoteMapper
-            .mapToDomainModel(
+
+        return if (
+            originWarehouse != null &&
+            destinationWarehouse != null
+        ) {
+            dependencies.remoteMapper.mapToDomainModel(
                 dto = dto,
                 originWarehouse = originWarehouse,
                 destinationWarehouse = destinationWarehouse
             )
+        } else {
+            requireNotNull(getRemoteById(id)) {
+                "Package with id $id was not found"
+            }
+        }
     }
 
 
     override suspend fun delete(
         id: String
     ): Boolean {
-
         return dependencies.remoteDataSource
             .delete(id)
     }
