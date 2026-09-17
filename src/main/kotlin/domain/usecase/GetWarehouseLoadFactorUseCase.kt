@@ -9,9 +9,9 @@ class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
 
-    operator fun invoke(warehouseId: String): Double {
+    suspend operator fun invoke(warehouseId: String): Double {
         val warehouse = warehouseRepository
-            .getWarehouseById(warehouseId)
+            .getById(warehouseId)
             ?: throw WarehouseNotFoundException()
 
         val totalQueueWeight = warehouse.getCargoQueue()

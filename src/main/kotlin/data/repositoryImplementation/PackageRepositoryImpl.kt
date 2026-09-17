@@ -190,6 +190,23 @@ class PackageRepositoryImpl(
             }
     }
 
+    override fun getPackagesByWarehouseId(
+        warehouseId: String
+    ): Result<List<Package>> {
+
+        val result =
+            getAllPackages()
+
+
+        return Result(
+            data =
+                result.data.filter {
+                    it.originWarehouse.id == warehouseId
+                },
+            errorMessage =
+                result.errorMessage
+        )
+    }
 
     override fun getAllPackageRequirements():
             List<PackageRequirements> {

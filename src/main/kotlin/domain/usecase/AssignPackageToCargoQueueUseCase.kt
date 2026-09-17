@@ -6,7 +6,7 @@ import org.example.domain.repository.WarehouseRepository
 class AssignPackageToCargoQueueUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         warehouseId: String,
         cargoPackage: Package
     ): Boolean {
