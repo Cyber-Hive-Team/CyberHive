@@ -12,31 +12,17 @@ class RouteRepositoryImpl(
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllRoutes(): Result<List<Route>> {
-
         return try {
-
-            val rawResults =
-                dependencies.localDataSource.getRoutes()
-
-
-            val warnings =
-                rawResults
+            val rawResults = dependencies.localDataSource.getRoutes()
+            val warnings = rawResults
                     .mapNotNull { it.errorMessage }
                     .toMutableList()
-
-
-            val rawRoutes =
-                rawResults
-                    .mapNotNull { it.rawData }
-
-
+            val rawRoutes = rawResults.mapNotNull { it.rawData }
             val routes =
                 mapRoutes(
                     rawRoutes = rawRoutes,
                     warnings = warnings
                 )
-
-
             Result(
                 data = routes,
                 errorMessage =
@@ -44,16 +30,14 @@ class RouteRepositoryImpl(
                         .takeIf { it.isNotEmpty() }
                         ?.joinToString("; ")
             )
-
-
         } catch (e: Exception) {
-
             Result(
                 data = emptyList(),
                 errorMessage =
                     "Failed to load routes: ${e.message}"
             )
         }
+
     }
 
 
@@ -150,41 +134,28 @@ class RouteRepositoryImpl(
     override suspend fun save(
         route: Route
     ): Route {
-
-
         val request =
             dependencies.remoteMapper
                 .mapToCreateRequest(route)
-
-
         val responseDto =
             dependencies.remoteDataSource
                 .save(request)
-
-
         val originWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(
                     responseDto.originHubId
                 )
-
-
         val destinationWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(
                     responseDto.destinationHubId
                 )
-
-
         if (
             originWarehouse == null ||
             destinationWarehouse == null
         ) {
             return route
         }
-
-
-
         return dependencies.remoteMapper
             .mapToDomain(
                 raw = responseDto,
@@ -197,44 +168,31 @@ class RouteRepositoryImpl(
     override suspend fun update(
         route: Route
     ): Route {
-
-
         val request =
             dependencies.remoteMapper
                 .mapToUpdateRequest(route)
-
-
         val responseDto =
             dependencies.remoteDataSource
                 .update(
                     id = route.id,
                     request = request
                 )
-
-
         val originWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(
                     responseDto.originHubId
                 )
-
-
         val destinationWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(
                     responseDto.destinationHubId
                 )
-
-
         if (
             originWarehouse == null ||
             destinationWarehouse == null
         ) {
             return route
         }
-
-
-
         return dependencies.remoteMapper
             .mapToDomain(
                 raw = responseDto,
