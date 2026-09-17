@@ -18,33 +18,13 @@ class WarehouseRepositoryImpl(
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllWarehouses(): Result<List<Warehouse>> {
-
         return try {
-
-            val rawResults =
-                dependencies.localDataSource.getWarehouses()
-
-
-            val warnings =
-                rawResults
-                    .mapNotNull { it.errorMessage }
-                    .toMutableList()
-
-
-            val rawWarehouses =
-                rawResults
-                    .mapNotNull { it.rawData }
-
-
-            val warehouses =
-                rawWarehouses.mapNotNull { raw ->
-                    mapValidWarehouse(
-                        raw,
-                        warnings
-                    )
+            val rawResults = dependencies.localDataSource.getWarehouses()
+            val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
+            val rawWarehouses = rawResults.mapNotNull { it.rawData }
+            val warehouses = rawWarehouses.mapNotNull { raw ->
+                mapValidWarehouse(raw, warnings)
                 }
-
-
             Result(
                 data = warehouses,
                 errorMessage =
@@ -53,9 +33,7 @@ class WarehouseRepositoryImpl(
                         ?.joinToString("; ")
             )
 
-
         } catch (e: Exception) {
-
             Result(
                 data = emptyList(),
                 errorMessage =
