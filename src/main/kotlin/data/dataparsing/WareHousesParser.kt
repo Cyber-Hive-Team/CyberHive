@@ -2,6 +2,7 @@ package org.example.data.dataparsing
 
 import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.WareHouseRaw
+import org.example.data.exception.InvalidColumnCountException
 import org.example.domain.model.RegionalZone
 
 private const val REQUIRED_COLUMNS_COUNT = 5
@@ -15,9 +16,8 @@ fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<War
     val columns = row.split(",").map { it.trim() }
 
     if (!hasRequiredColumns(columns)) {
-        return RawResult(
-            rawData = null,
-            errorMessage = "Row ${rowIndex + 1} skipped - missing columns"
+        throw InvalidColumnCountException(
+            "Row ${rowIndex + 1} skipped - missing columns"
         )
     }
 

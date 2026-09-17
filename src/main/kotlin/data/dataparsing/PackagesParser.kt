@@ -4,6 +4,10 @@ import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RawResult
 import org.example.domain.model.Priority
 import java.io.File
+import org.example.data.exception.EmptyFileDataException
+import org.example.data.exception.FileNotFoundDataException
+import org.example.data.exception.InvalidColumnCountException
+import org.example.data.exception.MissingRequiredFieldException
 
 private const val FIRST_DATA_ROW_INDEX = 1
 private const val EXPECTED_COLUMN_COUNT = 5
@@ -37,10 +41,15 @@ private fun readPackageLines(
     val packagesFile = File(filePath)
 
     if (!packagesFile.exists()) {
-        return emptyList()
+        throw FileNotFoundDataException("Package file not found: $filePath")
+
     }
 
-    return packagesFile.readLines()
+    val lines = packagesFile.readLines()
+    if (lines.isEmpty()) {
+        throw EmptyFileDataException("Package file is empty: $filePath")
+    }
+    return lines
 }
 
 private fun parsePackageLine(line: String, lineNumber: Int): RawResult<PackageRaw> {
@@ -49,11 +58,10 @@ private fun parsePackageLine(line: String, lineNumber: Int): RawResult<PackageRa
     }
     val columns = splitAndCleanColumns(line)
     if (columns.size < EXPECTED_COLUMN_COUNT) {
-        return RawResult(
-            rawData = null,
-            errorMessage = "Invalid package row $lineNumber: " +
-                    "expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}"
-        )
+        throw InvalidColumnCountException(
+            "Invalid package row $lineNumber: " +
+                "expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}")
+
     }
     val packageRaw = createPackageRaw(columns)
     val validationError = validatePackageFields(
@@ -92,8 +100,7 @@ private fun validatePackageFields(
         originHubId.isBlank() ||
         destinationHubId.isBlank()
     ) {
-
-        return "Warning: package row $lineNumber has missing required fields"
+        throw MissingRequiredFieldException("Warning: package row $lineNumber has missing required fields")
 
 
     }
