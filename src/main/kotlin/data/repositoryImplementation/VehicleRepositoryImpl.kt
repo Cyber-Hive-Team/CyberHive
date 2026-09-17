@@ -125,26 +125,16 @@ class VehicleRepositoryImpl(
         vehicleId: String,
         warehouseId: String
     ): Boolean {
-
         getVehicles()
-
-
         val index =
             vehicles.indexOfFirst { vehicle ->
                 vehicle.id == vehicleId
             }
-
-
-        if (index == -1) {
-            return false
-        }
-
-
         val targetWarehouse =
             dependencies.warehouseMap[warehouseId]
-                ?: return false
-
-
+        if (index == -1 || targetWarehouse == null) {
+            return false
+        }
         vehicles[index] =
             Vehicle(
                 id = vehicles[index].id,
@@ -152,9 +142,8 @@ class VehicleRepositoryImpl(
                 maxCapacityKg = vehicles[index].maxCapacityKg,
                 costPerKm = vehicles[index].costPerKm
             )
-
-
         return true
+
     }
 
 
