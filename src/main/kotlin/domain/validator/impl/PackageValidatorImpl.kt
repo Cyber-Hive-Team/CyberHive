@@ -1,25 +1,18 @@
-package org.example.domain.validator
+package org.example.domain.validator.impl
 
 import org.example.domain.model.Package
 import org.example.domain.model.input.UpdatePackageInput
+import org.example.domain.model.exception.DomainException
+import org.example.domain.validator.FieldViolation
+import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.Validator
+import org.example.domain.validator.toResult
 
 class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
-
-    override fun validateId(id: String): ValidationResult {
-        return toResult(
-            IdValidator.validate(
-                id = id,
-                prefix = "PKG-",
-                entityName = "Package"
-            )
-        )
-    }
 
     override fun validateCreate(entity: Package): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(validateCreateId(entity.id))
-        violations.addAll(validateWeight(entity.weight))
         violations.addAll(validateBaseRate(entity.baseRate))
         violations.addAll(
             validateWarehouses(
@@ -28,13 +21,12 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             )
         )
 
-        return toResult(violations)
+        return violations.toResult()
     }
 
     override fun validateUpdate(input: UpdatePackageInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(validateUpdateId(input.id))
         violations.addAll(validateUpdateFields(input))
         violations.addAll(validateWeight(input.weight))
         violations.addAll(validateBaseRate(input.baseRate))
@@ -47,23 +39,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             )
         )
 
-        return toResult(violations)
-    }
-
-    private fun validateCreateId(id: String): List<FieldViolation> {
-        return IdValidator.validate(
-            id = id,
-            prefix = "PKG-",
-            entityName = "Package"
-        )
-    }
-
-    private fun validateUpdateId(id: String): List<FieldViolation> {
-        return IdValidator.validate(
-            id = id,
-            prefix = "PKG-",
-            entityName = "Package"
-        )
+        return violations.toResult()
     }
 
     private fun validateWeight(weight: Double?): List<FieldViolation> {
@@ -75,7 +51,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     "weight",
-                    "Weight must be strictly greater than zero."
+                    DomainException.INVALID_PACKAGE_WEIGHT
                 )
             )
         } else {
@@ -92,7 +68,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     "baseRate",
-                    "Base rate cannot be negative."
+                    DomainException.INVALID_BASE_RATE
                 )
             )
         } else {
@@ -110,7 +86,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             violations.add(
                 FieldViolation(
                     "originWarehouse",
-                    "Origin warehouse ID cannot be empty."
+                    DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         }
@@ -119,7 +95,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             violations.add(
                 FieldViolation(
                     "destinationWarehouse",
-                    "Destination warehouse ID cannot be empty."
+                    DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         }
@@ -128,7 +104,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             violations.add(
                 FieldViolation(
                     "destinationWarehouse",
-                    "Origin and Destination warehouses cannot be the same."
+                    DomainException.SAME_WAREHOUSE
                 )
             )
         }
@@ -143,7 +119,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     "update",
-                    "At least one field must be provided for update."
+                    DomainException.NO_UPDATE_FIELDS
                 )
             )
         } else {
@@ -168,7 +144,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     "originWarehouse",
-                    "Origin warehouse ID cannot be empty."
+                    DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         } else {
@@ -185,7 +161,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     "destinationWarehouse",
-                    "Destination warehouse ID cannot be empty."
+                    DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         } else {
@@ -208,21 +184,13 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
                 violations.add(
                     FieldViolation(
                         "destinationWarehouse",
-                        "Origin and Destination warehouses cannot be the same."
+                        DomainException.SAME_WAREHOUSE
                     )
                 )
             }
         }
 
         return violations
-    }
-
-    private fun toResult(violations: List<FieldViolation>): ValidationResult {
-        return if (violations.isEmpty()) {
-            ValidationResult.Success
-        }else {
-            ValidationResult.Failure(violations)
-        }
     }
 
 }

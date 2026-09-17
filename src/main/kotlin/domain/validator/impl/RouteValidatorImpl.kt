@@ -1,24 +1,18 @@
-package org.example.domain.validator
+package org.example.domain.validator.impl
 
 import org.example.domain.model.Route
 import org.example.domain.model.input.UpdateRouteInput
+import org.example.domain.validator.FieldViolation
+import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.Validator
+import org.example.domain.validator.toResult
+import org.example.domain.model.exception.DomainException
 
 class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
-
-    override fun validateId(id: String): ValidationResult {
-        return toResult(
-            IdValidator.validate(
-                id = id,
-                prefix = "RT-",
-                entityName = "Route"
-            )
-        )
-    }
 
     override fun validateCreate(entity: Route): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(validateRouteId(entity.id))
         violations.addAll(validateDistance(entity.distanceKm))
         violations.addAll(validateDelay(entity.typicalDelayMin))
         violations.addAll(
@@ -28,29 +22,21 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             )
         )
 
-        return  toResult(violations)
+        return  violations.toResult()
     }
 
     override fun validateUpdate(input: UpdateRouteInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(validateRouteId(input.id))
         violations.addAll(validateUpdateFields(input))
         violations.addAll(validateDistance(input.distanceKm))
         violations.addAll(validateDelay(input.typicalDelayMin))
         violations.addAll(validateOriginWarehouse(input))
         violations.addAll(validateDestinationWarehouse(input))
 
-        return toResult(violations)
+        return violations.toResult()
     }
 
-    private fun validateRouteId(id: String): List<FieldViolation> {
-        return IdValidator.validate(
-            id = id,
-            prefix = "RT-",
-            entityName = "Route"
-        )
-    }
 
     private fun validateDistance(
         distance: Double?
@@ -63,7 +49,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     "distanceKm",
-                    "Distance must be greater than zero."
+                    DomainException.INVALID_DISTANCE
                 )
             )
         } else {
@@ -82,7 +68,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     "typicalDelayMin",
-                    "Typical delay cannot be negative."
+                    DomainException.INVALID_DELAY
                 )
             )
         } else {
@@ -100,7 +86,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             violations.add(
                 FieldViolation(
                     "originWarehouse",
-                    "Origin warehouse ID cannot be empty."
+                    DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         }
@@ -109,7 +95,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             violations.add(
                 FieldViolation(
                     "destinationWarehouse",
-                    "Destination warehouse ID cannot be empty."
+                    DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         }
@@ -124,7 +110,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     "update",
-                    "At least one field must be provided for update."
+                    DomainException.NO_UPDATE_FIELDS
                 )
             )
         } else {
@@ -148,7 +134,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     "originWarehouse",
-                    "Origin warehouse ID cannot be empty."
+                    DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         } else {
@@ -165,19 +151,11 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     "destinationWarehouse",
-                    "Destination warehouse ID cannot be empty."
+                    DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         } else {
             emptyList()
-        }
-    }
-
-    private fun toResult(violations: List<FieldViolation>): ValidationResult {
-        return if (violations.isEmpty()){
-            ValidationResult.Success
-        }else {
-            ValidationResult.Failure(violations)
         }
     }
 
