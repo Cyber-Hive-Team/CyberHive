@@ -8,7 +8,7 @@ import org.example.domain.model.result.Result
 
 interface WarehouseRepository {
     fun getAllWarehouses(): Result<List<Warehouse>>
-    suspend fun getById(warehouseId: String): Warehouse?
+    suspend fun getById(id: String): Warehouse?
     suspend fun addPackageToCargoQueue(warehouseId: String, cargoPackage: Package): Boolean
     suspend fun sortCargoQueue(warehouseId: String): Boolean
     suspend fun isPackageInCargoQueue(warehouseId: String, packageId: String): Boolean
