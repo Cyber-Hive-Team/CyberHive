@@ -110,22 +110,27 @@ class PackageRepositoryImpl(
         id.trim().uppercase()
 
 
-    override fun getPackagesByWarehouseId(
-        warehouseId: String
-    ): Result<List<Package>> {
+    override suspend fun getById(packageId: String): Package? {
+        val remoteDto = dependencies.remoteDataSource.getById(packageId)
+        if (remoteDto != null) {
+            val originWarehouse =
+                dependencies.warehouseRepository
+                    .getWarehouseById(remoteDto.originHubId)
+            val destinationWarehouse =
+                dependencies.warehouseRepository
+                    .getWarehouseById(remoteDto.destinationHubId)
+            if (originWarehouse != null && destinationWarehouse != null) {
+                return dependencies.remoteMapper.mapToDomainModel(
+                    dto = remoteDto,
+                    originWarehouse = originWarehouse,
+                    destinationWarehouse = destinationWarehouse
+                )
+            }
+        }
 
-        val result =
-            getAllPackages()
-
-
-        return Result(
-            data =
-                result.data.filter {
-                    it.originWarehouse.id == warehouseId
-                },
-            errorMessage =
-                result.errorMessage
-        )
+        return getAllPackages()
+            .data
+            .find { it.id == packageId }
     }
 
 
@@ -203,42 +208,6 @@ class PackageRepositoryImpl(
             }
     }
 
-
-    override suspend fun getRemoteById(
-        packageId: String
-    ): Package? {
-
-        val responseDto =
-            dependencies.remoteDataSource
-                .getById(packageId)
-                ?: return null
-
-        val originWarehouse =
-            dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.originHubId
-                )
-
-        val destinationWarehouse =
-            dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.destinationHubId
-                )
-
-        return if (originWarehouse != null && destinationWarehouse != null) {
-            dependencies.remoteMapper
-                .mapToDomainModel(
-                    dto = responseDto,
-                    originWarehouse = originWarehouse,
-                    destinationWarehouse = destinationWarehouse
-                )
-        } else {
-            null
-        }
-    }
-
-
-
     override suspend fun save(
         cargoPackage: Package
     ): Package {
@@ -298,7 +267,7 @@ class PackageRepositoryImpl(
                 destinationWarehouse = destinationWarehouse
             )
         } else {
-            requireNotNull(getRemoteById(id)) {
+            requireNotNull(getById(id)) {
                 "Package with id $id was not found"
             }
         }
