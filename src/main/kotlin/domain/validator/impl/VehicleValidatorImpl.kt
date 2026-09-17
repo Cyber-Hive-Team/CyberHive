@@ -1,48 +1,33 @@
-package org.example.domain.validator
+package org.example.domain.validator.impl
 
 import org.example.domain.model.Vehicle
 import org.example.domain.model.input.UpdateVehicleInput
+import org.example.domain.validator.FieldViolation
+import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.Validator
+import org.example.domain.validator.toResult
+import org.example.domain.model.exception.DomainException
 
 class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
-
-    override fun validateId(id: String): ValidationResult {
-        return toResult(
-            IdValidator.validate(
-                id = id,
-                prefix = "TRK-",
-                entityName = "Vehicle"
-            )
-        )
-    }
 
     override fun validateCreate(entity: Vehicle): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(validateVehicleId(entity.id))
         violations.addAll(validateCapacity(entity.maxCapacityKg))
         violations.addAll(validateCost(entity.costPerKm))
 
-        return toResult(violations)
+        return violations.toResult()
     }
 
     override fun validateUpdate(input: UpdateVehicleInput): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
 
-        violations.addAll(validateVehicleId(input.id))
         violations.addAll(validateUpdateFields(input))
         violations.addAll(validateCapacity(input.maxCapacityKg))
         violations.addAll(validateCost(input.costPerKm))
         violations.addAll(validateCurrentHub(input))
 
-        return toResult(violations)
-    }
-
-    private fun validateVehicleId(id: String): List<FieldViolation> {
-        return IdValidator.validate(
-            id = id,
-            prefix = "TRK-",
-            entityName = "Vehicle"
-        )
+        return violations.toResult()
     }
 
     private fun validateCapacity(
@@ -56,7 +41,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     "maxCapacityKg",
-                    "Capacity must be greater than zero."
+                    DomainException.INVALID_VEHICLE_CAPACITY
                 )
             )
         } else {
@@ -75,7 +60,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     "costPerKm",
-                    "Cost per km cannot be negative."
+                    DomainException.INVALID_COST_PER_KM
                 )
             )
         } else {
@@ -90,7 +75,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     "update",
-                    "At least one field must be provided for update."
+                    DomainException.NO_UPDATE_FIELDS
                 )
             )
         } else {
@@ -113,19 +98,12 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     "currentHub",
-                    "Current hub ID cannot be empty."
+                    DomainException.INVALID_CURRENT_HUB
                 )
             )
         } else {
             emptyList()
         }
-    }
-
-    private fun toResult(violations: List<FieldViolation>): ValidationResult {
-        return if (violations.isEmpty()){
-            ValidationResult.Success
-        }else{
-            ValidationResult.Failure(violations)}
     }
 
 }

@@ -2,6 +2,9 @@ package org.example.domain.model
 
 import org.example.domain.algorithm.sorting.sortCargoQueueDescendingByWeight
 import org.example.domain.algorithm.sorting.sortPackagesByPriorityThenWeight
+import org.example.domain.model.exception.InvalidWarehouseIdException
+
+private const val WAREHOUSE_ID_PREFIX = "WH-\\d{3}$"
 
 class Warehouse(
     val id: String,
@@ -62,5 +65,15 @@ class Warehouse(
     fun sortCargoByPriorityThenWeight() {
         sortPackagesByPriorityThenWeight(cargoQueue)
 
+    }
+
+    init {
+        validateId()
+    }
+
+    private fun validateId() {
+        if (!id.matches(Regex(WAREHOUSE_ID_PREFIX))) {
+            throw InvalidWarehouseIdException()
+        }
     }
 }
