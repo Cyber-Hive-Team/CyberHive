@@ -24,11 +24,10 @@ class AssignPackageToCargoQueueUseCase(
             cargoPackage
         )
 
-        if (!added) {
-            return false
+        return if (!added) {
+            false
+        } else {
+            warehouseRepository.sortCargoQueue(warehouseId)
         }
-        return warehouseRepository.sortCargoQueue(
-            warehouseId
-        )
     }
 }
