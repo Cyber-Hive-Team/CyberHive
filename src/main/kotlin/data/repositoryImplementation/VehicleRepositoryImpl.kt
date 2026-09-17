@@ -178,15 +178,14 @@ class VehicleRepositoryImpl(
                         .warehouseRepository
                         .getWarehouseById(it)
                 }
-                ?: return null
 
-
-
-        return dependencies.remoteMapper
+        return currentHub?.let {
+            dependencies.remoteMapper
             .mapToDomain(
                 raw = responseDto,
                 currentHub = currentHub
             )
+        }
     }
 
 
