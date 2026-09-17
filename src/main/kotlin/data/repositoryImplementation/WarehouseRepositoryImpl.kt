@@ -65,25 +65,13 @@ class WarehouseRepositoryImpl(
     }
 
 
-    override fun getWarehouseById(
-        warehouseId: String
-    ): Warehouse? {
-
-        return getAllWarehouses()
-            .data
-            .firstOrNull {
-                it.id == warehouseId
-            }
-    }
-
-
-    override fun addPackageToCargoQueue(
+    override suspend fun addPackageToCargoQueue(
         warehouseId: String,
         cargoPackage: Package
     ): Boolean {
 
         val warehouse =
-            getWarehouseById(warehouseId)
+            getById(warehouseId)
                 ?: return false
 
 
@@ -96,29 +84,24 @@ class WarehouseRepositoryImpl(
     }
 
 
-    override fun sortCargoQueue(
+    override suspend fun sortCargoQueue(
         warehouseId: String
     ): Boolean {
-
         val warehouse =
-            getWarehouseById(warehouseId)
+            getById(warehouseId)
                 ?: return false
-
-
         warehouse.sortCargoQueue()
-
-
         return true
     }
 
 
-    override fun isPackageInCargoQueue(
+    override suspend fun isPackageInCargoQueue(
         warehouseId: String,
         packageId: String
     ): Boolean {
 
         val warehouse =
-            getWarehouseById(warehouseId)
+            getById(warehouseId)
                 ?: return false
 
 
@@ -146,22 +129,25 @@ class WarehouseRepositoryImpl(
             }
     }
 
-
-    override suspend fun getRemoteById(
+    override suspend fun getById(
         id: String
     ): Warehouse? {
 
-
-        val responseDto =
+        val remoteDto =
             dependencies.remoteDataSource
                 .getById(id)
-                ?: return null
 
+        if (remoteDto != null) {
+            return dependencies.remoteMapper
+                .mapToDomainModel(remoteDto)
+        }
 
-        return dependencies.remoteMapper
-            .mapToDomainModel(responseDto)
+        return getAllWarehouses()
+            .data
+            .firstOrNull {
+                it.id == id
+            }
     }
-
 
     override suspend fun save(
         warehouse: Warehouse
