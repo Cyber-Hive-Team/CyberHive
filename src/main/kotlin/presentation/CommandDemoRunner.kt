@@ -139,7 +139,8 @@ class CommandInvokerDemoRunner(
         private const val UNDO_STEPS_TO_DEMO = 2
         private const val REDO_STEPS_TO_DEMO= 1
     }
-    fun run() {
+
+    suspend fun run() {
         println("\n=== Time-Machine Dispatch Panel Demo ===")
 
         if (warehouses.isEmpty()) {
@@ -158,7 +159,7 @@ class CommandInvokerDemoRunner(
         printHistorySizes(invoker)
     }
 
-    private fun executeDemoCommands(
+    private suspend fun executeDemoCommands(
         invoker: CommandInvoker,
         targetWarehouse: Warehouse,
         warehouseRepository: WarehouseRepository,
@@ -179,7 +180,7 @@ class CommandInvokerDemoRunner(
         Package("DEMO-3", DEMO_PACKAGE_3_WEIGHT_KG, Priority.LOW, targetWarehouse, targetWarehouse)
     )
 
-    private fun demoUndoRedo(invoker: CommandInvoker, targetWarehouse: Warehouse) {
+    private suspend fun demoUndoRedo(invoker: CommandInvoker, targetWarehouse: Warehouse) {
         println("\n-- Undo $UNDO_STEPS_TO_DEMO steps --")
         invoker.undo(UNDO_STEPS_TO_DEMO)
         printQueue(targetWarehouse, "AFTER UNDO x$UNDO_STEPS_TO_DEMO")
