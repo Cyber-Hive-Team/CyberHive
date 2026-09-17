@@ -1,18 +1,31 @@
 package org.example.presentation
 
-import org.example.data.mapper.csv.PackageMapper
-import org.example.data.mapper.csv.RouteMapper
-import org.example.data.mapper.csv.VehicleMapper
-import org.example.data.mapper.csv.WarehouseMapper
 import org.example.data.datasource.local.CsvPackageDataSource
 import org.example.data.datasource.local.CsvRouteDataSource
 import org.example.data.datasource.local.CsvVehicleDataSource
 import org.example.data.datasource.local.CsvWarehouseDataSource
-
-import org.example.data.repository.CsvPackageRepository
-import org.example.data.repository.CsvRouteRepository
-import org.example.data.repository.CsvVehicleRepository
-import org.example.data.repository.CsvWarehouseRepository
+import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
+import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
+import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasource
+import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDatasource
+import org.example.data.mapper.csv.PackageMapper
+import org.example.data.mapper.csv.RouteMapper
+import org.example.data.mapper.csv.VehicleMapper
+import org.example.data.mapper.csv.WarehouseMapper
+import org.example.data.mapper.remote.PackageRemoteMapper
+import org.example.data.mapper.remote.RouteDtoMapper
+import org.example.data.mapper.remote.VehicleDtoMapper
+import org.example.data.mapper.remote.WarehouseRemoteMapper
+import org.example.data.remote.client.SupabaseHttpClient
+import org.example.data.remote.config.SupabaseConfig
+import org.example.data.repositoryImplementation.PackageRepositoryImpl
+import org.example.data.repositoryImplementation.RouteRepositoryImpl
+import org.example.data.repositoryImplementation.VehicleRepositoryImpl
+import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
+import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
+import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
+import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
+import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.data.validation.PackageValidator
 import org.example.data.validation.RouteValidator
 import org.example.data.validation.VehicleValidator
@@ -21,11 +34,21 @@ import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
+import org.example.domain.repository.WarehouseRepository
 
-private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
-private const val PACKAGE_FILE = "src/main/resources/packages.csv"
-private const val VEHICLE_FILE = "src/main/resources/fleet.csv"
-private const val ROUTE_FILE = "src/main/resources/routes.csv"
+
+private const val WAREHOUSE_FILE =
+    "src/main/resources/warehouses.csv"
+
+private const val PACKAGE_FILE =
+    "src/main/resources/packages.csv"
+
+private const val VEHICLE_FILE =
+    "src/main/resources/fleet.csv"
+
+private const val ROUTE_FILE =
+    "src/main/resources/routes.csv"
+
 
 data class LoadedData(
     val warehouses: List<Warehouse>,
@@ -34,74 +57,227 @@ data class LoadedData(
     val routes: List<Route>
 )
 
-class DataLoader {
+
+class DataLoader(
+    private val httpClient: SupabaseHttpClient,
+    private val supabaseConfig: SupabaseConfig
+) {
+
+
+    private val client by lazy {
+        httpClient.create()
+    }
+
 
     fun load(): LoadedData {
-        val warehouses = loadWarehouses()
-        val map = warehouses.associateBy { it.id }
 
-        val packages = loadPackages(map)
-        val vehicles = loadVehicles(map)
-        val routes = loadRoutes(map)
+        val warehouses =
+            loadWarehouses()
 
-        println("\n=== Parsing Results ===")
-        println("Warehouses: ${warehouses.size}")
-        println("Packages: ${packages.size}")
-        println("Vehicles: ${vehicles.size}")
-        println("Routes: ${routes.size}")
+        val warehouseMap =
+            warehouses.associateBy { it.id }
 
-        return LoadedData(warehouses, packages, vehicles, routes)
+
+        val warehouseRepository =
+            createWarehouseRepository()
+
+
+        val packages =
+            loadPackages(
+                warehouseMap,
+                warehouseRepository
+            )
+
+
+        val vehicles =
+            loadVehicles(
+                warehouseMap,
+                warehouseRepository
+            )
+
+
+        val routes =
+            loadRoutes(
+                warehouseMap,
+                warehouseRepository
+            )
+
+
+        return LoadedData(
+            warehouses = warehouses,
+            packages = packages,
+            vehicles = vehicles,
+            routes = routes
+        )
     }
+
+
+    private fun createWarehouseRepository():
+            WarehouseRepository {
+
+        return WarehouseRepositoryImpl(
+
+            WarehouseRepositoryDependencies(
+
+                localDataSource =
+                    CsvWarehouseDataSource(
+                        WAREHOUSE_FILE
+                    ),
+
+                localMapper =
+                    WarehouseMapper(),
+
+                validator =
+                    WarehouseValidator(),
+
+                remoteDataSource =
+                    SupabaseWarehouseRemoteDatasource(
+                        client,
+                        "${supabaseConfig.url}/rest/v1"
+                    ),
+
+                remoteMapper =
+                    WarehouseRemoteMapper()
+            )
+        )
+    }
+
+
+
 
     private fun loadWarehouses(): List<Warehouse> {
-        val result = CsvWarehouseRepository(
-            CsvWarehouseDataSource(WAREHOUSE_FILE),
-            WarehouseMapper(),
-            WarehouseValidator()
 
-        ).getAllWarehouses()
-
-        result.errorMessage?.let { println("WARNING: $it") }
-
-        return result.data
+        return createWarehouseRepository()
+            .getAllWarehouses()
+            .data
     }
 
-    private fun loadPackages(map: Map<String, Warehouse>): List<Package> {
-        val result = CsvPackageRepository(
-            CsvPackageDataSource(PACKAGE_FILE),
-            PackageMapper(),
-            map,
-            PackageValidator()
-        ).getAllPackages()
 
-        result.errorMessage?.let { println("WARNING: $it") }
+    private fun loadPackages(
+        map: Map<String, Warehouse>,
+        warehouseRepository: WarehouseRepository
+    ): List<Package> {
 
-        return result.data
+
+        return PackageRepositoryImpl(
+
+            PackageRepositoryDependencies(
+
+                localDataSource =
+                    CsvPackageDataSource(
+                        PACKAGE_FILE
+                    ),
+
+                localMapper =
+                    PackageMapper(),
+
+                validator =
+                    PackageValidator(),
+
+                warehouseMap =
+                    map,
+
+                remoteDataSource =
+                    SupabasePackageRemoteDatasource(
+                        client,
+                        "${supabaseConfig.url}/rest/v1"
+                    ),
+
+                remoteMapper =
+                    PackageRemoteMapper(),
+
+                warehouseRepository =
+                    warehouseRepository
+            )
+
+        )
+            .getAllPackages()
+            .data
     }
 
-    private fun loadVehicles(map: Map<String, Warehouse>): List<Vehicle> {
-        val result = CsvVehicleRepository(
-            CsvVehicleDataSource(VEHICLE_FILE),
-            VehicleMapper(),
-            map,
-            VehicleValidator()
-        ).getVehicles()
 
-        result.errorMessage?.let { println("WARNING: $it") }
+    private fun loadVehicles(
+        map: Map<String, Warehouse>,
+        warehouseRepository: WarehouseRepository
+    ): List<Vehicle> {
 
-        return result.data
+
+        return VehicleRepositoryImpl(
+
+            VehicleRepositoryDependencies(
+
+                localDataSource =
+                    CsvVehicleDataSource(
+                        VEHICLE_FILE
+                    ),
+
+                localMapper =
+                    VehicleMapper(),
+
+                validator =
+                    VehicleValidator(),
+
+                warehouseMap =
+                    map,
+
+                remoteDataSource =
+                    SupabaseVehicleRemoteDatasource(
+                        client,
+                        "${supabaseConfig.url}/rest/v1"
+                    ),
+
+                remoteMapper =
+                    VehicleDtoMapper(),
+
+                warehouseRepository =
+                    warehouseRepository
+            )
+
+        )
+            .getVehicles()
+            .data
     }
 
-    private fun loadRoutes(map: Map<String, Warehouse>): List<Route> {
-        val result = CsvRouteRepository(
-            CsvRouteDataSource(ROUTE_FILE),
-            RouteMapper(),
-            map,
-            RouteValidator()
-        ).getAllRoutes()
 
-        result.errorMessage?.let { println("WARNING: $it") }
+    private fun loadRoutes(
+        map: Map<String, Warehouse>,
+        warehouseRepository: WarehouseRepository
+    ): List<Route> {
 
-        return result.data
+
+        return RouteRepositoryImpl(
+
+            RouteRepositoryDependencies(
+
+                localDataSource =
+                    CsvRouteDataSource(
+                        ROUTE_FILE
+                    ),
+
+                localMapper =
+                    RouteMapper(),
+
+                validator =
+                    RouteValidator(),
+
+                warehouseMap =
+                    map,
+
+                remoteDataSource =
+                    SupabaseRouteRemoteDatasource(
+                        client,
+                        "${supabaseConfig.url}/rest/v1"
+                    ),
+
+                remoteMapper =
+                    RouteDtoMapper(),
+
+                warehouseRepository =
+                    warehouseRepository
+            )
+
+        )
+            .getAllRoutes()
+            .data
     }
 }

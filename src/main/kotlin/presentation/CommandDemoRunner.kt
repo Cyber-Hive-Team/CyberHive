@@ -9,36 +9,131 @@ import org.example.domain.model.WarehouseServices
 import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
+import org.example.domain.model.RegionalZone
 
 class InMemoryWarehouseRepository(
     warehouses: List<Warehouse>
 ) : WarehouseRepository {
-    private val byId = warehouses.associateBy { it.id }
+
+    private val byId = warehouses.associateBy { it.id }.toMutableMap()
+
 
     override fun getAllWarehouses(): Result<List<Warehouse>> =
-        Result(data = byId.values.toList(), errorMessage = null)
+        Result(
+            data = byId.values.toList(),
+            errorMessage = null
+        )
 
-    override fun getWarehouseById(warehouseId: String): Warehouse? =
+
+    override fun getWarehouseById(
+        warehouseId: String
+    ): Warehouse? =
         byId[warehouseId]
 
-    override fun addPackageToCargoQueue(warehouseId: String, cargoPackage: Package): Boolean {
-        val warehouse = byId[warehouseId] ?: return false
-        warehouse.addPackages(listOf(cargoPackage))
+
+    override fun addPackageToCargoQueue(
+        warehouseId: String,
+        cargoPackage: Package
+    ): Boolean {
+
+        val warehouse =
+            byId[warehouseId]
+                ?: return false
+
+        warehouse.addPackages(
+            listOf(cargoPackage)
+        )
+
         return true
     }
 
-    override fun sortCargoQueue(warehouseId: String): Boolean {
-        val warehouse = byId[warehouseId] ?: return false
+
+    override fun sortCargoQueue(
+        warehouseId: String
+    ): Boolean {
+
+        val warehouse =
+            byId[warehouseId]
+                ?: return false
+
         warehouse.sortCargoQueue()
+
         return true
     }
 
-    override fun isPackageInCargoQueue(warehouseId: String, packageId: String): Boolean {
-        val warehouse = byId[warehouseId] ?: return false
-        return warehouse.getCargoQueue().any { it.id == packageId }
+
+    override fun isPackageInCargoQueue(
+        warehouseId: String,
+        packageId: String
+    ): Boolean {
+
+        val warehouse =
+            byId[warehouseId]
+                ?: return false
+
+        return warehouse
+            .getCargoQueue()
+            .any { it.id == packageId }
     }
 
-    override fun getAllWarehouseServices(): List<WarehouseServices> = emptyList()
+
+    override fun getAllWarehouseServices():
+            List<WarehouseServices> =
+        emptyList()
+
+
+    override suspend fun getRemoteById(
+        id: String
+    ): Warehouse? {
+
+        return byId[id]
+    }
+
+
+    override suspend fun save(
+        warehouse: Warehouse
+    ): Warehouse {
+
+        byId[warehouse.id] = warehouse
+
+        return warehouse
+    }
+
+
+    override suspend fun update(
+        id: String,
+        name: String?,
+        regionalZone: RegionalZone?,
+        latitude: Double?,
+        longitude: Double?
+    ): Warehouse {
+
+        val oldWarehouse =
+            byId[id]
+                ?: throw IllegalArgumentException(
+                    "Warehouse not found"
+                )
+
+        val updatedWarehouse = Warehouse(
+            id = oldWarehouse.id,
+            name = name ?: oldWarehouse.name,
+            regionalZone = regionalZone ?: oldWarehouse.regionalZone,
+            latitude = latitude ?: oldWarehouse.latitude,
+            longitude = longitude ?: oldWarehouse.longitude
+        )
+
+        byId[id] = updatedWarehouse
+
+        return updatedWarehouse
+    }
+
+
+    override suspend fun delete(
+        id: String
+    ): Boolean {
+
+        return byId.remove(id) != null
+    }
 }
 class CommandInvokerDemoRunner(
     private val warehouses: List<Warehouse>
