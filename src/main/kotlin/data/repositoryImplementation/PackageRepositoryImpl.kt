@@ -33,31 +33,11 @@ class PackageRepositoryImpl(
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllPackages(): Result<List<Package>> {
-
         return try {
-
-            val rawResults =
-                dependencies.localDataSource.getPackages()
-
-
-            val warnings =
-                rawResults
-                    .mapNotNull { it.errorMessage }
-                    .toMutableList()
-
-
-            val rawPackages =
-                rawResults
-                    .mapNotNull { it.rawData }
-
-
-            val packages =
-                mapPackages(
-                    rawPackages,
-                    warnings
-                )
-
-
+            val rawResults = dependencies.localDataSource.getPackages()
+            val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
+            val rawPackages = rawResults.mapNotNull { it.rawData }
+            val packages = mapPackages(rawPackages, warnings)
             Result(
                 data = packages,
                 errorMessage =
@@ -65,16 +45,14 @@ class PackageRepositoryImpl(
                         .takeIf { it.isNotEmpty() }
                         ?.joinToString("; ")
             )
-
-
         } catch (e: Exception) {
-
             Result(
                 data = emptyList(),
                 errorMessage =
                     "Failed to load packages: ${e.message}"
             )
         }
+
     }
 
 
@@ -302,38 +280,22 @@ class PackageRepositoryImpl(
         originHubId: String,
         destinationHubId: String
     ): Package {
-
-
-        val request =
-            dependencies.remoteMapper
+        val request = dependencies.remoteMapper
                 .mapToUpdateRequest(
                     weight = weight,
                     priority = priority,
                     originHubId = originHubId,
                     destinationHubId = destinationHubId
                 )
-
-
-        val dto =
-            dependencies.remoteDataSource
-                .update(
-                    id = id,
-                    request = request
-                )
-
-
+        val dto = dependencies.remoteDataSource.update(id = id, request = request)
         val originWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(dto.originHubId)
                 ?: return getRemoteById(id)!!
-
-
         val destinationWarehouse =
             dependencies.warehouseRepository
                 .getWarehouseById(dto.destinationHubId)
                 ?: return getRemoteById(id)!!
-
-
 
         return dependencies.remoteMapper
             .mapToDomainModel(
