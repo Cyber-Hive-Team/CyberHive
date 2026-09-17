@@ -5,14 +5,12 @@ import org.example.domain.model.result.Result
 
 interface VehicleRepository {
     fun getVehicles(): Result<List<Vehicle>>
-    fun getVehicleById(vehicleId: String): Vehicle?
     fun getVehiclesByWarehouseId(warehouseId: String): Result<List<Vehicle>>
     fun reassignVehicle(vehicleId: String, warehouseId: String): Boolean
     fun removeVehicle(vehicleId: String): Boolean
-    suspend fun getRemoteById(
+    suspend fun getById(
         vehicleId: String
     ): Vehicle?
-
     suspend fun save(
         vehicle: Vehicle
     ): Vehicle
