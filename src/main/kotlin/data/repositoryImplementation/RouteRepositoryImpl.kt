@@ -97,37 +97,28 @@ class RouteRepositoryImpl(
     override suspend fun getRemoteById(
         routeId: String
     ): Route? {
-
-
         val responseDto =
             dependencies.remoteDataSource
                 .getById(routeId)
                 ?: return null
-
-
         val originWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.originHubId
-                )
-                ?: return null
-
-
+                .getWarehouseById(responseDto.originHubId)
         val destinationWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(
-                    responseDto.destinationHubId
-                )
-                ?: return null
-
-
-
-        return dependencies.remoteMapper
-            .mapToDomain(
+                .getWarehouseById(responseDto.destinationHubId)
+        return if (
+            originWarehouse != null &&
+            destinationWarehouse != null
+        ) {
+            dependencies.remoteMapper.mapToDomain(
                 raw = responseDto,
                 originWarehouse = originWarehouse,
                 destinationWarehouse = destinationWarehouse
             )
+        } else {
+            null
+        }
     }
 
 
