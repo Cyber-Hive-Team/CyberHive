@@ -16,18 +16,19 @@ class AssignPackageToCargoQueueUseCase(
                 cargoPackage.id
             )
 
-        if (alreadyExists) {
-            return false
-        }
-        val added = warehouseRepository.addPackageToCargoQueue(
-            warehouseId,
-            cargoPackage
-        )
-
-        return if (!added) {
+        val result = if (alreadyExists) {
             false
         } else {
-            warehouseRepository.sortCargoQueue(warehouseId)
+            val added = warehouseRepository.addPackageToCargoQueue(
+                warehouseId,
+                cargoPackage
+            )
+            if (added) {
+                warehouseRepository.sortCargoQueue(warehouseId)
+            } else {
+                false
         }
+    }
+        return result
     }
 }
