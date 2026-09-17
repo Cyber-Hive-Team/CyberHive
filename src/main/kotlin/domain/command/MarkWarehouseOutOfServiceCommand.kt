@@ -14,7 +14,7 @@ class MarkWarehouseOutOfServiceCommand(
     private var previousStatus: WarehouseStatus? = null
     private var updated = false
 
-    override fun execute(): Boolean {
+    override suspend fun execute(): Boolean {
         previousStatus = warehouseStatusRepository.getStatus(warehouseId)
 
         markWarehouseOutOfServiceUseCase(warehouseId)
@@ -23,7 +23,7 @@ class MarkWarehouseOutOfServiceCommand(
         return true
     }
 
-    override fun undo(): Boolean {
+    override suspend fun undo(): Boolean {
         if (!updated) {
             throw CommandExecutionException(
                 "Cannot undo: Command was not executed successfully prior to undo."
@@ -50,7 +50,7 @@ class MarkWarehouseOutOfServiceCommand(
         return true
     }
 
-    override fun describe(): String {
+    override suspend fun describe(): String {
         val previous = previousStatus?.let { " (was $it)" } ?: ""
         return "Mark warehouse $warehouseId out of service$previous"
     }

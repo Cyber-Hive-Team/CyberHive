@@ -8,11 +8,11 @@ class TrackVehicleCurrentLocationUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         vehicleId: String
     ): VehicleTrackingResult {
 
-        val vehicle = vehicleRepository.getVehicleById(vehicleId)
+        val vehicle = vehicleRepository.getById(vehicleId)
             ?: throw VehicleNotFoundException()
 
         return VehicleTrackingResult(

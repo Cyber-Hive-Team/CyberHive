@@ -46,10 +46,7 @@ class RouteRepositoryImpl(
         warnings: MutableList<String>
     ): List<Route> {
 
-
         return rawRoutes.mapNotNull { raw ->
-
-
             val origin =
                 dependencies.warehouseMap[
                     normalizeId(raw.originHubId)
@@ -94,31 +91,31 @@ class RouteRepositoryImpl(
         id.trim().uppercase()
 
 
-    override suspend fun getRemoteById(
+    override suspend fun getById(
         routeId: String
     ): Route? {
-        val responseDto =
-            dependencies.remoteDataSource
-                .getById(routeId)
-                ?: return null
-        val originWarehouse =
-            dependencies.warehouseRepository
-                .getWarehouseById(responseDto.originHubId)
-        val destinationWarehouse =
-            dependencies.warehouseRepository
-                .getWarehouseById(responseDto.destinationHubId)
-        return if (
-            originWarehouse != null &&
-            destinationWarehouse != null
-        ) {
-            dependencies.remoteMapper.mapToDomain(
-                raw = responseDto,
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
-        } else {
-            null
+        val responseDto = dependencies.remoteDataSource.getById(routeId)
+        if (responseDto != null) {
+            val originWarehouse =
+                dependencies.warehouseRepository
+                    .getById(responseDto.originHubId)
+            val destinationWarehouse =
+                dependencies.warehouseRepository
+                    .getById(responseDto.destinationHubId)
+            if (originWarehouse != null && destinationWarehouse != null
+            ) {
+                return dependencies.remoteMapper.mapToDomain(
+                    raw = responseDto,
+                    originWarehouse = originWarehouse,
+                    destinationWarehouse = destinationWarehouse
+                )
+            }
         }
+        return getAllRoutes()
+            .data
+            .firstOrNull {
+                it.id == routeId
+            }
     }
 
 
@@ -129,10 +126,10 @@ class RouteRepositoryImpl(
         val responseDto = dependencies.remoteDataSource.save(request)
         val originWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(responseDto.originHubId)
+                .getById(responseDto.originHubId)
         val destinationWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(responseDto.destinationHubId)
+                .getById(responseDto.destinationHubId)
         if (
             originWarehouse == null || destinationWarehouse == null) {
             return route
@@ -156,9 +153,9 @@ class RouteRepositoryImpl(
             dependencies.remoteDataSource.update(id = route.id, request = request)
         val originWarehouse =
             dependencies.warehouseRepository
-                .getWarehouseById(responseDto.originHubId)
+                .getById(responseDto.originHubId)
         val destinationWarehouse =
-            dependencies.warehouseRepository.getWarehouseById(responseDto.destinationHubId)
+            dependencies.warehouseRepository.getById(responseDto.destinationHubId)
         if (originWarehouse == null || destinationWarehouse == null) {
             return route
         }

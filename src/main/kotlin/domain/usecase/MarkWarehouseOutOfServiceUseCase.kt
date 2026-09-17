@@ -11,9 +11,9 @@ class MarkWarehouseOutOfServiceUseCase(
     private val warehouseStatusRepository: WarehouseStatusRepository
 ) {
 
-    operator fun invoke(warehouseId: String): WarehouseStatusResult {
+    suspend operator fun invoke(warehouseId: String): WarehouseStatusResult {
 
-        val warehouse = warehouseRepository.getWarehouseById(warehouseId)
+        val warehouse = warehouseRepository.getById(warehouseId)
             ?: throw WarehouseNotFoundException()
 
         warehouseStatusRepository.updateStatus(

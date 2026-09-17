@@ -4,12 +4,12 @@ import org.example.domain.command.AssignPackageToQueueCommand
 import org.example.domain.command.CommandInvoker
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
+import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
-import org.example.domain.model.RegionalZone
 
 class InMemoryWarehouseRepository(
     warehouses: List<Warehouse>
@@ -25,13 +25,13 @@ class InMemoryWarehouseRepository(
         )
 
 
-    override fun getWarehouseById(
-        warehouseId: String
+    override suspend fun getById(
+        id: String
     ): Warehouse? =
-        byId[warehouseId]
+        byId[id]
 
 
-    override fun addPackageToCargoQueue(
+    override suspend fun addPackageToCargoQueue(
         warehouseId: String,
         cargoPackage: Package
     ): Boolean {
@@ -48,7 +48,7 @@ class InMemoryWarehouseRepository(
     }
 
 
-    override fun sortCargoQueue(
+    override suspend fun sortCargoQueue(
         warehouseId: String
     ): Boolean {
 
@@ -62,7 +62,7 @@ class InMemoryWarehouseRepository(
     }
 
 
-    override fun isPackageInCargoQueue(
+    override suspend fun isPackageInCargoQueue(
         warehouseId: String,
         packageId: String
     ): Boolean {
@@ -82,12 +82,6 @@ class InMemoryWarehouseRepository(
         emptyList()
 
 
-    override suspend fun getRemoteById(
-        id: String
-    ): Warehouse? {
-
-        return byId[id]
-    }
 
 
     override suspend fun save(
@@ -145,7 +139,8 @@ class CommandInvokerDemoRunner(
         private const val UNDO_STEPS_TO_DEMO = 2
         private const val REDO_STEPS_TO_DEMO= 1
     }
-    fun run() {
+
+    suspend fun run() {
         println("\n=== Time-Machine Dispatch Panel Demo ===")
 
         if (warehouses.isEmpty()) {
@@ -164,7 +159,7 @@ class CommandInvokerDemoRunner(
         printHistorySizes(invoker)
     }
 
-    private fun executeDemoCommands(
+    private suspend fun executeDemoCommands(
         invoker: CommandInvoker,
         targetWarehouse: Warehouse,
         warehouseRepository: WarehouseRepository,
@@ -185,7 +180,7 @@ class CommandInvokerDemoRunner(
         Package("DEMO-3", DEMO_PACKAGE_3_WEIGHT_KG, Priority.LOW, targetWarehouse, targetWarehouse)
     )
 
-    private fun demoUndoRedo(invoker: CommandInvoker, targetWarehouse: Warehouse) {
+    private suspend fun demoUndoRedo(invoker: CommandInvoker, targetWarehouse: Warehouse) {
         println("\n-- Undo $UNDO_STEPS_TO_DEMO steps --")
         invoker.undo(UNDO_STEPS_TO_DEMO)
         printQueue(targetWarehouse, "AFTER UNDO x$UNDO_STEPS_TO_DEMO")

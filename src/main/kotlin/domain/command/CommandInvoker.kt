@@ -1,7 +1,7 @@
 package org.example.domain.command
 
-import java.util.ArrayDeque
 import org.example.domain.model.exception.CommandExecutionException
+import java.util.*
 
 class CommandInvoker {
 
@@ -20,7 +20,7 @@ class CommandInvoker {
     val redoHistorySize: Int
         get() = redoStack.size
 
-    fun executeCommand(command: Command): Boolean {
+    suspend fun executeCommand(command: Command): Boolean {
         val success = command.execute()
         if (!success)  {
             println("EXECUTE FAILED -> ${command.describe()}")
@@ -34,7 +34,7 @@ class CommandInvoker {
     }
 
 
-    fun undo(steps: Int = DEFAULT_STEPS): Boolean {
+    suspend fun undo(steps: Int = DEFAULT_STEPS): Boolean {
             var stepsDone = STEPS_DONE
             var stopped = false
         while (stepsDone < steps && !stopped) {
@@ -62,8 +62,7 @@ class CommandInvoker {
     }
 
 
-
-    fun redo(steps: Int = DEFAULT_STEPS): Boolean {
+    suspend fun redo(steps: Int = DEFAULT_STEPS): Boolean {
         var stepsDone = STEPS_DONE
         var stopped = false
 

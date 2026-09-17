@@ -94,16 +94,6 @@ class VehicleRepositoryImpl(
     }
 
 
-    override fun getVehicleById(
-        vehicleId: String
-    ): Vehicle? {
-
-        return getVehicles()
-            .data
-            .firstOrNull {
-                it.id == vehicleId
-            }
-    }
 
 
     override fun getVehiclesByWarehouseId(
@@ -158,34 +148,36 @@ class VehicleRepositoryImpl(
         }
     }
 
-
-
-    override suspend fun getRemoteById(
+    override suspend fun getById(
         vehicleId: String
     ): Vehicle? {
-
 
         val responseDto =
             dependencies.remoteDataSource
                 .getById(vehicleId)
-                ?: return null
 
+        if (responseDto != null) {
+            val currentHub =
+                responseDto.currentHubId
+                    ?.let {
+                        dependencies.warehouseRepository
+                            .getById(it)
+                    }
 
-        val currentHub =
-            responseDto.currentHubId
-                ?.let {
-                    dependencies
-                        .warehouseRepository
-                        .getWarehouseById(it)
-                }
-
-        return currentHub?.let {
-            dependencies.remoteMapper
-            .mapToDomain(
-                raw = responseDto,
-                currentHub = currentHub
-            )
+            if (currentHub != null) {
+                return dependencies.remoteMapper
+                    .mapToDomain(
+                        raw = responseDto,
+                        currentHub = currentHub
+                    )
+            }
         }
+
+        return getVehicles()
+            .data
+            .firstOrNull {
+                it.id == vehicleId
+            }
     }
 
 
@@ -193,30 +185,21 @@ class VehicleRepositoryImpl(
     override suspend fun save(
         vehicle: Vehicle
     ): Vehicle {
-
-
         val request =
             dependencies.remoteMapper
                 .mapToCreateRequest(vehicle)
-
-
-
         val responseDto =
             dependencies.remoteDataSource
                 .save(request)
-
-
 
         val currentHub =
             responseDto.currentHubId
                 ?.let {
                     dependencies
                         .warehouseRepository
-                        .getWarehouseById(it)
+                        .getById(it)
                 }
                 ?: return vehicle
-
-
 
         return dependencies.remoteMapper
             .mapToDomain(
@@ -243,18 +226,14 @@ class VehicleRepositoryImpl(
                     id = vehicle.id,
                     request = request
                 )
-
-
         val currentHub =
             responseDto.currentHubId
                 ?.let {
                     dependencies
                         .warehouseRepository
-                        .getWarehouseById(it)
+                        .getById(it)
                 }
                 ?: return vehicle
-
-
 
         return dependencies.remoteMapper
             .mapToDomain(

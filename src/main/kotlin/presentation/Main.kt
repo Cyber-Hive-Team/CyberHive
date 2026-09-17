@@ -5,7 +5,7 @@ import org.example.data.remote.config.SupabaseConfig
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 
 
-fun main() {
+suspend fun main() {
     println("=== Cyber Hive ===")
     val supabaseConfig = SupabaseConfig(
         url = requireNotNull(System.getenv("SUPABASE_URL")),

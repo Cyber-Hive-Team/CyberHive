@@ -13,10 +13,7 @@ interface PackageRepository {
     fun getAllWarehouseStays(): List<PackageWarehouseStay>
     fun getAllDeliveryTimes(): List<PackageDeliveryTime>
     fun getAllPackageRequirements(): List<PackageRequirements>
-    suspend fun getRemoteById(
-        packageId: String
-    ): Package?
-
+    suspend fun getById(packageId: String): Package?
     suspend fun save(
         cargoPackage: Package
     ): Package

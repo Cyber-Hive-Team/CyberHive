@@ -1,26 +1,26 @@
 package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
+import org.example.domain.model.exception.WarehouseNotFoundException
+import org.example.domain.model.input.FindFewestHopsRouteInput
 import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.model.input.FindFewestHopsRouteInput
-import org.example.domain.model.exception.WarehouseNotFoundException
 
 class FindFewestHopsRouteUseCase(
     private val warehouseRepository: WarehouseRepository,
     private val router: BreadthFirstSearchRouter
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         input :FindFewestHopsRouteInput
     ): RoutingResult {
 
-        val startWarehouse = warehouseRepository.getWarehouseById(input.startWarehouseId)
+        val startWarehouse = warehouseRepository.getById(input.startWarehouseId)
             ?: throw WarehouseNotFoundException(
                 "Start warehouse not found with ID: ${input.startWarehouseId}"
             )
 
-        val destinationWarehouse = warehouseRepository.getWarehouseById(input.destinationWarehouseId)
+        val destinationWarehouse = warehouseRepository.getById(input.destinationWarehouseId)
             ?: throw WarehouseNotFoundException(
                 "Destination warehouse not found with ID: ${input.destinationWarehouseId}"
             )
