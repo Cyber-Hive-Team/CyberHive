@@ -200,12 +200,11 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
 
         val violations = mutableListOf<FieldViolation>()
 
-        if (originId != null &&
-            destinationId != null &&
-            originId.isNotBlank() &&
-            destinationId.isNotBlank() &&
-            originId == destinationId
-        ) {
+        if (originId != null && destinationId != null) {
+            if (originId.isNotBlank() &&
+                destinationId.isNotBlank() &&
+                originId == destinationId
+            ) {
             violations.add(
                 FieldViolation(
                     "destinationWarehouse",
