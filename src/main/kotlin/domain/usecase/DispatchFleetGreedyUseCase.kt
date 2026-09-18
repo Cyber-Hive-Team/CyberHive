@@ -5,7 +5,6 @@ import org.example.domain.model.RegionalZone
 import org.example.domain.model.Vehicle
 import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.VehicleRepository
-import kotlin.getOrThrow
 
 
 class DispatchFleetGreedyUseCase(
@@ -20,22 +19,29 @@ class DispatchFleetGreedyUseCase(
         return runCatching {
 
             val vehicles =
-                vehicleRepository
-                    .getVehicles()
-                    .getOrThrow()
-
-
-            if (vehicles.isEmpty()) {
-                throw VehicleNotFoundException(
-                    "No vehicles available for fleet dispatch"
-                )
-            }
-
+                getAvailableVehicles()
 
             dispatcher.dispatch(
                 targetZones = targetZones,
                 availableVehicles = vehicles
             )
         }
+    }
+
+
+    private fun getAvailableVehicles(): List<Vehicle> {
+
+        val vehicles =
+            vehicleRepository
+                .getVehicles()
+                .getOrThrow()
+
+        if (vehicles.isEmpty()) {
+            throw VehicleNotFoundException(
+                "No vehicles available for fleet dispatch"
+            )
+        }
+
+        return vehicles
     }
 }
