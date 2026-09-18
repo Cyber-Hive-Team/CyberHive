@@ -1,6 +1,6 @@
 package org.example.domain.model.exception
 
-open class DomainException(message: String) : Exception(message) {
+open class DomainException(message: String, cause: Throwable? = null) : Exception(message) {
 
     companion object {
         const val WAREHOUSE_NOT_FOUND = "Warehouse not found."
@@ -62,3 +62,8 @@ class SameWarehouseException(message: String = SAME_WAREHOUSE) : DomainException
 class NoUpdateFieldsException(message: String = NO_UPDATE_FIELDS) : DomainException(message)
 class InvalidOriginWarehouseException(message: String = INVALID_ORIGIN_WAREHOUSE) : DomainException(message)
 class InvalidDistanceWarehouseException(message: String = INVALID_DESTINATION_WAREHOUSE) : DomainException(message)
+
+
+class EntityValidationException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+class NetworkUnavailableException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+class DatabaseConflictException(message: String, cause: Throwable? = null) : DomainException(message, cause)
