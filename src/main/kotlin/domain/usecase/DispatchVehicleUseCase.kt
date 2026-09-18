@@ -38,15 +38,35 @@ class DispatchVehicleUseCase(
     ): List<Package> {
 
         val availablePackages =
-            packageRepository
-                .getAllPackages()
-                .data
-                .filter { packageItem ->
+            loadAvailablePackages(vehicle)
 
-                    packageItem.originWarehouse.id ==
-                            vehicle.currentHub.id
-                }
 
+        return calculateLoadedPackages(
+            vehicle,
+            availablePackages
+        )
+    }
+
+
+    private fun loadAvailablePackages(
+        vehicle: Vehicle
+    ): List<Package> {
+
+        return packageRepository
+            .getAllPackages()
+            .data
+            .filter { packageItem ->
+
+                packageItem.originWarehouse.id ==
+                        vehicle.currentHub.id
+            }
+    }
+
+
+    private fun calculateLoadedPackages(
+        vehicle: Vehicle,
+        availablePackages: List<Package>
+    ): List<Package> {
 
         val loadedPackages =
             availablePackages.fold(
@@ -55,7 +75,6 @@ class DispatchVehicleUseCase(
                     emptyList<Package>()
                 )
             ) { (currentWeight, packages), packageItem ->
-
 
                 if (
                     currentWeight + packageItem.weight <=
