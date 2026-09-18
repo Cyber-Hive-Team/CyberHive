@@ -7,7 +7,6 @@ import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.Priority
 import org.example.domain.model.input.PackageDeliveryTime
-import org.example.domain.model.result.Result
 import org.example.domain.repository.PackageRepository
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -33,26 +32,12 @@ class PackageRepositoryImpl(
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllPackages(): Result<List<Package>> {
-        return try {
+        return runCatching {
             val rawResults = dependencies.localDataSource.getPackages()
             val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
             val rawPackages = rawResults.mapNotNull { it.rawData }
-            val packages = mapPackages(rawPackages, warnings)
-            Result(
-                data = packages,
-                errorMessage =
-                    warnings
-                        .takeIf { it.isNotEmpty() }
-                        ?.joinToString("; ")
-            )
-        } catch (e: Exception) {
-            Result(
-                data = emptyList(),
-                errorMessage =
-                    "Failed to load packages: ${e.message}"
-            )
+            mapPackages(rawPackages, warnings)
         }
-
     }
 
 
@@ -129,8 +114,8 @@ class PackageRepositoryImpl(
         }
 
         return getAllPackages()
-            .data
-            .find { it.id == packageId }
+            .getOrNull()
+            ?.find { it.id == packageId }
     }
 
 
@@ -139,7 +124,7 @@ class PackageRepositoryImpl(
 
 
         return getAllPackages()
-            .data
+            .getOrNull().orEmpty()
             .map { cargoPackage ->
 
                 PackageWarehouseStay(
@@ -162,7 +147,7 @@ class PackageRepositoryImpl(
 
 
         return getAllPackages()
-            .data
+            .getOrNull().orEmpty()
             .map { cargoPackage ->
 
 
@@ -193,27 +178,20 @@ class PackageRepositoryImpl(
     override fun getPackagesByWarehouseId(
         warehouseId: String
     ): Result<List<Package>> {
-
-        val result =
-            getAllPackages()
-
-
-        return Result(
-            data =
-                result.data.filter {
+        return getAllPackages()
+            .map { packages ->
+                packages.filter {
                     it.originWarehouse.id == warehouseId
-                },
-            errorMessage =
-                result.errorMessage
-        )
+                }
+            }
     }
 
     override fun getAllPackageRequirements():
             List<PackageRequirements> {
 
-
         return getAllPackages()
-            .data
+            .getOrNull()
+            .orEmpty()
             .map { cargoPackage ->
 
                 PackageRequirements(
