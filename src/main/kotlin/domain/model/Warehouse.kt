@@ -4,7 +4,7 @@ import org.example.domain.algorithm.sorting.sortCargoQueueDescendingByWeight
 import org.example.domain.algorithm.sorting.sortPackagesByPriorityThenWeight
 import org.example.domain.model.exception.InvalidWarehouseIdException
 
-private const val WAREHOUSE_ID_PREFIX = "WH-\\d{3}$"
+private const val WAREHOUSE_ID_PREFIX = "^WH-\\d{3}$"
 
 class Warehouse(
     val id: String,

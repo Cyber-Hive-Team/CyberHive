@@ -3,7 +3,7 @@ package org.example.domain.model
 import org.example.domain.model.exception.InvalidPackageIdException
 
 private const val DEFAULT_BASE_RATE = 10.0
-private const val PACKAGE_ID_PREFIX = "PKG-\\d{6}$"
+private const val PACKAGE_ID_PREFIX = "^PKG-\\d{6}$"
 
 data class Package(
     val id: String,
