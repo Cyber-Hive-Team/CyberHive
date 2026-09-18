@@ -1,6 +1,8 @@
 package org.example.domain.usecase.crud.vehicle
 
 import org.example.domain.model.Vehicle
+import org.example.domain.model.exception.EntityValidationException
+import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.model.input.UpdateVehicleInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.validator.ValidationResult
@@ -15,21 +17,22 @@ class UpdateVehicleUseCase(
         vehicle: Vehicle,
         input: UpdateVehicleInput
     ): Result<Vehicle> {
-        return when (val validation = validator.validateUpdate(input)) {
-            ValidationResult.Success -> {
-                runCatching {
+        return runCatching {
+            vehicleRepository.getById(input.id)
+                ?: throw VehicleNotFoundException()
+
+            when (val validation = validator.validateUpdate(input)) {
+                ValidationResult.Success -> {
                     vehicleRepository.update(vehicle)
                 }
-            }
 
-            is ValidationResult.Failure -> {
-                Result.failure(
-                    IllegalArgumentException(
+                is ValidationResult.Failure -> {
+                    throw EntityValidationException(
                         validation.violations.joinToString("; ") {
                             "${it.field}: ${it.message}"
                         }
                     )
-                )
+                }
             }
         }
     }
