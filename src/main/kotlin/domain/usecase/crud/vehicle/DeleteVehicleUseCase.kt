@@ -1,5 +1,6 @@
 package org.example.domain.usecase.crud.vehicle
 
+import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.VehicleRepository
 
 class DeleteVehicleUseCase(
@@ -7,6 +8,8 @@ class DeleteVehicleUseCase(
 ) {
     suspend operator fun invoke(vehicleId: String): Result<Boolean> {
         return runCatching {
+            vehicleRepository.getById(vehicleId)
+                ?: throw VehicleNotFoundException()
             vehicleRepository.delete(vehicleId)
         }
     }
