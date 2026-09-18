@@ -107,7 +107,7 @@ class WarehouseRepositoryImpl(
             List<WarehouseServices> {
 
         return getAllWarehouses()
-            .getOrNull().orEmpty()
+            .getOrThrow()
             .map { warehouse ->
 
                 WarehouseServices(
@@ -133,8 +133,8 @@ class WarehouseRepositoryImpl(
         }
 
         return getAllWarehouses()
-            .getOrNull()
-            ?.firstOrNull {
+            .getOrThrow()
+            .firstOrNull {
                 it.id == id
             }
     }

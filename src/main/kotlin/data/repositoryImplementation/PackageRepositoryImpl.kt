@@ -114,8 +114,8 @@ class PackageRepositoryImpl(
         }
 
         return getAllPackages()
-            .getOrNull()
-            ?.find { it.id == packageId }
+            .getOrThrow()
+            .find { it.id == packageId }
     }
 
 
@@ -124,7 +124,7 @@ class PackageRepositoryImpl(
 
 
         return getAllPackages()
-            .getOrNull().orEmpty()
+            .getOrThrow()
             .map { cargoPackage ->
 
                 PackageWarehouseStay(
@@ -147,7 +147,7 @@ class PackageRepositoryImpl(
 
 
         return getAllPackages()
-            .getOrNull().orEmpty()
+            .getOrThrow()
             .map { cargoPackage ->
 
 
@@ -190,8 +190,7 @@ class PackageRepositoryImpl(
             List<PackageRequirements> {
 
         return getAllPackages()
-            .getOrNull()
-            .orEmpty()
+            .getOrThrow()
             .map { cargoPackage ->
 
                 PackageRequirements(

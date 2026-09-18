@@ -96,8 +96,7 @@ class RouteRepositoryImpl(
             }
         }
         return getAllRoutes()
-            .getOrNull()
-            ?.firstOrNull {
+            .getOrThrow().firstOrNull {
                 it.id == routeId
             }
     }
