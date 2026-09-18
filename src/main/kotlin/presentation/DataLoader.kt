@@ -149,7 +149,7 @@ class DataLoader(
 
         return createWarehouseRepository()
             .getAllWarehouses()
-            .data
+            .getOrThrow()
     }
 
 
@@ -192,7 +192,7 @@ class DataLoader(
 
         )
             .getAllPackages()
-            .data
+            .getOrThrow()
     }
 
 
@@ -278,6 +278,6 @@ class DataLoader(
 
         )
             .getAllRoutes()
-            .data
+            .getOrThrow()
     }
 }
