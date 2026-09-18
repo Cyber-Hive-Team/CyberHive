@@ -1,4 +1,4 @@
-package org.example.domain.usecase.crud.Package
+package org.example.domain.usecase.crud.packages
 
 import org.example.domain.repository.PackageRepository
 import org.example.domain.model.exception.PackageNotFoundException

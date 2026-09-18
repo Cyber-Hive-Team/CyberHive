@@ -1,4 +1,4 @@
-package org.example.domain.usecase.crud.Package
+package org.example.domain.usecase.crud.packages
 
 import org.example.domain.model.Package
 import org.example.domain.repository.PackageRepository
