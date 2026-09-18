@@ -2,7 +2,6 @@ package org.example.data.repositoryImplementation
 
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
-import org.example.domain.model.result.Result
 import org.example.domain.repository.VehicleRepository
 
 class VehicleRepositoryImpl(
@@ -16,13 +15,10 @@ class VehicleRepositoryImpl(
     @Suppress("TooGenericExceptionCaught", "LongMethod", "ReturnCount")
     override fun getVehicles(): Result<List<Vehicle>> {
 
-        return try {
+        return runCatching {
 
             if (isLoaded) {
-                return Result(
-                    data = vehicles.toList(),
-                    errorMessage = null
-                )
+                return@runCatching vehicles.toList()
             }
 
 
@@ -74,25 +70,9 @@ class VehicleRepositoryImpl(
             isLoaded = true
 
 
-            Result(
-                data = vehicles.toList(),
-                errorMessage =
-                    warnings
-                        .takeIf { it.isNotEmpty() }
-                        ?.joinToString("; ")
-            )
-
-
-        } catch (e: Exception) {
-
-            Result(
-                data = emptyList(),
-                errorMessage =
-                    "Failed to load vehicles: ${e.message}"
-            )
+            vehicles.toList()
         }
     }
-
 
 
 
@@ -100,31 +80,40 @@ class VehicleRepositoryImpl(
         warehouseId: String
     ): Result<List<Vehicle>> {
 
-        val result = getVehicles()
+        return runCatching {
 
-        return Result(
-            data = result.data.filter { vehicle ->
-                vehicle.currentHub.id == warehouseId
-            },
-            errorMessage = result.errorMessage
-        )
+            getVehicles()
+                .getOrThrow()
+                .filter { vehicle ->
+
+                    vehicle.currentHub.id == warehouseId
+                }
+        }
     }
+
 
 
     override fun reassignVehicle(
         vehicleId: String,
         warehouseId: String
     ): Boolean {
+
         getVehicles()
+
         val index =
             vehicles.indexOfFirst { vehicle ->
                 vehicle.id == vehicleId
             }
+
         val targetWarehouse =
             dependencies.warehouseMap[warehouseId]
+
+
         if (index == -1 || targetWarehouse == null) {
             return false
         }
+
+
         vehicles[index] =
             Vehicle(
                 id = vehicles[index].id,
@@ -132,8 +121,8 @@ class VehicleRepositoryImpl(
                 maxCapacityKg = vehicles[index].maxCapacityKg,
                 costPerKm = vehicles[index].costPerKm
             )
-        return true
 
+        return true
     }
 
 
@@ -148,6 +137,7 @@ class VehicleRepositoryImpl(
         }
     }
 
+
     override suspend fun getById(
         vehicleId: String
     ): Vehicle? {
@@ -156,7 +146,9 @@ class VehicleRepositoryImpl(
             dependencies.remoteDataSource
                 .getById(vehicleId)
 
+
         if (responseDto != null) {
+
             val currentHub =
                 responseDto.currentHubId
                     ?.let {
@@ -164,7 +156,9 @@ class VehicleRepositoryImpl(
                             .getById(it)
                     }
 
+
             if (currentHub != null) {
+
                 return dependencies.remoteMapper
                     .mapToDomain(
                         raw = responseDto,
@@ -173,8 +167,9 @@ class VehicleRepositoryImpl(
             }
         }
 
+
         return getVehicles()
-            .data
+            .getOrThrow()
             .firstOrNull {
                 it.id == vehicleId
             }
@@ -185,12 +180,16 @@ class VehicleRepositoryImpl(
     override suspend fun save(
         vehicle: Vehicle
     ): Vehicle {
+
         val request =
             dependencies.remoteMapper
                 .mapToCreateRequest(vehicle)
+
+
         val responseDto =
             dependencies.remoteDataSource
                 .save(request)
+
 
         val currentHub =
             responseDto.currentHubId
@@ -200,6 +199,7 @@ class VehicleRepositoryImpl(
                         .getById(it)
                 }
                 ?: return vehicle
+
 
         return dependencies.remoteMapper
             .mapToDomain(
@@ -213,11 +213,9 @@ class VehicleRepositoryImpl(
         vehicle: Vehicle
     ): Vehicle {
 
-
         val request =
             dependencies.remoteMapper
                 .mapToUpdateRequest(vehicle)
-
 
 
         val responseDto =
@@ -226,6 +224,8 @@ class VehicleRepositoryImpl(
                     id = vehicle.id,
                     request = request
                 )
+
+
         val currentHub =
             responseDto.currentHubId
                 ?.let {
@@ -234,6 +234,7 @@ class VehicleRepositoryImpl(
                         .getById(it)
                 }
                 ?: return vehicle
+
 
         return dependencies.remoteMapper
             .mapToDomain(

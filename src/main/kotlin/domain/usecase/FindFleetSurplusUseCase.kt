@@ -36,7 +36,7 @@ class FindFleetSurplusUseCase(
             .data
         val vehicles = vehicleRepository
             .getVehiclesByWarehouseId(warehouseId)
-            .data
+            .getOrThrow()
         validatePackages(packages)
         validateVehicles(vehicles)
         val surplus = vehicles.sumOf { it.maxCapacityKg } -

@@ -235,7 +235,7 @@ class DataLoader(
 
         )
             .getVehicles()
-            .data
+            .getOrThrow()
     }
 
 

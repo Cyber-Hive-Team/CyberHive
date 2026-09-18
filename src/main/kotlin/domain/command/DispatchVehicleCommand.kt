@@ -15,7 +15,8 @@ class DispatchVehicleCommand(
 
     override suspend fun execute(): Boolean {
         val result = dispatchVehicleUseCase(vehicleId)
-        dispatchedPackages = result.data
+
+        dispatchedPackages = result.getOrThrow()
 
         if (dispatchedPackages.isEmpty()) {
             throw CommandExecutionException(
