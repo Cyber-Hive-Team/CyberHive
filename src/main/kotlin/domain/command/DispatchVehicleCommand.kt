@@ -4,7 +4,6 @@ import org.example.domain.model.Package
 import org.example.domain.model.exception.CommandExecutionException
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 import org.example.domain.usecase.DispatchVehicleUseCase
-import org.example.domain.repository.VehicleRepository
 
 class DispatchVehicleCommand(
     private val vehicleId: String,
