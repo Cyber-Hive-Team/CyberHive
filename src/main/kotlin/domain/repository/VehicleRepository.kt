@@ -1,7 +1,7 @@
 package org.example.domain.repository
 
 import org.example.domain.model.Vehicle
-import org.example.domain.model.result.Result
+import kotlin.Result
 
 interface VehicleRepository {
     fun getVehicles(): Result<List<Vehicle>>
