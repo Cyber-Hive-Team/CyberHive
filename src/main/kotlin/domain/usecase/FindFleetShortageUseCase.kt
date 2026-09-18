@@ -29,7 +29,10 @@ class FindFleetShortageUseCase(
         warehouseId: String
     ): FleetShortageResult? {
         val packages = packageRepository.getPackagesByWarehouseId(warehouseId).data
-        val vehicles = vehicleRepository.getVehiclesByWarehouseId(warehouseId).data
+        val vehicles =
+            vehicleRepository
+                .getVehiclesByWarehouseId(warehouseId)
+                .getOrThrow()
         validatePackages(packages)
         validateVehicles(vehicles)
 

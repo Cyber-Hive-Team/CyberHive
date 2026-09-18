@@ -81,7 +81,7 @@ class RedistributeFleetUseCase(
         }
         val vehicles = vehicleRepository
             .getVehiclesByWarehouseId(surplus.warehouseId)
-            .data
+            .getOrThrow()
             .sortedByDescending { vehicle ->
                 vehicle.maxCapacityKg
             }
