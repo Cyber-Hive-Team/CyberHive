@@ -1,6 +1,7 @@
 package org.example.domain.usecase.crud.vehicle
 
 import org.example.domain.model.Vehicle
+import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateVehicleInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.validator.ValidationResult
@@ -12,22 +13,20 @@ class CreateVehicleUseCase(
 ) {
 
     suspend operator fun invoke(vehicle: Vehicle): Result<Vehicle> {
-        return when (val validation = validator.validateCreate(vehicle)) {
+        return runCatching {
+            when (val validation = validator.validateCreate(vehicle)) {
             ValidationResult.Success -> {
-                runCatching {
                     vehicleRepository.save(vehicle)
                 }
-            }
 
             is ValidationResult.Failure -> {
-                Result.failure(
-                    IllegalArgumentException(
+                throw EntityValidationException(
                         validation.violations.joinToString("; ") {
                             "${it.field}: ${it.message}"
                         }
                     )
-                )
             }
+        }
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.example.domain.usecase.crud.vehicle
 
 import org.example.domain.model.Vehicle
+import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.VehicleRepository
 
 class GetVehicleByIdUseCase(
@@ -10,6 +11,7 @@ class GetVehicleByIdUseCase(
     suspend operator fun invoke(vehicleId: String): Result<Vehicle?> {
         return runCatching {
             vehicleRepository.getById(vehicleId)
+                ?: throw VehicleNotFoundException()
         }
     }
 }
