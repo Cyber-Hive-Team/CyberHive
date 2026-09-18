@@ -5,6 +5,8 @@ import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
 import org.example.domain.validator.Validator
 import org.example.domain.validator.ValidationResult
+import org.example.domain.model.exception.EntityValidationException
+import org.example.domain.model.exception.RouteNotFoundException
 
 class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
@@ -13,10 +15,14 @@ class UpdateRouteUseCase(
 
     suspend operator fun invoke(route: Route ,input: UpdateRouteInput): Result<Route> {
 
-        return when (val validation = routeValidator.validateUpdate(input)) {
+        return runCatching {
 
-            ValidationResult.Success -> {
-                runCatching {
+            routeRepository.getById(input.id)
+                ?: throw RouteNotFoundException()
+
+            when (val validation = routeValidator.validateUpdate(input)) {
+
+                ValidationResult.Success -> {
 
                     val updatedRoute = Route(
                         id = route.id,
@@ -32,16 +38,14 @@ class UpdateRouteUseCase(
 
                     routeRepository.update(updatedRoute)
                 }
-            }
 
-            is ValidationResult.Failure -> {
-                Result.failure(
-                    IllegalArgumentException(
-                        validation.violations.joinToString("; ") {
-                            "${it.field}: ${it.message}"
-                        }
-                    )
-                )
+                is ValidationResult.Failure -> {
+                    throw EntityValidationException(
+                            validation.violations.joinToString("; ") {
+                                "${it.field}: ${it.message}"
+                            }
+                        )
+                }
             }
         }
     }
