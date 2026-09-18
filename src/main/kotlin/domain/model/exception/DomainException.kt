@@ -1,6 +1,6 @@
 package org.example.domain.model.exception
 
-open class DomainException(message: String, cause: Throwable? = null) : Exception(message) {
+open class DomainException(message: String, cause: Throwable? = null) : Exception(message, cause) {
 
     companion object {
         const val WAREHOUSE_NOT_FOUND = "Warehouse not found."
