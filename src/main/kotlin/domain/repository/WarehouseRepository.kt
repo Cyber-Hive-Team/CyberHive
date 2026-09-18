@@ -4,7 +4,6 @@ import org.example.domain.model.Package
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
-import org.example.domain.model.result.Result
 
 interface WarehouseRepository {
     fun getAllWarehouses(): Result<List<Warehouse>>
