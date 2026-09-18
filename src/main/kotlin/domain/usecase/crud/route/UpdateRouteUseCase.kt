@@ -5,37 +5,44 @@ import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
 import org.example.domain.validator.Validator
 import org.example.domain.validator.ValidationResult
-import org.example.domain.model.exception.RouteNotFoundException
-import org.example.domain.model.exception.ValidationException
 
 class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
     private val routeValidator: Validator<Route, UpdateRouteInput>
 ) {
 
-    suspend operator fun invoke(input: UpdateRouteInput): Route {
+    suspend operator fun invoke(route: Route ,input: UpdateRouteInput): Result<Route> {
 
-        val validationResult = routeValidator.validateUpdate(input)
+        return when (val validation = routeValidator.validateUpdate(input)) {
 
-        if (validationResult is ValidationResult.Failure) {
-            throw ValidationException(validationResult.violations)
+            ValidationResult.Success -> {
+                runCatching {
+
+                    val updatedRoute = Route(
+                        id = route.id,
+                        originWarehouse = input.originWarehouse
+                            ?: route.originWarehouse,
+                        destinationWarehouse = input.destinationWarehouse
+                            ?: route.destinationWarehouse,
+                        distanceKm = input.distanceKm
+                            ?: route.distanceKm,
+                        typicalDelayMin = input.typicalDelayMin
+                            ?: route.typicalDelayMin
+                    )
+
+                    routeRepository.update(updatedRoute)
+                }
+            }
+
+            is ValidationResult.Failure -> {
+                Result.failure(
+                    IllegalArgumentException(
+                        validation.violations.joinToString("; ") {
+                            "${it.field}: ${it.message}"
+                        }
+                    )
+                )
+            }
         }
-
-        val currentRoute = routeRepository.getById(input.id)
-            ?: throw RouteNotFoundException()
-
-        val updatedRoute = Route(
-            id = currentRoute.id,
-            originWarehouse = input.originWarehouse
-                ?: currentRoute.originWarehouse,
-            destinationWarehouse = input.destinationWarehouse
-                ?: currentRoute.destinationWarehouse,
-            distanceKm = input.distanceKm
-                ?: currentRoute.distanceKm,
-            typicalDelayMin = input.typicalDelayMin
-                ?: currentRoute.typicalDelayMin
-        )
-
-        return routeRepository.update(updatedRoute)
     }
 }
