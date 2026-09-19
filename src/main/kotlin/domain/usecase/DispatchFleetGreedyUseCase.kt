@@ -12,7 +12,7 @@ class DispatchFleetGreedyUseCase(
     private val dispatcher: GreedyFleetDispatcher
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         targetZones: Set<RegionalZone>
     ): Result<List<Vehicle>> {
 
@@ -29,7 +29,7 @@ class DispatchFleetGreedyUseCase(
     }
 
 
-    private fun getAvailableVehicles(): List<Vehicle> {
+    private suspend fun getAvailableVehicles(): List<Vehicle> {
 
         val vehicles =
             vehicleRepository

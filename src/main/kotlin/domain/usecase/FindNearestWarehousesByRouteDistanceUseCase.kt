@@ -11,7 +11,7 @@ class FindNearestWarehousesByRouteDistanceUseCase(
     private val router: Router
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         warehouse: Warehouse,
         limit: Int
     ): Result<List<WarehouseDistance>> {

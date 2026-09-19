@@ -12,7 +12,7 @@ class FindPackagesWaitingTooLongInWarehouseUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         maxWaitingHours: Long
     ): List<WaitingPackageResult> {
         validateWaitingHours(maxWaitingHours)

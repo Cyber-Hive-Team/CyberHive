@@ -10,7 +10,7 @@ class FindStationedVehiclesByCapacityUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         warehouse: Warehouse,
         requiredWeightKg: Double
     ): Result<List<Vehicle>> {
