@@ -17,7 +17,7 @@ class FindFleetShortageUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
     operator fun invoke(): List<FleetShortageResult> {
-        return warehouseRepository.getAllWarehouses().data
+        return warehouseRepository.getAllWarehouses().getOrThrow()
             .mapNotNull { warehouse ->
                 calculateShortage(warehouse.id)
             }
@@ -28,7 +28,7 @@ class FindFleetShortageUseCase(
     private fun calculateShortage(
         warehouseId: String
     ): FleetShortageResult? {
-        val packages = packageRepository.getPackagesByWarehouseId(warehouseId).data
+        val packages = packageRepository.getPackagesByWarehouseId(warehouseId).getOrThrow()
         val vehicles =
             vehicleRepository
                 .getVehiclesByWarehouseId(warehouseId)

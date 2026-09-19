@@ -54,7 +54,7 @@ class DispatchVehicleUseCase(
 
         return packageRepository
             .getAllPackages()
-            .data
+            .getOrThrow()
             .filter { packageItem ->
 
                 packageItem.originWarehouse.id ==

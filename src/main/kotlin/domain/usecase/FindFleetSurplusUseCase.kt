@@ -20,7 +20,7 @@ class FindFleetSurplusUseCase(
     operator fun invoke(): List<FleetSurplusResult> {
         return warehouseRepository
             .getAllWarehouses()
-            .data
+            .getOrThrow()
             .mapNotNull { warehouse ->
                 calculateSurplus(warehouse.id)
             }
@@ -33,7 +33,7 @@ class FindFleetSurplusUseCase(
     ): FleetSurplusResult? {
         val packages = packageRepository
             .getPackagesByWarehouseId(warehouseId)
-            .data
+            .getOrThrow()
         val vehicles = vehicleRepository
             .getVehiclesByWarehouseId(warehouseId)
             .getOrThrow()

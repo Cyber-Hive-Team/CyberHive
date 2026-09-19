@@ -7,7 +7,6 @@ import org.example.domain.model.Priority
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
-import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 
@@ -19,10 +18,7 @@ class InMemoryWarehouseRepository(
 
 
     override fun getAllWarehouses(): Result<List<Warehouse>> =
-        Result(
-            data = byId.values.toList(),
-            errorMessage = null
-        )
+        Result.success(byId.values.toList())
 
 
     override suspend fun getById(

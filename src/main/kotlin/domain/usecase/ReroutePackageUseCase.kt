@@ -50,7 +50,7 @@ class ReroutePackageUseCase(
     }
 
     private fun fetchPackage(packageId: String): Package? {
-        return packageRepository.getAllPackages().data
+        return packageRepository.getAllPackages().getOrThrow()
             .firstOrNull { it.id == packageId }
     }
 

@@ -2,7 +2,6 @@ package org.example.data.repositoryImplementation
 
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.domain.model.Route
-import org.example.domain.model.result.Result
 import org.example.domain.repository.RouteRepository
 
 class RouteRepositoryImpl(
@@ -12,32 +11,17 @@ class RouteRepositoryImpl(
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllRoutes(): Result<List<Route>> {
-        return try {
+        return runCatching {
             val rawResults = dependencies.localDataSource.getRoutes()
             val warnings = rawResults
                     .mapNotNull { it.errorMessage }
                     .toMutableList()
             val rawRoutes = rawResults.mapNotNull { it.rawData }
-            val routes =
-                mapRoutes(
-                    rawRoutes = rawRoutes,
-                    warnings = warnings
-                )
-            Result(
-                data = routes,
-                errorMessage =
-                    warnings
-                        .takeIf { it.isNotEmpty() }
-                        ?.joinToString("; ")
-            )
-        } catch (e: Exception) {
-            Result(
-                data = emptyList(),
-                errorMessage =
-                    "Failed to load routes: ${e.message}"
+            mapRoutes(
+                rawRoutes = rawRoutes,
+                warnings = warnings
             )
         }
-
     }
 
 
@@ -112,8 +96,7 @@ class RouteRepositoryImpl(
             }
         }
         return getAllRoutes()
-            .data
-            .firstOrNull {
+            .getOrThrow().firstOrNull {
                 it.id == routeId
             }
     }

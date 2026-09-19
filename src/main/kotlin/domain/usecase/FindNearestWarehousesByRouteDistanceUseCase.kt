@@ -4,7 +4,6 @@ import org.example.domain.algorithm.search.Router
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseDistance
 import org.example.domain.model.exception.InvalidLimitException
-import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 
 class FindNearestWarehousesByRouteDistanceUseCase(
@@ -19,18 +18,16 @@ class FindNearestWarehousesByRouteDistanceUseCase(
 
         limit.takeIf { it > 0 } ?: throw InvalidLimitException()
 
-        val result = warehouseRepository.getAllWarehouses()
 
-        val nearestWarehouses = findNearestWarehouses(
-            warehouse,
-            result.data,
-            limit
-        )
-
-        return Result(
-            data = nearestWarehouses,
-            errorMessage = result.errorMessage
-        )
+        return warehouseRepository
+            .getAllWarehouses()
+            .map { warehouses ->
+                findNearestWarehouses(
+                    warehouse,
+                    warehouses,
+                    limit
+                )
+            }
     }
 
     private fun findNearestWarehouses(

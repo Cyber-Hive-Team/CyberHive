@@ -1,12 +1,12 @@
 package org.example.domain.usecase
 
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.exception.RouteNotFoundException
 import org.example.domain.model.input.CalculatePricingInput
+import org.example.domain.model.result.PricingPackage
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.RouteRepository
-import org.example.domain.model.result.PricingPackage
-import org.example.domain.model.exception.PackageNotFoundException
-import org.example.domain.model.exception.RouteNotFoundException
 
 class CalculatePricingPackageUseCase(
     private val packageRepository: PackageRepository,
@@ -17,11 +17,11 @@ class CalculatePricingPackageUseCase(
         input : CalculatePricingInput
     ): PricingPackage {
 
-        val cargoPackage = packageRepository.getAllPackages().data
+        val cargoPackage = packageRepository.getAllPackages().getOrThrow()
             .firstOrNull { it.id == input.packageId }
             ?: throw PackageNotFoundException("Package not found with ID: ${input.packageId}")
 
-        val route = routeRepository.getAllRoutes().data
+        val route = routeRepository.getAllRoutes().getOrThrow()
             .firstOrNull { it.id == input.routeId }
             ?: throw RouteNotFoundException("Route not found with ID: ${input.routeId}")
 

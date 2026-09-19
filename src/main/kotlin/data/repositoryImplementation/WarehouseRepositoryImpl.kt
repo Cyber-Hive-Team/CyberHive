@@ -6,7 +6,6 @@ import org.example.domain.model.Package
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
-import org.example.domain.model.result.Result
 import org.example.domain.repository.WarehouseRepository
 import kotlin.random.Random
 
@@ -18,27 +17,18 @@ class WarehouseRepositoryImpl(
 
     @Suppress("TooGenericExceptionCaught")
     override fun getAllWarehouses(): Result<List<Warehouse>> {
-        return try {
+        return runCatching {
             val rawResults = dependencies.localDataSource.getWarehouses()
             val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
-            val rawWarehouses = rawResults.mapNotNull { it.rawData }
-            val warehouses = rawWarehouses.mapNotNull { raw ->
-                mapValidWarehouse(raw, warnings)
-                }
-            Result(
-                data = warehouses,
-                errorMessage =
+            val rawWarehouses =
+                rawResults
+                    .mapNotNull { it.rawData }
+            rawWarehouses.mapNotNull { raw ->
+                mapValidWarehouse(
+                    raw,
                     warnings
-                        .takeIf { it.isNotEmpty() }
-                        ?.joinToString("; ")
-            )
-
-        } catch (e: Exception) {
-            Result(
-                data = emptyList(),
-                errorMessage =
-                    "Failed to load warehouses: ${e.message}"
-            )
+                )
+            }
         }
     }
 
@@ -117,7 +107,7 @@ class WarehouseRepositoryImpl(
             List<WarehouseServices> {
 
         return getAllWarehouses()
-            .data
+            .getOrThrow()
             .map { warehouse ->
 
                 WarehouseServices(
@@ -143,7 +133,7 @@ class WarehouseRepositoryImpl(
         }
 
         return getAllWarehouses()
-            .data
+            .getOrThrow()
             .firstOrNull {
                 it.id == id
             }

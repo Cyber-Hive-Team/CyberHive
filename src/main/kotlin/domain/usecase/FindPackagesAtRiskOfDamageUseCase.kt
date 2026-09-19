@@ -16,7 +16,7 @@ class FindPackagesAtRiskOfDamageUseCase(
             .associateBy { requirement -> requirement.packageId }
         val warehouseServices = warehouseRepository.getAllWarehouseServices()
             .associateBy { services -> services.warehouseId }
-        return packageRepository.getAllPackages().data.mapNotNull { cargoPackage ->
+        return packageRepository.getAllPackages().getOrThrow().mapNotNull { cargoPackage ->
             val requirements = packageRequirements[cargoPackage.id]
                 ?: return@mapNotNull null
             val warehouseId = cargoPackage.originWarehouse.id

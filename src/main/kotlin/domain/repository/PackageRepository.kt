@@ -5,7 +5,6 @@ import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.Priority
 import org.example.domain.model.input.PackageDeliveryTime
-import org.example.domain.model.result.Result
 
 interface PackageRepository {
     fun getAllPackages(): Result<List<Package>>
