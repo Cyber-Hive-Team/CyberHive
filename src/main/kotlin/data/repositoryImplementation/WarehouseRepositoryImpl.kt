@@ -1,6 +1,5 @@
 package org.example.data.repositoryImplementation
 
-import org.example.data.dataholder.WareHouseRaw
 import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.RegionalZone
@@ -15,43 +14,70 @@ class WarehouseRepositoryImpl(
 ) : WarehouseRepository {
 
 
-    @Suppress("TooGenericExceptionCaught")
-    override fun getAllWarehouses(): Result<List<Warehouse>> {
+    private val warnings =
+        mutableListOf<String>()
+
+
+    private val warehouses =
+        mutableListOf<Warehouse>()
+
+
+    private var isLoaded = false
+
+
+    override suspend fun getAllWarehouses(): Result<List<Warehouse>> {
+
         return runCatching {
-            val rawResults = dependencies.localDataSource.getWarehouses()
-            val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
-            val rawWarehouses =
-                rawResults
-                    .mapNotNull { it.rawData }
-            rawWarehouses.mapNotNull { raw ->
-                mapValidWarehouse(
-                    raw,
-                    warnings
-                )
+
+            if (isLoaded) {
+                return@runCatching warehouses.toList()
             }
+
+
+            val loadedWarehouses =
+                dependencies.remoteDataSource
+                    .getAll()
+                    .mapNotNull {
+                        mapWarehouseSafely(it)
+                    }
+
+
+            warehouses.addAll(
+                loadedWarehouses
+            )
+
+
+            isLoaded = true
+
+
+            warehouses.toList()
         }
     }
 
 
-    private fun mapValidWarehouse(
-        raw: WareHouseRaw,
-        warnings: MutableList<String>
+    private fun mapWarehouseSafely(
+        dto: org.example.data.remote.dto.response.WarehouseResponseDto
     ): Warehouse? {
 
+        return runCatching {
 
-        val validation =
-            dependencies.validator.validate(raw)
+            dependencies.remoteValidator
+                .validate(dto)
 
 
-        if (validation.isNotEmpty()) {
+            dependencies.remoteMapper
+                .mapToDomainModel(dto)
 
-            warnings.addAll(validation)
+        }.getOrElse { exception ->
 
-            return null
+
+            warnings.add(
+                "Warehouse '${dto.id}': ${exception.message}"
+            )
+
+
+            null
         }
-
-
-        return dependencies.localMapper.map(raw)
     }
 
 
@@ -77,10 +103,14 @@ class WarehouseRepositoryImpl(
     override suspend fun sortCargoQueue(
         warehouseId: String
     ): Boolean {
+
         val warehouse =
             getById(warehouseId)
                 ?: return false
+
+
         warehouse.sortCargoQueue()
+
         return true
     }
 
@@ -103,15 +133,15 @@ class WarehouseRepositoryImpl(
     }
 
 
-    override fun getAllWarehouseServices():
+    override suspend fun getAllWarehouseServices():
             List<WarehouseServices> {
 
         return getAllWarehouses()
             .getOrThrow()
-            .map { warehouse ->
+            .map {
 
                 WarehouseServices(
-                    warehouseId = warehouse.id,
+                    warehouseId = it.id,
                     supportsFragileHandling = Random.nextBoolean(),
                     supportsColdStorage = Random.nextBoolean(),
                     supportsSpecialHandling = Random.nextBoolean()
@@ -119,25 +149,41 @@ class WarehouseRepositoryImpl(
             }
     }
 
+    @Suppress("ReturnCount")
     override suspend fun getById(
         id: String
     ): Warehouse? {
 
+
+        val cached =
+            warehouses.firstOrNull {
+                it.id == id
+            }
+
+
+        if (cached != null) {
+            return cached
+        }
+
+
         val remoteDto =
             dependencies.remoteDataSource
                 .getById(id)
+                ?: return null
 
-        if (remoteDto != null) {
-            return dependencies.remoteMapper
-                .mapToDomainModel(remoteDto)
+
+        val warehouse =
+            mapWarehouseSafely(remoteDto)
+
+
+        warehouse?.let {
+            warehouses.add(it)
         }
 
-        return getAllWarehouses()
-            .getOrThrow()
-            .firstOrNull {
-                it.id == id
-            }
+
+        return warehouse
     }
+
 
     override suspend fun save(
         warehouse: Warehouse
@@ -146,7 +192,9 @@ class WarehouseRepositoryImpl(
 
         val requestDto =
             dependencies.remoteMapper
-                .mapToCreateRequest(warehouse)
+                .mapToCreateRequest(
+                    warehouse
+                )
 
 
         val responseDto =
@@ -154,8 +202,15 @@ class WarehouseRepositoryImpl(
                 .save(requestDto)
 
 
-        return dependencies.remoteMapper
-            .mapToDomainModel(responseDto)
+        val savedWarehouse =
+            mapWarehouseSafely(responseDto)
+                ?: warehouse
+
+
+        warehouses.add(savedWarehouse)
+
+
+        return savedWarehouse
     }
 
 
@@ -186,8 +241,24 @@ class WarehouseRepositoryImpl(
                 )
 
 
-        return dependencies.remoteMapper
-            .mapToDomainModel(responseDto)
+        val updatedWarehouse =
+            mapWarehouseSafely(responseDto)
+                ?: error(
+                    "Warehouse update failed."
+                )
+
+
+        warehouses.removeIf {
+            it.id == id
+        }
+
+
+        warehouses.add(
+            updatedWarehouse
+        )
+
+
+        return updatedWarehouse
     }
 
 
@@ -195,7 +266,19 @@ class WarehouseRepositoryImpl(
         id: String
     ): Boolean {
 
-        return dependencies.remoteDataSource
-            .delete(id)
+        val deleted =
+            dependencies.remoteDataSource
+                .delete(id)
+
+
+        if (deleted) {
+
+            warehouses.removeIf {
+                it.id == id
+            }
+        }
+
+
+        return deleted
     }
 }
