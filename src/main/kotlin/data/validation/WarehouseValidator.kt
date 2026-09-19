@@ -1,34 +1,73 @@
 package org.example.data.validation
 
 import org.example.data.dataholder.WareHouseRaw
-
-private const val MIN_LATITUDE = -90.0
-private const val MAX_LATITUDE = 90.0
-private const val MIN_LONGITUDE = -180.0
-private const val MAX_LONGITUDE = 180.0
+import org.example.data.exception.InvalidLatitudeDataException
+import org.example.data.exception.InvalidLongitudeDataException
+import org.example.data.exception.InvalidWarehouseIdDataException
+import org.example.data.exception.InvalidWarehouseNameDataException
+import org.example.data.exception.MissingLatitudeDataException
+import org.example.data.exception.MissingLongitudeDataException
 
 class WarehouseValidator {
 
-    fun validate(raw: WareHouseRaw): List<String> {
-        val warnings = mutableListOf<String>()
+    fun validate(raw: WareHouseRaw): DataValidationResult {
 
-        if (raw.id.isBlank()) {
-            warnings.add("Warning: Warehouse skipped - ID is missing")
-        }
-        if (raw.latitude == null ||
-            raw.latitude < MIN_LATITUDE ||
-            raw.latitude > MAX_LATITUDE
-        ) {
-            warnings.add("Warning: Warehouse ${raw.id} skipped - invalid latitude")
-        }
+        val violations = mutableListOf<DataFieldViolation>()
 
-        if (raw.longitude == null ||
-            raw.longitude < MIN_LONGITUDE ||
-            raw.longitude > MAX_LONGITUDE
-        ) {
-            warnings.add("Warning: Warehouse ${raw.id} skipped - invalid longitude")
-        }
-        return warnings
+        validateId(raw)?.let { violations.add(it) }
+        validateName(raw)?.let { violations.add(it) }
+        validateLatitude(raw)?.let { violations.add(it) }
+        validateLongitude(raw)?.let { violations.add(it) }
 
+        return violations.toResult()
     }
+
+    private fun validateId(raw: WareHouseRaw): DataFieldViolation? =
+        if (raw.id.isBlank()) {
+            DataFieldViolation(
+                "id",
+                InvalidWarehouseIdDataException().message.orEmpty())
+        }else null
+
+    private fun validateName(raw: WareHouseRaw): DataFieldViolation? =
+        if (raw.name.isBlank()) {
+            DataFieldViolation(
+                "name",
+                InvalidWarehouseNameDataException().message.orEmpty())
+        }else null
+
+    private fun validateLatitude(raw: WareHouseRaw): DataFieldViolation? =
+        when {
+            raw.latitude == null -> {
+                DataFieldViolation(
+                    "latitude",
+                    MissingLatitudeDataException().message.orEmpty()
+                )
+            }
+            raw.latitude !in -90.0..90.0 -> {
+                DataFieldViolation(
+                    "latitude",
+                    InvalidLatitudeDataException().message.orEmpty()
+                )
+
+            }else -> null
+        }
+
+    private fun validateLongitude(raw: WareHouseRaw): DataFieldViolation? =
+        when {
+            raw.longitude == null -> {
+                DataFieldViolation(
+                    "longitude",
+                    MissingLongitudeDataException().message.orEmpty()
+                )
+            }
+
+            raw.longitude !in -180.0..180.0 -> {
+                DataFieldViolation(
+                    "longitude",
+                    InvalidLongitudeDataException().message.orEmpty()
+                )
+
+            }else -> null
+        }
 }
