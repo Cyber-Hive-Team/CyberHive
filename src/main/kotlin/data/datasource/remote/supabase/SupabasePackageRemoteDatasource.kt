@@ -19,7 +19,7 @@ class SupabasePackageRemoteDatasource(
 
     override suspend fun getAll(): List<PackageResponseDto> {
         return client
-            .get("$baseUrl/package")
+            .get("$baseUrl/Packages")
             .body()
     }
 
@@ -27,7 +27,7 @@ class SupabasePackageRemoteDatasource(
         id: String
     ): PackageResponseDto? {
         return client
-            .get("$baseUrl/packages?packageId=eq.$id")
+            .get("$baseUrl/Packages?id=eq.$id")
             .body<List<PackageResponseDto>>()
             .firstOrNull()
     }
@@ -36,7 +36,7 @@ class SupabasePackageRemoteDatasource(
         request: CreatePackageRequestDto
     ): PackageResponseDto {
         return client
-            .post("$baseUrl/packages") {
+            .post("$baseUrl/Packages") {
                 setBody(request)
             }
             .body()
@@ -47,7 +47,7 @@ class SupabasePackageRemoteDatasource(
         request: UpdatePackageRequestDto
     ): PackageResponseDto {
         return client
-            .patch("$baseUrl/packages?packageId=eq.$id") {
+            .patch("$baseUrl/Packages?id=eq.$id") {
                 setBody(request)
             }
             .body()
@@ -56,7 +56,7 @@ class SupabasePackageRemoteDatasource(
     override suspend fun delete(
         id: String
     ): Boolean {
-        client.delete("$baseUrl/packages?packageId=eq.$id")
+        client.delete("$baseUrl/Packages?id=eq.$id")
         return true
     }
 }
