@@ -6,77 +6,32 @@ import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
 
-@Suppress("LongMethod")
 suspend fun main() {
-
     println("=== Cyber Hive ===")
-
     println(System.getenv("SUPABASE_URL"))
     println(System.getenv("SUPABASE_PUBLISHABLE_KEY"))
-
     val supabaseConfig = SupabaseConfig(
         url = requireNotNull(System.getenv("SUPABASE_URL")),
         publishableKey = requireNotNull(
             System.getenv("SUPABASE_PUBLISHABLE_KEY")
         )
     )
-
-
-    val httpClient =
-        SupabaseHttpClient(
-            supabaseConfig
-        )
-
-
-    val dataLoader =
-        DataLoader(
-            httpClient = httpClient,
-            supabaseConfig = supabaseConfig
-        )
-
-
-    val data =
-        dataLoader.load()
-
-
+    val httpClient = SupabaseHttpClient(supabaseConfig)
+    val dataLoader = DataLoader(httpClient = httpClient, supabaseConfig = supabaseConfig)
+    val data = dataLoader.load()
     if (data.warehouses.isEmpty()) {
         println("ERROR: No warehouses found.")
         return
     }
-
-
     val dispatchFleetGreedyUseCase =
-        DispatchFleetGreedyUseCase(
-            vehicleRepository = data.vehicleRepository,
-            dispatcher = GreedyFleetDispatcher()
-        )
-
-
+        DispatchFleetGreedyUseCase(vehicleRepository = data.vehicleRepository, dispatcher = GreedyFleetDispatcher())
     PricingDemoRunner(data.warehouses).run()
-
     DecoratorDemoRunner(data.warehouses).run()
-
     SortingDemoRunner(data.warehouses).run()
-
     ConsistentHashRoutingRunner(data.warehouses).run()
-
-    RoutingComparisonRunner(
-        data.warehouses,
-        data.routes
-    ).run()
-
-    TreePerformanceDemoRunner(
-        AnalyzeTreePerformanceUseCase()
-    ).run()
-
-    TraceHubLineageDemoRunner(dataLoader)
-        .run("WH-028")
-
-    CommandInvokerDemoRunner(data.warehouses)
-        .run()
-
-
-    GreedyFleetDispatcherRunner(
-        dispatchFleetGreedyUseCase
-    ).run()
+    RoutingComparisonRunner(data.warehouses, data.routes).run()
+    TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
+    TraceHubLineageDemoRunner(dataLoader).run("WH-028")
+    CommandInvokerDemoRunner(data.warehouses).run()
+    GreedyFleetDispatcherRunner(dispatchFleetGreedyUseCase).run()
 }
