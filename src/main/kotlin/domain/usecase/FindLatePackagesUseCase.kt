@@ -9,7 +9,7 @@ class FindLatePackagesUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    operator fun invoke(): List<LatePackageResult> {
+    suspend operator fun invoke(): List<LatePackageResult> {
 
         return packageRepository
             .getAllDeliveryTimes()

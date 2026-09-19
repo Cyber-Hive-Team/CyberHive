@@ -15,8 +15,8 @@ class RouteDtoMapper {
     ): Route {
         return Route(
             id = raw.routeId,
-            distanceKm = raw.distanceKm,
-            typicalDelayMin = raw.typicalDelayMin ?: 0,
+            distanceKm = raw.distanceKm!!,
+            typicalDelayMin = raw.typicalDelayMin!!,
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )

@@ -17,7 +17,7 @@ class InMemoryWarehouseRepository(
     private val byId = warehouses.associateBy { it.id }.toMutableMap()
 
 
-    override fun getAllWarehouses(): Result<List<Warehouse>> =
+    override suspend fun getAllWarehouses(): Result<List<Warehouse>> =
         Result.success(byId.values.toList())
 
 
@@ -73,7 +73,7 @@ class InMemoryWarehouseRepository(
     }
 
 
-    override fun getAllWarehouseServices():
+    override suspend fun getAllWarehouseServices():
             List<WarehouseServices> =
         emptyList()
 
@@ -170,10 +170,33 @@ class CommandInvokerDemoRunner(
         printQueue(targetWarehouse, "AFTER ${demoPackages.size} EXECUTES")
     }
 
-    private fun buildDemoPackages(targetWarehouse: Warehouse): List<Package> = listOf(
-        Package("DEMO-1", DEMO_PACKAGE_1_WEIGHT_KG, Priority.STANDARD, targetWarehouse, targetWarehouse),
-        Package("DEMO-2", DEMO_PACKAGE_2_WEIGHT_KG, Priority.URGENT, targetWarehouse, targetWarehouse),
-        Package("DEMO-3", DEMO_PACKAGE_3_WEIGHT_KG, Priority.LOW, targetWarehouse, targetWarehouse)
+    private fun buildDemoPackages(
+        targetWarehouse: Warehouse
+    ): List<Package> = listOf(
+
+        Package(
+            "PKG-999991",
+            DEMO_PACKAGE_1_WEIGHT_KG,
+            Priority.STANDARD,
+            targetWarehouse,
+            targetWarehouse
+        ),
+
+        Package(
+            "PKG-999992",
+            DEMO_PACKAGE_2_WEIGHT_KG,
+            Priority.URGENT,
+            targetWarehouse,
+            targetWarehouse
+        ),
+
+        Package(
+            "PKG-999993",
+            DEMO_PACKAGE_3_WEIGHT_KG,
+            Priority.LOW,
+            targetWarehouse,
+            targetWarehouse
+        )
     )
 
     private suspend fun demoUndoRedo(invoker: CommandInvoker, targetWarehouse: Warehouse) {

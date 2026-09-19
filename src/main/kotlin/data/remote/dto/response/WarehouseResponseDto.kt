@@ -10,9 +10,9 @@ data class WarehouseResponseDto(
     @SerialName("name")
     val name: String,
     @SerialName("regionalZone")
-    val regionalZone: String,
+    val regionalZone: String?,
     @SerialName("latitude")
-    val latitude: Double,
+    val latitude: Double?,
     @SerialName("longitude")
-    val longitude: Double
+    val longitude: Double?
 )

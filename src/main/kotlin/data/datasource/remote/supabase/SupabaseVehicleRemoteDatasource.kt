@@ -22,7 +22,7 @@ class SupabaseVehicleRemoteDatasource(
     override suspend fun getAll(): List<VehicleResponseDto> {
 
         return client
-            .get("$baseUrl/vehicles")
+            .get("$baseUrl/Vehicles")
             .body()
     }
 
@@ -32,7 +32,7 @@ class SupabaseVehicleRemoteDatasource(
     ): VehicleResponseDto? {
 
         return client
-            .get("$baseUrl/vehicles?vehicleId=eq.$id")
+            .get("$baseUrl/Vehicles?vehicleId=eq.$id")
             .body<List<VehicleResponseDto>>()
             .firstOrNull()
     }
@@ -43,7 +43,7 @@ class SupabaseVehicleRemoteDatasource(
     ): VehicleResponseDto {
 
         return client
-            .post("$baseUrl/vehicles") {
+            .post("$baseUrl/Vehicles") {
                 setBody(request)
             }
             .body()
@@ -56,7 +56,7 @@ class SupabaseVehicleRemoteDatasource(
     ): VehicleResponseDto {
 
         return client
-            .patch("$baseUrl/vehicles?vehicleId=eq.$id") {
+            .patch("$baseUrl/Vehicles?vehicleId=eq.$id") {
                 setBody(request)
             }
             .body()
@@ -68,7 +68,7 @@ class SupabaseVehicleRemoteDatasource(
     ): Boolean {
 
         client.delete(
-            "$baseUrl/vehicles?vehicleId=eq.$id"
+            "$baseUrl/Vehicles?vehicleId=eq.$id"
         )
 
         return true

@@ -1,153 +1,209 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.exception.NullRequiredFieldException
+import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.domain.model.Route
 import org.example.domain.repository.RouteRepository
+
 
 class RouteRepositoryImpl(
     private val dependencies: RouteRepositoryDependencies
 ) : RouteRepository {
 
 
-    @Suppress("TooGenericExceptionCaught")
-    override fun getAllRoutes(): Result<List<Route>> {
+    private val warnings =
+        mutableListOf<String>()
+
+
+    private val routes =
+        mutableListOf<Route>()
+
+
+    private var isLoaded = false
+
+
+    override suspend fun getAllRoutes(): Result<List<Route>> {
+
         return runCatching {
-            val rawResults = dependencies.localDataSource.getRoutes()
-            val warnings = rawResults
-                    .mapNotNull { it.errorMessage }
-                    .toMutableList()
-            val rawRoutes = rawResults.mapNotNull { it.rawData }
-            mapRoutes(
-                rawRoutes = rawRoutes,
-                warnings = warnings
+
+            if (isLoaded) {
+                return@runCatching routes.toList()
+            }
+
+
+            val loadedRoutes =
+                dependencies.remoteDataSource
+                    .getAll()
+                    .mapNotNull {
+                        mapRouteSafely(it)
+                    }
+
+
+            routes.addAll(
+                loadedRoutes
             )
+
+
+            isLoaded = true
+
+
+            routes.toList()
         }
     }
 
+    @Suppress("LongMethod")
+    private fun mapRouteSafely(
+        dto: RouteResponseDto
+    ): Route? {
 
-    private fun mapRoutes(
-        rawRoutes: List<org.example.data.dataholder.RouteRaw>,
-        warnings: MutableList<String>
-    ): List<Route> {
+        return runCatching {
 
-        return rawRoutes.mapNotNull { raw ->
-            val origin =
-                dependencies.warehouseMap[
-                    normalizeId(raw.originHubId)
-                ]
-
-
-            val destination =
-                dependencies.warehouseMap[
-                    normalizeId(raw.destinationHubId)
-                ]
-
-
-            val validation =
-                dependencies.validator.validate(
-                    raw,
-                    origin,
-                    destination
+            val originWarehouse =
+                findWarehouse(
+                    dto.originHubId,
+                    dto.routeId,
+                    "origin"
                 )
 
 
-            if (validation.isNotEmpty()) {
+            val destinationWarehouse =
+                findWarehouse(
+                    dto.destinationHubId,
+                    dto.routeId,
+                    "destination"
+                )
 
-                warnings.addAll(validation)
+
+            dependencies.remoteValidator
+                .validate(dto)
+
+
+            dependencies.remoteMapper
+                .mapToDomain(
+                    raw = dto,
+                    originWarehouse = originWarehouse,
+                    destinationWarehouse = destinationWarehouse
+                )
+
+        }.getOrElse { exception ->
+
+            if (exception is NullRequiredFieldException) {
+
+                warnings.add(
+                    "Route '${dto.routeId}': ${exception.message}"
+                )
 
                 null
 
             } else {
 
-                dependencies.localMapper.map(
-                    raw,
-                    origin!!,
-                    destination!!
-                )
+                throw exception
             }
         }
     }
 
 
-    private fun normalizeId(
-        id: String
-    ): String =
-        id.trim().uppercase()
+    private fun findWarehouse(
+        warehouseId: String,
+        routeId: String,
+        type: String
+    ) =
+
+        dependencies.warehouseMap[warehouseId]
+            ?: throw NullRequiredFieldException(
+                "Route '$routeId' $type warehouse not found."
+            )
 
 
+    @Suppress("ReturnCount")
     override suspend fun getById(
         routeId: String
     ): Route? {
-        val responseDto = dependencies.remoteDataSource.getById(routeId)
-        if (responseDto != null) {
-            val originWarehouse =
-                dependencies.warehouseRepository
-                    .getById(responseDto.originHubId)
-            val destinationWarehouse =
-                dependencies.warehouseRepository
-                    .getById(responseDto.destinationHubId)
-            if (originWarehouse != null && destinationWarehouse != null
-            ) {
-                return dependencies.remoteMapper.mapToDomain(
-                    raw = responseDto,
-                    originWarehouse = originWarehouse,
-                    destinationWarehouse = destinationWarehouse
-                )
-            }
+
+        routes.firstOrNull {
+            it.id == routeId
+        }?.let {
+            return it
         }
-        return getAllRoutes()
-            .getOrThrow().firstOrNull {
-                it.id == routeId
-            }
+
+
+        val dto =
+            dependencies.remoteDataSource
+                .getById(routeId)
+                ?: return null
+
+
+        val route =
+            mapRouteSafely(dto)
+
+
+        route?.let {
+            routes.add(it)
+        }
+
+
+        return route
     }
 
 
     override suspend fun save(
         route: Route
     ): Route {
-        val request = dependencies.remoteMapper.mapToCreateRequest(route)
-        val responseDto = dependencies.remoteDataSource.save(request)
-        val originWarehouse =
-            dependencies.warehouseRepository
-                .getById(responseDto.originHubId)
-        val destinationWarehouse =
-            dependencies.warehouseRepository
-                .getById(responseDto.destinationHubId)
-        if (
-            originWarehouse == null || destinationWarehouse == null) {
-            return route
-        }
-        return dependencies.remoteMapper
-            .mapToDomain(
-                raw = responseDto,
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
+
+        val request =
+            dependencies.remoteMapper
+                .mapToCreateRequest(route)
+
+
+        val dto =
+            dependencies.remoteDataSource
+                .save(request)
+
+
+        val savedRoute =
+            mapRouteSafely(dto)
+                ?: route
+
+
+        routes.add(savedRoute)
+
+
+        return savedRoute
     }
 
 
     override suspend fun update(
         route: Route
     ): Route {
+
         val request =
             dependencies.remoteMapper
                 .mapToUpdateRequest(route)
-        val responseDto =
-            dependencies.remoteDataSource.update(id = route.id, request = request)
-        val originWarehouse =
-            dependencies.warehouseRepository
-                .getById(responseDto.originHubId)
-        val destinationWarehouse =
-            dependencies.warehouseRepository.getById(responseDto.destinationHubId)
-        if (originWarehouse == null || destinationWarehouse == null) {
-            return route
+
+
+        val dto =
+            dependencies.remoteDataSource
+                .update(
+                    id = route.id,
+                    request = request
+                )
+
+
+        val updatedRoute =
+            mapRouteSafely(dto)
+                ?: route
+
+
+        routes.removeIf {
+            it.id == route.id
         }
-        return dependencies.remoteMapper
-            .mapToDomain(
-                raw = responseDto,
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
+
+
+        routes.add(updatedRoute)
+
+
+        return updatedRoute
     }
 
 
@@ -155,7 +211,19 @@ class RouteRepositoryImpl(
         id: String
     ): Boolean {
 
-        return dependencies.remoteDataSource
-            .delete(id)
+        val deleted =
+            dependencies.remoteDataSource
+                .delete(id)
+
+
+        if (deleted) {
+
+            routes.removeIf {
+                it.id == id
+            }
+        }
+
+
+        return deleted
     }
 }

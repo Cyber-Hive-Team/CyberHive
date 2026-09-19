@@ -4,7 +4,7 @@ import org.example.domain.algorithm.tree.WarehouseHierarchyBuilder
 import org.example.domain.usecase.TraceHubLineageUseCase
 
 class TraceHubLineageDemoRunner(private val dataLoader: DataLoader) {
-    fun run(warehouseId: String) {
+    suspend fun run(warehouseId: String) {
         val data = dataLoader.load()
         val tree = WarehouseHierarchyBuilder(warehouses = data.warehouses, routes = data.routes).build()
         if (tree == null) {

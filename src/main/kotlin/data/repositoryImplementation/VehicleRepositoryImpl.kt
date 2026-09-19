@@ -1,19 +1,29 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.exception.NullRequiredFieldException
+import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
 import org.example.domain.repository.VehicleRepository
+
 
 class VehicleRepositoryImpl(
     private val dependencies: VehicleRepositoryDependencies
 ) : VehicleRepository {
 
-    private val vehicles = mutableListOf<Vehicle>()
+
+    private val vehicles =
+        mutableListOf<Vehicle>()
+
+
+    private val warnings =
+        mutableListOf<String>()
+
+
     private var isLoaded = false
 
 
-    @Suppress("TooGenericExceptionCaught", "LongMethod", "ReturnCount")
-    override fun getVehicles(): Result<List<Vehicle>> {
+    override suspend fun getVehicles(): Result<List<Vehicle>> {
 
         return runCatching {
 
@@ -22,49 +32,17 @@ class VehicleRepositoryImpl(
             }
 
 
-            val rawResults =
-                dependencies.localDataSource.getVehicles()
+            val loadedVehicles =
+                dependencies.remoteDataSource
+                    .getAll()
+                    .mapNotNull {
+                        mapVehicleSafely(it)
+                    }
 
 
-            val warnings =
-                rawResults
-                    .mapNotNull { it.errorMessage }
-                    .toMutableList()
-
-
-            val rawVehicles =
-                rawResults
-                    .mapNotNull { it.rawData }
-
-
-            rawVehicles.forEach { raw ->
-
-                val currentHub =
-                    dependencies.warehouseMap[raw.currentHubId]
-
-
-                val validationWarnings =
-                    dependencies.validator.validate(
-                        raw,
-                        currentHub
-                    )
-
-
-                if (validationWarnings.isEmpty()) {
-
-                    vehicles.add(
-                        dependencies.localMapper.map(
-                            raw,
-                            currentHub!!
-                        )
-                    )
-
-                } else {
-
-                    warnings.addAll(validationWarnings)
-
-                }
-            }
+            vehicles.addAll(
+                loadedVehicles
+            )
 
 
             isLoaded = true
@@ -75,62 +53,112 @@ class VehicleRepositoryImpl(
     }
 
 
-
-    override fun getVehiclesByWarehouseId(
-        warehouseId: String
-    ): Result<List<Vehicle>> {
+    private fun mapVehicleSafely(
+        dto: VehicleResponseDto
+    ): Vehicle? {
 
         return runCatching {
 
-            getVehicles()
-                .getOrThrow()
-                .filter { vehicle ->
+            val currentHub =
+                dependencies.warehouseMap[dto.currentHubId]
+                    ?: throw NullRequiredFieldException(
+                        "Vehicle '${dto.vehicleId}' current hub not found."
+                    )
 
-                    vehicle.currentHub.id == warehouseId
-                }
+
+            dependencies.remoteValidator
+                .validate(dto)
+
+
+            dependencies.remoteMapper
+                .mapToDomain(
+                    raw = dto,
+                    currentHub = currentHub
+                )
+
+        }.getOrElse { exception ->
+
+            if (exception is NullRequiredFieldException) {
+
+                warnings.add(
+                    "Vehicle '${dto.vehicleId}': ${exception.message}"
+                )
+
+                null
+
+            } else {
+
+                throw exception
+            }
         }
     }
 
 
+    override suspend fun getVehiclesByWarehouseId(
+        warehouseId: String
+    ): Result<List<Vehicle>> {
 
-    override fun reassignVehicle(
+        return getVehicles()
+            .map { vehicles ->
+
+                vehicles.filter {
+                    it.currentHub.id == warehouseId
+                }
+            }
+    }
+
+
+    override suspend fun reassignVehicle(
         vehicleId: String,
         warehouseId: String
     ): Boolean {
 
         getVehicles()
+            .getOrThrow()
+
 
         val index =
-            vehicles.indexOfFirst { vehicle ->
-                vehicle.id == vehicleId
+            vehicles.indexOfFirst {
+                it.id == vehicleId
             }
+
 
         val targetWarehouse =
             dependencies.warehouseMap[warehouseId]
 
 
-        if (index == -1 || targetWarehouse == null) {
+        if (
+            index == -1 ||
+            targetWarehouse == null
+        ) {
             return false
         }
 
 
+        val oldVehicle =
+            vehicles[index]
+
+
         vehicles[index] =
             Vehicle(
-                id = vehicles[index].id,
+                id = oldVehicle.id,
                 currentHub = targetWarehouse,
-                maxCapacityKg = vehicles[index].maxCapacityKg,
-                costPerKm = vehicles[index].costPerKm
+                maxCapacityKg = oldVehicle.maxCapacityKg,
+                costPerKm = oldVehicle.costPerKm
             )
+
 
         return true
     }
 
 
-    override fun removeVehicle(
+    override suspend fun removeVehicle(
         vehicleId: String
     ): Boolean {
 
         getVehicles()
+            .getOrThrow()
+
 
         return vehicles.removeIf {
             it.id == vehicleId
@@ -138,43 +166,36 @@ class VehicleRepositoryImpl(
     }
 
 
+    @Suppress("ReturnCount")
     override suspend fun getById(
         vehicleId: String
     ): Vehicle? {
 
-        val responseDto =
-            dependencies.remoteDataSource
-                .getById(vehicleId)
 
-
-        if (responseDto != null) {
-
-            val currentHub =
-                responseDto.currentHubId
-                    ?.let {
-                        dependencies.warehouseRepository
-                            .getById(it)
-                    }
-
-
-            if (currentHub != null) {
-
-                return dependencies.remoteMapper
-                    .mapToDomain(
-                        raw = responseDto,
-                        currentHub = currentHub
-                    )
-            }
+        vehicles.firstOrNull {
+            it.id == vehicleId
+        }?.let {
+            return it
         }
 
 
-        return getVehicles()
-            .getOrThrow()
-            .firstOrNull {
-                it.id == vehicleId
-            }
-    }
+        val dto =
+            dependencies.remoteDataSource
+                .getById(vehicleId)
+                ?: return null
 
+
+        val vehicle =
+            mapVehicleSafely(dto)
+
+
+        vehicle?.let {
+            vehicles.add(it)
+        }
+
+
+        return vehicle
+    }
 
 
     override suspend fun save(
@@ -186,26 +207,20 @@ class VehicleRepositoryImpl(
                 .mapToCreateRequest(vehicle)
 
 
-        val responseDto =
+        val dto =
             dependencies.remoteDataSource
                 .save(request)
 
 
-        val currentHub =
-            responseDto.currentHubId
-                ?.let {
-                    dependencies
-                        .warehouseRepository
-                        .getById(it)
-                }
-                ?: return vehicle
+        val savedVehicle =
+            mapVehicleSafely(dto)
+                ?: vehicle
 
 
-        return dependencies.remoteMapper
-            .mapToDomain(
-                raw = responseDto,
-                currentHub = currentHub
-            )
+        vehicles.add(savedVehicle)
+
+
+        return savedVehicle
     }
 
 
@@ -218,7 +233,7 @@ class VehicleRepositoryImpl(
                 .mapToUpdateRequest(vehicle)
 
 
-        val responseDto =
+        val dto =
             dependencies.remoteDataSource
                 .update(
                     id = vehicle.id,
@@ -226,21 +241,20 @@ class VehicleRepositoryImpl(
                 )
 
 
-        val currentHub =
-            responseDto.currentHubId
-                ?.let {
-                    dependencies
-                        .warehouseRepository
-                        .getById(it)
-                }
-                ?: return vehicle
+        val updatedVehicle =
+            mapVehicleSafely(dto)
+                ?: vehicle
 
 
-        return dependencies.remoteMapper
-            .mapToDomain(
-                raw = responseDto,
-                currentHub = currentHub
-            )
+        vehicles.removeIf {
+            it.id == vehicle.id
+        }
+
+
+        vehicles.add(updatedVehicle)
+
+
+        return updatedVehicle
     }
 
 
@@ -248,7 +262,19 @@ class VehicleRepositoryImpl(
         id: String
     ): Boolean {
 
-        return dependencies.remoteDataSource
-            .delete(id)
+        val deleted =
+            dependencies.remoteDataSource
+                .delete(id)
+
+
+        if (deleted) {
+
+            vehicles.removeIf {
+                it.id == id
+            }
+        }
+
+
+        return deleted
     }
 }

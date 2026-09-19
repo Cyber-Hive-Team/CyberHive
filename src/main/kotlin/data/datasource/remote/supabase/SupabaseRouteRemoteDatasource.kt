@@ -22,7 +22,7 @@ class SupabaseRouteRemoteDatasource(
     override suspend fun getAll(): List<RouteResponseDto> {
 
         return client
-            .get("$baseUrl/routes")
+            .get("$baseUrl/Routes")
             .body()
     }
 
@@ -32,7 +32,7 @@ class SupabaseRouteRemoteDatasource(
     ): RouteResponseDto? {
 
         return client
-            .get("$baseUrl/routes?routeId=eq.$id")
+            .get("$baseUrl/Routes?routeId=eq.$id")
             .body<List<RouteResponseDto>>()
             .firstOrNull()
     }
@@ -43,7 +43,7 @@ class SupabaseRouteRemoteDatasource(
     ): RouteResponseDto {
 
         return client
-            .post("$baseUrl/routes") {
+            .post("$baseUrl/Routes") {
                 setBody(request)
             }
             .body()
@@ -56,7 +56,7 @@ class SupabaseRouteRemoteDatasource(
     ): RouteResponseDto {
 
         return client
-            .patch("$baseUrl/routes?routeId=eq.$id") {
+            .patch("$baseUrl/Routes?routeId=eq.$id") {
                 setBody(request)
             }
             .body()
@@ -68,7 +68,7 @@ class SupabaseRouteRemoteDatasource(
     ): Boolean {
 
         client.delete(
-            "$baseUrl/routes?routeId=eq.$id"
+            "$baseUrl/Routes?routeId=eq.$id"
         )
 
         return true

@@ -6,12 +6,12 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 
 interface WarehouseRepository {
-    fun getAllWarehouses(): Result<List<Warehouse>>
+    suspend fun getAllWarehouses(): Result<List<Warehouse>>
     suspend fun getById(id: String): Warehouse?
     suspend fun addPackageToCargoQueue(warehouseId: String, cargoPackage: Package): Boolean
     suspend fun sortCargoQueue(warehouseId: String): Boolean
     suspend fun isPackageInCargoQueue(warehouseId: String, packageId: String): Boolean
-    fun getAllWarehouseServices(): List<WarehouseServices>
+    suspend fun getAllWarehouseServices(): List<WarehouseServices>
     suspend fun save(warehouse: Warehouse): Warehouse
     suspend fun update(
         id: String, name: String? = null,

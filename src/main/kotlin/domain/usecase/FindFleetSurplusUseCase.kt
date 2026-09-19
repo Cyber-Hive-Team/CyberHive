@@ -17,7 +17,7 @@ class FindFleetSurplusUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    operator fun invoke(): List<FleetSurplusResult> {
+    suspend operator fun invoke(): List<FleetSurplusResult> {
         return warehouseRepository
             .getAllWarehouses()
             .getOrThrow()
@@ -28,7 +28,7 @@ class FindFleetSurplusUseCase(
 
     }
 
-    private fun calculateSurplus(
+    private suspend fun calculateSurplus(
         warehouseId: String
     ): FleetSurplusResult? {
         val packages = packageRepository

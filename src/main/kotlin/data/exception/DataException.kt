@@ -13,9 +13,11 @@ open class DataException(message: String) : Exception(message) {
        // const val INVALID_RESPONSE = "Received an invalid or unexpected response."
        // const val UNAUTHORIZED = "Request was not authorized. Check your API key/token."
         // const val PARSING_FAILED = "Failed to parse data."
+       const val NULL_REQUIRED_FIELD = "Required field cannot be null."
     }
 }
 
+class NullRequiredFieldException(message: String = NULL_REQUIRED_FIELD) : DataException(message)
 class FileNotFoundDataException(message: String = FILE_NOT_FOUND) : DataException(message)
 class EmptyFileDataException(message: String = EMPTY_FILE) : DataException(message)
 //class InvalidRowFormatException(message: String = INVALID_ROW_FORMAT) : DataException(message)

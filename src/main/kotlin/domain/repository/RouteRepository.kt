@@ -3,7 +3,7 @@ package org.example.domain.repository
 import org.example.domain.model.Route
 
 interface RouteRepository {
-    fun getAllRoutes(): Result<List<Route>>
+    suspend fun getAllRoutes(): Result<List<Route>>
     suspend fun getById(routeId: String): Route?
     suspend fun save(route: Route): Route
     suspend fun update(route: Route): Route
