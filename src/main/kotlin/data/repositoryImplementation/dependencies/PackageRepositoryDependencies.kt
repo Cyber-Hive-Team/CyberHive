@@ -7,6 +7,7 @@ import org.example.data.mapper.remote.PackageRemoteMapper
 import org.example.data.validation.PackageValidator
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.WarehouseRepository
+import org.example.data.validation.PackageRemoteValidator
 
 data class PackageRepositoryDependencies(
     val localDataSource: PackageDataSource,
@@ -15,5 +16,6 @@ data class PackageRepositoryDependencies(
     val warehouseMap: Map<String, Warehouse>,
     val remoteDataSource: PackageRemoteDatasource,
     val remoteMapper: PackageRemoteMapper,
+    val remoteValidator: PackageRemoteValidator,
     val warehouseRepository: WarehouseRepository
 )
