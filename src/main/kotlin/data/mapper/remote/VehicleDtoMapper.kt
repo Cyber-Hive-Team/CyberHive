@@ -8,11 +8,15 @@ import org.example.domain.model.Warehouse
 
 class VehicleDtoMapper {
 
-    fun mapToDomain(raw: VehicleResponseDto, currentHub: Warehouse): Vehicle {
+    fun mapToDomain(
+        raw: VehicleResponseDto,
+        currentHub: Warehouse
+    ): Vehicle {
+
         return Vehicle(
             id = raw.vehicleId,
-            maxCapacityKg = raw.maxCapacityKg ?: 0.0,
-            costPerKm = raw.costPerKm ?: 0.0,
+            maxCapacityKg = raw.maxCapacityKg!!,
+            costPerKm = raw.costPerKm!!,
             currentHub = currentHub
         )
     }

@@ -8,13 +8,19 @@ import org.example.domain.model.Warehouse
 
 class WarehouseRemoteMapper {
 
-    fun mapToDomainModel(dto: WarehouseResponseDto): Warehouse {
+    fun mapToDomainModel(
+        dto: WarehouseResponseDto
+    ): Warehouse {
+
         return Warehouse(
             id = dto.id,
             name = dto.name,
-            regionalZone = RegionalZone.valueOf(dto.regionalZone),
-            latitude = dto.latitude,
-            longitude = dto.longitude
+            regionalZone =
+                RegionalZone.valueOf(
+                    dto.regionalZone!!
+                ),
+            latitude = dto.latitude!!,
+            longitude = dto.longitude!!
         )
     }
 

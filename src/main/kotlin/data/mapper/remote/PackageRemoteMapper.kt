@@ -14,16 +14,15 @@ class PackageRemoteMapper {
         originWarehouse: Warehouse,
         destinationWarehouse: Warehouse
     ): Package {
+
         return Package(
             id = dto.id,
-            weight = dto.weight,
-            priority = Priority.valueOf(dto.priority),
+            weight = dto.weight!!,
+            priority = dto.priority?.let { Priority.valueOf(it) } ?: Priority.LOW,
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )
-
     }
-
 
     fun mapToCreateRequest(
         id: String,
