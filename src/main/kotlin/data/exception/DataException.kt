@@ -55,6 +55,7 @@ class MissingRequiredFieldException(message: String = MISSING_REQUIRED_FIELD) : 
 // class UnauthorizedDataException(message: String = UNAUTHORIZED) : DataException(message)
 // class ParsingFailedException(message: String = PARSING_FAILED) : DataException(message)
 
+
 class InvalidPackageIdDataException(message: String = INVALID_PACKAGE_ID) : DataException(message)
 class InvalidPackageWeightDataException(message: String = INVALID_PACKAGE_WEIGHT) : DataException(message)
 
