@@ -26,14 +26,19 @@ import org.example.data.repositoryImplementation.dependencies.PackageRepositoryD
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
+import org.example.data.validation.PackageRemoteValidator
 import org.example.data.validation.PackageValidator
+import org.example.data.validation.RouteRemoteValidator
 import org.example.data.validation.RouteValidator
+import org.example.data.validation.VehicleRemoteValidator
 import org.example.data.validation.VehicleValidator
+import org.example.data.validation.WarehouseRemoteValidator
 import org.example.data.validation.WarehouseValidator
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
+import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 
 
@@ -54,10 +59,11 @@ data class LoadedData(
     val warehouses: List<Warehouse>,
     val packages: List<Package>,
     val vehicles: List<Vehicle>,
-    val routes: List<Route>
+    val routes: List<Route>,
+    val vehicleRepository: VehicleRepository
 )
 
-
+@Suppress("LongMethod")
 class DataLoader(
     private val httpClient: SupabaseHttpClient,
     private val supabaseConfig: SupabaseConfig
@@ -69,17 +75,22 @@ class DataLoader(
     }
 
 
-    fun load(): LoadedData {
-
-        val warehouses =
-            loadWarehouses()
-
-        val warehouseMap =
-            warehouses.associateBy { it.id }
-
+    suspend fun load(): LoadedData {
 
         val warehouseRepository =
             createWarehouseRepository()
+
+
+        val warehouses =
+            loadWarehouses(
+                warehouseRepository
+            )
+
+
+        val warehouseMap =
+            warehouses.associateBy {
+                it.id
+            }
 
 
         val packages =
@@ -89,11 +100,17 @@ class DataLoader(
             )
 
 
-        val vehicles =
-            loadVehicles(
+        val vehicleRepository =
+            createVehicleRepository(
                 warehouseMap,
                 warehouseRepository
             )
+
+
+        val vehicles =
+            vehicleRepository
+                .getVehicles()
+                .getOrThrow()
 
 
         val routes =
@@ -103,11 +120,87 @@ class DataLoader(
             )
 
 
+        printLoadingResult(
+            warehouses,
+            packages,
+            vehicles,
+            routes
+        )
+
+
         return LoadedData(
             warehouses = warehouses,
             packages = packages,
             vehicles = vehicles,
-            routes = routes
+            routes = routes,
+            vehicleRepository = vehicleRepository
+        )
+    }
+
+
+    private fun printLoadingResult(
+        warehouses: List<Warehouse>,
+        packages: List<Package>,
+        vehicles: List<Vehicle>,
+        routes: List<Route>
+    ) {
+
+        println(
+            "Warehouses loaded: ${warehouses.size}"
+        )
+
+        println(
+            "Packages loaded: ${packages.size}"
+        )
+
+        println(
+            "Vehicles loaded: ${vehicles.size}"
+        )
+
+        println(
+            "Routes loaded: ${routes.size}"
+        )
+    }
+
+
+    private fun createVehicleRepository(
+        map: Map<String, Warehouse>,
+        warehouseRepository: WarehouseRepository
+    ): VehicleRepository {
+
+        return VehicleRepositoryImpl(
+
+            VehicleRepositoryDependencies(
+
+                localDataSource =
+                    CsvVehicleDataSource(
+                        VEHICLE_FILE
+                    ),
+
+                localMapper =
+                    VehicleMapper(),
+
+                validator =
+                    VehicleValidator(),
+
+                warehouseMap =
+                    map,
+
+                remoteDataSource =
+                    SupabaseVehicleRemoteDatasource(
+                        client,
+                        "${supabaseConfig.url}/rest/v1"
+                    ),
+
+                remoteMapper =
+                    VehicleDtoMapper(),
+
+                remoteValidator =
+                    VehicleRemoteValidator(),
+
+                warehouseRepository =
+                    warehouseRepository
+            )
         )
     }
 
@@ -137,27 +230,29 @@ class DataLoader(
                     ),
 
                 remoteMapper =
-                    WarehouseRemoteMapper()
+                    WarehouseRemoteMapper(),
+
+                remoteValidator =
+                    WarehouseRemoteValidator()
             )
         )
     }
 
 
+    private suspend fun loadWarehouses(
+        warehouseRepository: WarehouseRepository
+    ): List<Warehouse> {
 
-
-    private fun loadWarehouses(): List<Warehouse> {
-
-        return createWarehouseRepository()
+        return warehouseRepository
             .getAllWarehouses()
             .getOrThrow()
     }
 
 
-    private fun loadPackages(
+    private suspend fun loadPackages(
         map: Map<String, Warehouse>,
         warehouseRepository: WarehouseRepository
     ): List<Package> {
-
 
         return PackageRepositoryImpl(
 
@@ -186,64 +281,22 @@ class DataLoader(
                 remoteMapper =
                     PackageRemoteMapper(),
 
+                remoteValidator =
+                    PackageRemoteValidator(),
+
                 warehouseRepository =
                     warehouseRepository
             )
-
         )
             .getAllPackages()
             .getOrThrow()
     }
 
 
-    private fun loadVehicles(
-        map: Map<String, Warehouse>,
-        warehouseRepository: WarehouseRepository
-    ): List<Vehicle> {
-
-
-        return VehicleRepositoryImpl(
-
-            VehicleRepositoryDependencies(
-
-                localDataSource =
-                    CsvVehicleDataSource(
-                        VEHICLE_FILE
-                    ),
-
-                localMapper =
-                    VehicleMapper(),
-
-                validator =
-                    VehicleValidator(),
-
-                warehouseMap =
-                    map,
-
-                remoteDataSource =
-                    SupabaseVehicleRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                remoteMapper =
-                    VehicleDtoMapper(),
-
-                warehouseRepository =
-                    warehouseRepository
-            )
-
-        )
-            .getVehicles()
-            .getOrThrow()
-    }
-
-
-    private fun loadRoutes(
+    private suspend fun loadRoutes(
         map: Map<String, Warehouse>,
         warehouseRepository: WarehouseRepository
     ): List<Route> {
-
 
         return RouteRepositoryImpl(
 
@@ -272,10 +325,12 @@ class DataLoader(
                 remoteMapper =
                     RouteDtoMapper(),
 
+                remoteValidator =
+                    RouteRemoteValidator(),
+
                 warehouseRepository =
                     warehouseRepository
             )
-
         )
             .getAllRoutes()
             .getOrThrow()

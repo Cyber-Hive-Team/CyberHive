@@ -39,9 +39,11 @@ open class DataException(message: String) : Exception(message) {
         const val MISSING_LATITUDE = "Latitude is required."
         const val INVALID_LONGITUDE = "Longitude must be between -180 and 180."
         const val MISSING_LONGITUDE = "Longitude is required."
+       const val NULL_REQUIRED_FIELD = "Required field cannot be null."
     }
 }
 
+class NullRequiredFieldException(message: String = NULL_REQUIRED_FIELD) : DataException(message)
 class FileNotFoundDataException(message: String = FILE_NOT_FOUND) : DataException(message)
 class EmptyFileDataException(message: String = EMPTY_FILE) : DataException(message)
 // class InvalidRowFormatException(message: String = INVALID_ROW_FORMAT) : DataException(message)

@@ -7,11 +7,11 @@ import org.example.domain.model.Priority
 import org.example.domain.model.input.PackageDeliveryTime
 
 interface PackageRepository {
-    fun getAllPackages(): Result<List<Package>>
-    fun getPackagesByWarehouseId(warehouseId: String): Result<List<Package>>
-    fun getAllWarehouseStays(): List<PackageWarehouseStay>
-    fun getAllDeliveryTimes(): List<PackageDeliveryTime>
-    fun getAllPackageRequirements(): List<PackageRequirements>
+    suspend fun getAllPackages(): Result<List<Package>>
+    suspend fun getPackagesByWarehouseId(warehouseId: String): Result<List<Package>>
+    suspend fun getAllWarehouseStays(): List<PackageWarehouseStay>
+    suspend fun getAllDeliveryTimes(): List<PackageDeliveryTime>
+    suspend fun getAllPackageRequirements(): List<PackageRequirements>
     suspend fun getById(packageId: String): Package?
     suspend fun save(
         cargoPackage: Package

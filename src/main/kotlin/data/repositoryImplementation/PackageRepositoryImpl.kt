@@ -1,6 +1,7 @@
 package org.example.data.repositoryImplementation
 
-import org.example.data.dataholder.PackageRaw
+import org.example.data.exception.NullRequiredFieldException
+import org.example.data.remote.dto.response.PackageResponseDto
 import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
@@ -30,154 +31,209 @@ class PackageRepositoryImpl(
 ) : PackageRepository {
 
 
-    @Suppress("TooGenericExceptionCaught")
-    override fun getAllPackages(): Result<List<Package>> {
+    private val warnings =
+        mutableListOf<String>()
+
+
+    private val packages =
+        mutableListOf<Package>()
+
+
+    private var isLoaded = false
+
+
+    override suspend fun getAllPackages(): Result<List<Package>> {
+
         return runCatching {
-            val rawResults = dependencies.localDataSource.getPackages()
-            val warnings = rawResults.mapNotNull { it.errorMessage }.toMutableList()
-            val rawPackages = rawResults.mapNotNull { it.rawData }
-            mapPackages(rawPackages, warnings)
+
+            if (isLoaded) {
+                return@runCatching packages.toList()
+            }
+
+
+            val loadedPackages =
+                dependencies.remoteDataSource
+                    .getAll()
+                    .mapNotNull {
+                        mapPackageSafely(it)
+                    }
+
+
+            packages.addAll(
+                loadedPackages
+            )
+
+
+            isLoaded = true
+
+
+            packages.toList()
         }
     }
 
+    @Suppress("LongMethod")
+    private fun mapPackageSafely(
+        dto: PackageResponseDto
+    ): Package? {
 
+        return runCatching {
 
-    private fun mapPackages(
-        rawPackages: List<PackageRaw>,
-        warnings: MutableList<String>
-    ): List<Package> {
-
-
-        return rawPackages.mapNotNull { raw ->
-
-
-            val origin =
-                dependencies.warehouseMap[
-                    normalizeId(raw.originHubId)
-                ]
-
-
-            val destination =
-                dependencies.warehouseMap[
-                    normalizeId(raw.destinationHubId)
-                ]
-
-
-            val validation =
-                dependencies.validator.validate(
-                    raw,
-                    origin,
-                    destination
+            val originWarehouse =
+                findWarehouse(
+                    dto.originHubId,
+                    dto.id,
+                    "origin"
                 )
 
 
-            if (validation.isNotEmpty()) {
+            val destinationWarehouse =
+                findWarehouse(
+                    dto.destinationHubId,
+                    dto.id,
+                    "destination"
+                )
 
-                warnings.addAll(validation)
+
+            dependencies.remoteValidator
+                .validate(dto)
+
+
+            dependencies.remoteMapper
+                .mapToDomainModel(
+                    dto = dto,
+                    originWarehouse = originWarehouse,
+                    destinationWarehouse = destinationWarehouse
+                )
+
+        }.getOrElse { exception ->
+
+            if (exception is NullRequiredFieldException) {
+
+                warnings.add(
+                    "Package '${dto.id}': ${exception.message}"
+                )
 
                 null
 
             } else {
 
-                dependencies.localMapper.map(
-                    raw,
-                    origin!!,
-                    destination!!
-                )
+                throw exception
             }
         }
     }
 
 
-    private fun normalizeId(
-        id: String
-    ): String =
-        id.trim().uppercase()
+    private fun findWarehouse(
+        warehouseId: String,
+        packageId: String,
+        type: String
+    ) =
 
+        dependencies.warehouseMap[warehouseId]
+            ?: throw NullRequiredFieldException(
+                "Package '$packageId' $type warehouse not found."
+            )
 
-    override suspend fun getById(packageId: String): Package? {
-        val remoteDto = dependencies.remoteDataSource.getById(packageId)
-        if (remoteDto != null) {
-            val originWarehouse =
-                dependencies.warehouseRepository
-                    .getById(remoteDto.originHubId)
-            val destinationWarehouse =
-                dependencies.warehouseRepository
-                    .getById(remoteDto.destinationHubId)
-            if (originWarehouse != null && destinationWarehouse != null) {
-                return dependencies.remoteMapper.mapToDomainModel(
-                    dto = remoteDto,
-                    originWarehouse = originWarehouse,
-                    destinationWarehouse = destinationWarehouse
-                )
-            }
+    @Suppress("ReturnCount")
+    override suspend fun getById(
+        packageId: String
+    ): Package? {
+
+        packages.firstOrNull {
+            it.id == packageId
+        }?.let {
+            return it
         }
 
-        return getAllPackages()
-            .getOrThrow()
-            .find { it.id == packageId }
+        val dto =
+            dependencies.remoteDataSource
+                .getById(packageId)
+                ?: return null
+
+        val packageModel =
+            mapPackageSafely(dto)
+
+
+        packageModel?.let {
+            packages.add(it)
+        }
+
+        return packageModel
     }
 
 
-    override fun getAllWarehouseStays():
+    override suspend fun getAllWarehouseStays():
             List<PackageWarehouseStay> {
 
-
         return getAllPackages()
             .getOrThrow()
-            .map { cargoPackage ->
-
-                PackageWarehouseStay(
-                    packageId = cargoPackage.id,
-                    arrivedAt =
-                        LocalDateTime.now()
-                            .minusHours(
-                                Random.nextLong(
-                                    MIN_WAITING_HOURS,
-                                    MAX_WAITING_HOURS
-                                )
-                            )
-                )
+            .map {
+                createWarehouseStay(it)
             }
     }
 
 
-    override fun getAllDeliveryTimes():
+    private fun createWarehouseStay(
+        cargoPackage: Package
+    ): PackageWarehouseStay {
+
+        return PackageWarehouseStay(
+            packageId = cargoPackage.id,
+            arrivedAt =
+                LocalDateTime.now()
+                    .minusHours(
+                        Random.nextLong(
+                            MIN_WAITING_HOURS,
+                            MAX_WAITING_HOURS
+                        )
+                    )
+        )
+    }
+
+
+    override suspend fun getAllDeliveryTimes():
             List<PackageDeliveryTime> {
 
-
         return getAllPackages()
             .getOrThrow()
-            .map { cargoPackage ->
-
-
-                val expectedArrival =
-                    Clock.System.now() +
-                            Random.nextLong(
-                                MIN_EXPECTED_HOURS,
-                                MAX_EXPECTED_HOURS
-                            ).hours
-
-
-                val actualArrival =
-                    expectedArrival +
-                            Random.nextLong(
-                                MIN_ARRIVAL_OFFSET_MINUTES,
-                                MAX_ARRIVAL_OFFSET_MINUTES
-                            ).minutes
-
-
-                PackageDeliveryTime(
-                    packageId = cargoPackage.id,
-                    expectedArrivalTime = expectedArrival,
-                    actualArrivalTime = actualArrival
-                )
+            .map {
+                createDeliveryTime(it)
             }
     }
 
-    override fun getPackagesByWarehouseId(
+
+    private fun createDeliveryTime(
+        cargoPackage: Package
+    ): PackageDeliveryTime {
+
+        val expectedArrival =
+            Clock.System.now() +
+                    Random.nextLong(
+                        MIN_EXPECTED_HOURS,
+                        MAX_EXPECTED_HOURS
+                    ).hours
+
+
+        val actualArrival =
+            expectedArrival +
+                    Random.nextLong(
+                        MIN_ARRIVAL_OFFSET_MINUTES,
+                        MAX_ARRIVAL_OFFSET_MINUTES
+                    ).minutes
+
+
+        return PackageDeliveryTime(
+            packageId = cargoPackage.id,
+            expectedArrivalTime = expectedArrival,
+            actualArrivalTime = actualArrival
+        )
+    }
+
+
+    override suspend fun getPackagesByWarehouseId(
         warehouseId: String
     ): Result<List<Package>> {
+
         return getAllPackages()
             .map { packages ->
                 packages.filter {
@@ -186,15 +242,15 @@ class PackageRepositoryImpl(
             }
     }
 
-    override fun getAllPackageRequirements():
+
+    override suspend fun getAllPackageRequirements():
             List<PackageRequirements> {
 
         return getAllPackages()
             .getOrThrow()
-            .map { cargoPackage ->
-
+            .map {
                 PackageRequirements(
-                    packageId = cargoPackage.id,
+                    packageId = it.id,
                     isFragile = Random.nextBoolean(),
                     requiresColdStorage = Random.nextBoolean(),
                     requiresSpecialHandling = Random.nextBoolean()
@@ -202,10 +258,10 @@ class PackageRepositoryImpl(
             }
     }
 
+
     override suspend fun save(
         cargoPackage: Package
     ): Package {
-
 
         val request =
             dependencies.remoteMapper
@@ -223,13 +279,14 @@ class PackageRepositoryImpl(
                 .save(request)
 
 
+        val packageModel =
+            mapPackageSafely(dto)
+                ?: cargoPackage
 
-        return dependencies.remoteMapper
-            .mapToDomainModel(
-                dto = dto,
-                originWarehouse = cargoPackage.originWarehouse,
-                destinationWarehouse = cargoPackage.destinationWarehouse
-            )
+
+        packages.add(packageModel)
+
+        return packageModel
     }
 
 
@@ -240,38 +297,61 @@ class PackageRepositoryImpl(
         originHubId: String,
         destinationHubId: String
     ): Package {
-        val request = dependencies.remoteMapper
+
+        val request =
+            dependencies.remoteMapper
                 .mapToUpdateRequest(
                     weight = weight,
                     priority = priority,
                     originHubId = originHubId,
                     destinationHubId = destinationHubId
                 )
-        val dto = dependencies.remoteDataSource.update(id = id, request = request)
-        val originWarehouse =
-            dependencies.warehouseRepository
-                .getById(dto.originHubId)
-        val destinationWarehouse =
-            dependencies.warehouseRepository
-                .getById(dto.destinationHubId)
-        return if (originWarehouse != null && destinationWarehouse != null) {
-            dependencies.remoteMapper.mapToDomainModel(
-                dto = dto,
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
-        } else {
-            requireNotNull(getById(id)) {
-                "Package with id $id was not found"
-            }
+
+
+        val dto =
+            dependencies.remoteDataSource
+                .update(
+                    id = id,
+                    request = request
+                )
+
+
+        val updatedPackage =
+            mapPackageSafely(dto)
+                ?: throw NullRequiredFieldException(
+                    "Package '$id' update failed."
+                )
+
+
+        packages.removeIf {
+            it.id == id
         }
+
+
+        packages.add(updatedPackage)
+
+
+        return updatedPackage
     }
 
 
     override suspend fun delete(
         id: String
     ): Boolean {
-        return dependencies.remoteDataSource
-            .delete(id)
+
+        val deleted =
+            dependencies.remoteDataSource
+                .delete(id)
+
+
+        if (deleted) {
+
+            packages.removeIf {
+                it.id == id
+            }
+        }
+
+
+        return deleted
     }
 }

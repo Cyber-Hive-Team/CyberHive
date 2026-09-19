@@ -7,6 +7,7 @@ import org.example.data.mapper.remote.RouteDtoMapper
 import org.example.data.validation.RouteValidator
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.WarehouseRepository
+import org.example.data.validation.RouteRemoteValidator
 
 data class RouteRepositoryDependencies(
     val localDataSource: RouteDataSource,
@@ -14,6 +15,7 @@ data class RouteRepositoryDependencies(
     val localMapper: RouteMapper,
     val remoteMapper: RouteDtoMapper,
     val validator: RouteValidator,
+    val remoteValidator: RouteRemoteValidator,
     val warehouseMap: Map<String, Warehouse>,
     val warehouseRepository: WarehouseRepository
 )

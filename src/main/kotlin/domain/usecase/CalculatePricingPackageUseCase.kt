@@ -13,7 +13,7 @@ class CalculatePricingPackageUseCase(
     private val routeRepository: RouteRepository,
     private val pricingEngine: RoutePricingEngine
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         input : CalculatePricingInput
     ): PricingPackage {
 

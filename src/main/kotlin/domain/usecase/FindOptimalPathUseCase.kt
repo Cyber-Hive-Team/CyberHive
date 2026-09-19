@@ -13,7 +13,7 @@ class FindOptimalPathUseCase(
     private val routeRepository: RouteRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         startWarehouseId: String,
         destinationWarehouseId: String
     ): RoutingResult {

@@ -49,7 +49,7 @@ class ReroutePackageUseCase(
         return calculatedRoute
     }
 
-    private fun fetchPackage(packageId: String): Package? {
+    private suspend fun fetchPackage(packageId: String): Package? {
         return packageRepository.getAllPackages().getOrThrow()
             .firstOrNull { it.id == packageId }
     }

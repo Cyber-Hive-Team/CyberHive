@@ -12,7 +12,7 @@ class DispatchVehicleUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         vehicleId: String
     ): Result<List<Package>> {
 
@@ -33,7 +33,7 @@ class DispatchVehicleUseCase(
     }
 
 
-    private fun loadPackagesForVehicle(
+    private suspend fun loadPackagesForVehicle(
         vehicle: Vehicle
     ): List<Package> {
 
@@ -48,7 +48,7 @@ class DispatchVehicleUseCase(
     }
 
 
-    private fun loadAvailablePackages(
+    private suspend fun loadAvailablePackages(
         vehicle: Vehicle
     ): List<Package> {
 

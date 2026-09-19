@@ -11,7 +11,7 @@ class FindPackagesAtRiskOfDamageUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
 
-    operator fun invoke(): List<DamageRiskResult> {
+    suspend operator fun invoke(): List<DamageRiskResult> {
         val packageRequirements = packageRepository.getAllPackageRequirements()
             .associateBy { requirement -> requirement.packageId }
         val warehouseServices = warehouseRepository.getAllWarehouseServices()

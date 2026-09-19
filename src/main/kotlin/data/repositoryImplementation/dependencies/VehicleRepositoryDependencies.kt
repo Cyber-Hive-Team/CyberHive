@@ -7,6 +7,7 @@ import org.example.data.mapper.remote.VehicleDtoMapper
 import org.example.data.validation.VehicleValidator
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.WarehouseRepository
+import org.example.data.validation.VehicleRemoteValidator
 
 data class VehicleRepositoryDependencies(
     val localDataSource: VehicleDataSource,
@@ -15,5 +16,6 @@ data class VehicleRepositoryDependencies(
     val remoteMapper: VehicleDtoMapper,
     val validator: VehicleValidator,
     val warehouseMap: Map<String, Warehouse>,
-    val warehouseRepository: WarehouseRepository
+    val warehouseRepository: WarehouseRepository,
+    val remoteValidator: VehicleRemoteValidator
 )

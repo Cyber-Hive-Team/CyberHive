@@ -19,7 +19,7 @@ class SupabaseWarehouseRemoteDatasource(
 
     override suspend fun getAll(): List<WarehouseResponseDto> {
         return client
-            .get("$baseUrl/warehouses")
+            .get("$baseUrl/Warehouses")
             .body()
     }
 
@@ -27,7 +27,7 @@ class SupabaseWarehouseRemoteDatasource(
         id: String
     ): WarehouseResponseDto? {
         return client
-            .get("$baseUrl/warehouses?warehouseId=eq.$id")
+            .get("$baseUrl/Warehouses?id=eq.$id")
                 .body<List<WarehouseResponseDto>>()
             .firstOrNull()
     }
@@ -36,7 +36,7 @@ class SupabaseWarehouseRemoteDatasource(
         request: CreateWarehouseRequestDto
     ): WarehouseResponseDto {
         return client
-            .post("$baseUrl/warehouses") {
+            .post("$baseUrl/Warehouses") {
                 setBody(request)
             }
             .body()
@@ -48,7 +48,7 @@ class SupabaseWarehouseRemoteDatasource(
     ): WarehouseResponseDto {
 
         return client
-            .patch("$baseUrl/warehouses?warehouseId=eq.$id") {
+            .patch("$baseUrl/Warehouses?id=eq.$id") {
                 setBody(request)
             }
             .body()
@@ -57,7 +57,7 @@ class SupabaseWarehouseRemoteDatasource(
     override suspend fun delete(
         id: String
     ): Boolean {
-        client.delete("$baseUrl/warehouses?warehouseId=eq.$id")
+        client.delete("$baseUrl/Warehouses?id=eq.$id")
         return true
     }
 }

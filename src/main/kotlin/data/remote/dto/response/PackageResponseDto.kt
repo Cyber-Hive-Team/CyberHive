@@ -9,11 +9,11 @@ data class PackageResponseDto(
     @SerialName("id")
     val id: String,
     @SerialName("weight")
-    val weight: Double,
+    val weight: Double?,
     @SerialName("originHubId")
     val originHubId: String,
     @SerialName("destinationHubId")
     val destinationHubId: String,
     @SerialName("priority")
-    val priority: String
+    val priority: String?
 )

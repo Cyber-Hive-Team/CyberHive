@@ -9,7 +9,7 @@ data class VehicleResponseDto(
     val vehicleId: String,
 
     @SerialName("currentHubId")
-    val currentHubId: String? = null,
+    val currentHubId: String,
 
     @SerialName("maxCapacityKg")
     val maxCapacityKg: Double? = null,
