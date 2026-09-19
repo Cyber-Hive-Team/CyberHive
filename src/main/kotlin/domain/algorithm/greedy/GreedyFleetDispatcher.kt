@@ -3,7 +3,6 @@ package org.example.domain.algorithm.greedy
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Vehicle
 
-
 class GreedyFleetDispatcher {
 
 
@@ -18,6 +17,15 @@ class GreedyFleetDispatcher {
         val dispatchedVehicles =
             mutableListOf<Vehicle>()
 
+        // The greedy algorithm checks the available vehicles and
+        // chooses the vehicle that covers the most uncovered zones.
+        // In the worst case, it may check N vehicles for each of N
+        // selections, so the time complexity is O(N^2).
+        //
+        // A brute-force search would try every possible combination
+        // of the N vehicles. Each vehicle can be selected or not selected,
+        // giving 2^N possible combinations. Therefore, its time complexity
+        // can be O(2^N), which grows much faster than O(N^2).
 
         while (uncoveredZones.isNotEmpty()) {
 
@@ -90,3 +98,4 @@ class GreedyFleetDispatcher {
         )
     }
 }
+
