@@ -5,11 +5,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateWarehouseRequestDto(
-    @SerialName("id")
+    @SerialName("warehouse_id")
     val id: String,
     @SerialName("name")
     val name: String,
-    @SerialName("regionalZone")
+    @SerialName("regional_zone")
     val regionalZone: String,
     @SerialName("latitude")
     val latitude: Double,

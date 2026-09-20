@@ -5,15 +5,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CreateVehicleRequestDto(
-    @SerialName("vehicleId")
+    @SerialName("vehicle_id")
     val vehicleId: String,
 
-    @SerialName("currentHubId")
+    @SerialName("current_hub_id")
     val currentHubId: String,
 
-    @SerialName("maxCapacityKg")
+    @SerialName("max_capacity_kg")
     val maxCapacityKg: Double,
 
-    @SerialName("costPerKm")
+    @SerialName("cost_per_km")
     val costPerKm: Double
 )

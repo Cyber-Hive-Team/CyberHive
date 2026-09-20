@@ -5,12 +5,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateVehicleRequestDto(
-    @SerialName("currentHubId")
+    @SerialName("current_hub_id")
     val currentHubId: String? = null,
 
-    @SerialName("maxCapacityKg")
+    @SerialName("max_capacity_kg")
     val maxCapacityKg: Double? = null,
 
-    @SerialName("costPerKm")
+    @SerialName("cost_per_km")
     val costPerKm: Double? = null
 )

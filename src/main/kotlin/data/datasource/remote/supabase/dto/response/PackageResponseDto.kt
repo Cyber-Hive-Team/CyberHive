@@ -6,13 +6,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 
 data class PackageResponseDto(
-    @SerialName("id")
+    @SerialName("package_id")
     val id: String,
     @SerialName("weight")
     val weight: Double?,
-    @SerialName("originHubId")
+    @SerialName("origin_hub_id")
     val originHubId: String,
-    @SerialName("destinationHubId")
+    @SerialName("destination_hub_id")
     val destinationHubId: String,
     @SerialName("priority")
     val priority: String?
