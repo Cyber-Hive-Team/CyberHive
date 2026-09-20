@@ -7,6 +7,7 @@ import org.example.domain.model.Priority
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
+import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 
@@ -24,69 +25,83 @@ class InMemoryWarehouseRepository(
     override suspend fun getById(
         id: String
     ): Result<Warehouse> =
-        byId[id]
+        return byId[id]
+            ?.let {
+                Result.success(it)
+            }
+            ?: Result.failure(
+                WarehouseNotFoundException(
+                    "Warehouse with id '$id' was not found."
+                )
+            )
 
 
     override suspend fun addPackageToCargoQueue(
         warehouseId: String,
         cargoPackage: Package
-    ): Boolean {
+    ): Result<Boolean> {
+        return runCatching {
+            val warehouse =
+                byId[warehouseId]
+                    ?: return@runCatching false
 
-        val warehouse =
-            byId[warehouseId]
-                ?: return false
+            warehouse.addPackages(
+                listOf(cargoPackage)
+            )
 
-        warehouse.addPackages(
-            listOf(cargoPackage)
-        )
-
-        return true
+            true
+        }
     }
 
 
     override suspend fun sortCargoQueue(
         warehouseId: String
-    ): Boolean {
+    ): Result<Boolean> {
+        return runCatching {
+            val warehouse =
+                byId[warehouseId]
+                    ?: return@runCatching false
 
-        val warehouse =
-            byId[warehouseId]
-                ?: return false
-
-        warehouse.sortCargoQueue()
-
-        return true
+            warehouse.sortCargoQueue()
+            true
+        }
     }
 
 
     override suspend fun isPackageInCargoQueue(
         warehouseId: String,
         packageId: String
-    ): Boolean {
+    ): Result<Boolean> {
+        return runCatching {
+            val warehouse =
+                byId[warehouseId]
+                    ?: return@runCatching false
 
-        val warehouse =
-            byId[warehouseId]
-                ?: return false
-
-        return warehouse
-            .getCargoQueue()
-            .any { it.id == packageId }
+            warehouse
+                .getCargoQueue()
+                .any { it.id == packageId }
+        }
     }
 
 
     override suspend fun getAllWarehouseServices():
-            List<WarehouseServices> =
-        emptyList()
+            Result<List<WarehouseServices>> {
+        return Result.success(
+            emptyList()
+        )
+    }
 
 
 
 
     override suspend fun save(
         warehouse: Warehouse
-    ): Warehouse {
+    ): Result<Warehouse> {
+        return runCatching {
+            byId[warehouse.id] = warehouse
 
-        byId[warehouse.id] = warehouse
-
-        return warehouse
+            warehouse
+        }
     }
 
 
@@ -96,33 +111,35 @@ class InMemoryWarehouseRepository(
         regionalZone: RegionalZone?,
         latitude: Double?,
         longitude: Double?
-    ): Warehouse {
+    ): Result<Warehouse> {
+        return runCatching {
+            val oldWarehouse =
+                byId[id]
+                    ?: throw WarehouseNotFoundException(
+                        "Warehouse with id '$id' was not found."
+                    )
 
-        val oldWarehouse =
-            byId[id]
-                ?: throw IllegalArgumentException(
-                    "Warehouse not found"
-                )
+            val updatedWarehouse = Warehouse(
+                id = oldWarehouse.id,
+                name = name ?: oldWarehouse.name,
+                regionalZone = regionalZone ?: oldWarehouse.regionalZone,
+                latitude = latitude ?: oldWarehouse.latitude,
+                longitude = longitude ?: oldWarehouse.longitude
+            )
 
-        val updatedWarehouse = Warehouse(
-            id = oldWarehouse.id,
-            name = name ?: oldWarehouse.name,
-            regionalZone = regionalZone ?: oldWarehouse.regionalZone,
-            latitude = latitude ?: oldWarehouse.latitude,
-            longitude = longitude ?: oldWarehouse.longitude
-        )
+            byId[id] = updatedWarehouse
 
-        byId[id] = updatedWarehouse
-
-        return updatedWarehouse
+            updatedWarehouse
+        }
     }
 
 
     override suspend fun delete(
         id: String
-    ): Boolean {
-
-        return byId.remove(id) != null
+    ): Result<Boolean> {
+        return runCatching {
+            byId.remove(id) != null
+        }
     }
 }
 class CommandInvokerDemoRunner(
