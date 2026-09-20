@@ -1,6 +1,6 @@
 package org.example.data.validation
 
-import org.example.data.dataholder.WareHouseRaw
+import org.example.data.dataholder.WarehouseRaw
 
 private const val MIN_LATITUDE = -90.0
 private const val MAX_LATITUDE = 90.0
@@ -9,7 +9,7 @@ private const val MAX_LONGITUDE = 180.0
 
 class WarehouseValidator {
 
-    fun validate(raw: WareHouseRaw): List<String> {
+    fun validate(raw: WarehouseRaw): List<String> {
         val warnings = mutableListOf<String>()
 
         if (raw.id.isBlank()) {
