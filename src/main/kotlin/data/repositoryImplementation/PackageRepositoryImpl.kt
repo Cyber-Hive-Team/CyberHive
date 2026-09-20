@@ -134,41 +134,41 @@ class PackageRepositoryImpl(
                 "Package '$packageId' $type warehouse not found."
             )
 
-    @Suppress("ReturnCount")
+
     override suspend fun getById(
         packageId: String
-    ): Package? {
+    ): Result<Package> {
 
-        packages.firstOrNull {
+        val cachedPackage = packages.firstOrNull {
             it.id == packageId
-        }?.let {
-            return it
         }
-
+        if (cachedPackage != null) {
+            return Result.success(cachedPackage)
+        }
+        return runCatching {
         val dto =
             dependencies.remoteDataSource
                 .getById(packageId)
-                ?: return null
+                ?: error("Package with id '$packageId' was not found.")
 
         val packageModel =
-            mapPackageSafely(dto)
+            mapPackageSafely(dto) ?: error("Package mapping failed.")
 
+            packages.add(packageModel)
 
-        packageModel?.let {
-            packages.add(it)
+            packageModel
         }
-
-        return packageModel
     }
 
 
     override suspend fun getAllWarehouseStays():
-            List<PackageWarehouseStay> {
+            Result<List<PackageWarehouseStay>> {
 
         return getAllPackages()
-            .getOrThrow()
-            .map {
-                createWarehouseStay(it)
+            .mapCatching { packages ->
+                packages.map {
+                    createWarehouseStay(it)
+                }
             }
     }
 
@@ -192,12 +192,13 @@ class PackageRepositoryImpl(
 
 
     override suspend fun getAllDeliveryTimes():
-            List<PackageDeliveryTime> {
+            Result<List<PackageDeliveryTime>> {
 
         return getAllPackages()
-            .getOrThrow()
-            .map {
+            .mapCatching { packages ->
+                packages.map {
                 createDeliveryTime(it)
+            }
             }
     }
 
@@ -244,11 +245,11 @@ class PackageRepositoryImpl(
 
 
     override suspend fun getAllPackageRequirements():
-            List<PackageRequirements> {
+            Result<List<PackageRequirements>> {
 
         return getAllPackages()
-            .getOrThrow()
-            .map {
+            .mapCatching { packages ->
+                packages.map {
                 PackageRequirements(
                     packageId = it.id,
                     isFragile = Random.nextBoolean(),
@@ -257,36 +258,31 @@ class PackageRepositoryImpl(
                 )
             }
     }
+    }
 
 
     override suspend fun save(
         cargoPackage: Package
-    ): Package {
-
-        val request =
-            dependencies.remoteMapper
-                .mapToCreateRequest(
-                    id = cargoPackage.id,
-                    weight = cargoPackage.weight,
-                    priority = cargoPackage.priority,
-                    originHubId = cargoPackage.originWarehouse.id,
-                    destinationHubId = cargoPackage.destinationWarehouse.id
-                )
-
-
-        val dto =
-            dependencies.remoteDataSource
-                .save(request)
-
-
-        val packageModel =
-            mapPackageSafely(dto)
-                ?: cargoPackage
-
-
-        packages.add(packageModel)
-
-        return packageModel
+    ): Result<Package> {
+        return runCatching {
+            val request =
+                dependencies.remoteMapper
+                    .mapToCreateRequest(
+                        id = cargoPackage.id,
+                        weight = cargoPackage.weight,
+                        priority = cargoPackage.priority,
+                        originHubId = cargoPackage.originWarehouse.id,
+                        destinationHubId = cargoPackage.destinationWarehouse.id
+                    )
+            val dto =
+                dependencies.remoteDataSource
+                    .save(request)
+            val packageModel =
+                mapPackageSafely(dto)
+                    ?: cargoPackage
+            packages.add(packageModel)
+            packageModel
+        }
     }
 
 
@@ -296,62 +292,51 @@ class PackageRepositoryImpl(
         priority: Priority?,
         originHubId: String,
         destinationHubId: String
-    ): Package {
-
-        val request =
-            dependencies.remoteMapper
-                .mapToUpdateRequest(
-                    weight = weight,
-                    priority = priority,
-                    originHubId = originHubId,
-                    destinationHubId = destinationHubId
-                )
-
-
-        val dto =
-            dependencies.remoteDataSource
-                .update(
-                    id = id,
-                    request = request
-                )
-
-
-        val updatedPackage =
-            mapPackageSafely(dto)
-                ?: throw NullRequiredFieldException(
-                    "Package '$id' update failed."
-                )
+    ): Result<Package> {
+        return runCatching {
+            val request =
+                dependencies.remoteMapper
+                    .mapToUpdateRequest(
+                        weight = weight,
+                        priority = priority,
+                        originHubId = originHubId,
+                        destinationHubId = destinationHubId
+                    )
+            val dto =
+                dependencies.remoteDataSource
+                    .update(
+                        id = id,
+                        request = request
+                    )
+            val updatedPackage =
+                mapPackageSafely(dto)
+                    ?: throw NullRequiredFieldException(
+                        "Package '$id' update failed."
+                    )
 
 
-        packages.removeIf {
-            it.id == id
+            packages.removeIf {
+                it.id == id
+            }
+            packages.add(updatedPackage)
+            updatedPackage
         }
-
-
-        packages.add(updatedPackage)
-
-
-        return updatedPackage
     }
 
 
     override suspend fun delete(
         id: String
-    ): Boolean {
-
-        val deleted =
-            dependencies.remoteDataSource
-                .delete(id)
-
-
-        if (deleted) {
-
-            packages.removeIf {
-                it.id == id
+    ): Result<Boolean> {
+        return runCatching {
+            val deleted =
+                dependencies.remoteDataSource
+                    .delete(id)
+            if (deleted) {
+                packages.removeIf {
+                    it.id == id
+                }
             }
+            deleted
         }
-
-
-        return deleted
     }
 }
