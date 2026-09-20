@@ -17,7 +17,7 @@ class AddVehicleToHubCommand(
     override suspend fun execute(): Boolean {
         addVehicleToHubUseCase(
             AddVehicleToHubInput(vehicleId, warehouseId)
-        )
+        ).getOrThrow()
 
         addedVehicle = true
         return true
@@ -30,7 +30,7 @@ class AddVehicleToHubCommand(
             )
         }
 
-        val removed = vehicleRepository.removeVehicle(vehicleId)
+        val removed = vehicleRepository.removeVehicle(vehicleId).getOrThrow()
 
         if (!removed) {
             throw CommandExecutionException(
@@ -43,7 +43,7 @@ class AddVehicleToHubCommand(
     }
 
     override suspend fun describe(): String {
-        val currentHub = vehicleRepository.getById(vehicleId)?.currentHub?.id
+        val currentHub = vehicleRepository.getById(vehicleId).getOrNull()?.currentHub?.id
 
         return "Add vehicle $vehicleId -> warehouse $warehouseId " +
                 "| currently at: $currentHub"

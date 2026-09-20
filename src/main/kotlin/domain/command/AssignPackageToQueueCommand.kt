@@ -16,6 +16,7 @@ class AssignPackageToQueueCommand(
 
     override suspend fun execute(): Boolean {
         addedPackage = assignPackageToCargoQueueUseCase(warehouseId, cargoPackage)
+            .getOrThrow()
         if (!addedPackage) {
             throw CommandExecutionException(
                 "Failed to assign package '${cargoPackage.id}' to cargo queue in warehouse '$warehouseId'."
@@ -32,9 +33,11 @@ class AssignPackageToQueueCommand(
         }
 
         val warehouse = warehouseRepository.getById(warehouseId)
-            ?: throw CommandExecutionException(
+            .getOrElse {
+                throw CommandExecutionException(
                 "Failed to undo: Warehouse '$warehouseId' not found."
-            )
+                )
+            }
 
         val removed = warehouse.removePackageFromCargoQueue(cargoPackage.id)
         if (!removed) {
@@ -50,6 +53,7 @@ class AssignPackageToQueueCommand(
 
     override suspend fun describe(): String {
         val queueIds = warehouseRepository.getById(warehouseId)
+            .getOrNull()
             ?.getCargoQueue()
             ?.joinToString { it.id }
             .orEmpty()

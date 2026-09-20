@@ -12,7 +12,7 @@ class RedistributeFleetCommand(
     private var transfers: List<VehicleTransferResult> = emptyList()
 
     override suspend fun execute(): Boolean {
-        transfers = redistributeFleetUseCase()
+        transfers = redistributeFleetUseCase().getOrThrow()
 
         if (transfers.isEmpty()) {
             throw CommandExecutionException("Fleet redistribution resulted in no transfers.")
@@ -31,7 +31,7 @@ class RedistributeFleetCommand(
             val undone = vehicleRepository.reassignVehicle(
                 vehicleId = transfer.vehicleId,
                 warehouseId = transfer.fromWarehouseId
-            )
+            ).getOrThrow()
             if (!undone) {
                 throw CommandExecutionException(
                     "Failed to revert vehicle '${transfer.vehicleId}' to warehouse '${transfer.fromWarehouseId}'."
