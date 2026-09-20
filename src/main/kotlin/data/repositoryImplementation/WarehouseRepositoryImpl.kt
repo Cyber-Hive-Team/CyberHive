@@ -191,21 +191,14 @@ class WarehouseRepositoryImpl(
                     )
             val responseDto =
                 dependencies.remoteDataSource
-                    .update(
-                        id = id,
-                        request = requestDto
-                    )
+                    .update(id = id, request = requestDto)
             val updatedWarehouse =
                 mapWarehouseSafely(responseDto)
-                    ?: error(
-                        "Warehouse update failed."
-                    )
+                    ?: error("Warehouse update failed.")
             warehouses.removeIf {
                 it.id == id
             }
-            warehouses.add(
-                updatedWarehouse
-            )
+            warehouses.add(updatedWarehouse)
             updatedWarehouse
         }
     }
