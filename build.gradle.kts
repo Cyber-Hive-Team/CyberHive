@@ -1,6 +1,13 @@
 plugins {
     kotlin("jvm") version "2.4.20"
     id("io.gitlab.arturbosch.detekt") version "1.23.5"
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.composeHotReload) apply false
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    kotlin("plugin.serialization") version "2.0.0"
     kotlin("plugin.serialization") version "2.4.20"
     id("application")
 }
