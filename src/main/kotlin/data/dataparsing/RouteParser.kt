@@ -2,6 +2,9 @@ package org.example.data.dataparsing
 
 import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.RouteRaw
+import org.example.data.exception.FileNotFoundDataException
+import org.example.data.exception.EmptyFileDataException
+import org.example.data.exception.InvalidColumnCountException
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
@@ -44,10 +47,14 @@ private fun readRouteLines(
     val path = Path(filePath)
 
     if (!path.exists()) {
-        return emptyList()
+        throw FileNotFoundDataException("Route file not found: $filePath")
     }
 
-    return path.readLines()
+    val lines = path.readLines()
+    if (lines.isEmpty()) {
+        throw EmptyFileDataException("Route file is empty: $filePath")
+    }
+    return lines
 }
 
 private fun processRouteLine(
@@ -61,8 +68,8 @@ private fun processRouteLine(
     }
     val columns = line.split(",").map { it.trim() }
     if (columns.size != EXPECTED_COLUMN_COUNT) {
-        return RawResult(
-            rawData = null, errorMessage = "Route row $rowNumber was skipped because the number of columns is invalid"
+        throw InvalidColumnCountException(
+            "Route row $rowNumber: expected $EXPECTED_COLUMN_COUNT columns, got ${columns.size}"
         )
     }
     val route = createRoute(columns = columns)

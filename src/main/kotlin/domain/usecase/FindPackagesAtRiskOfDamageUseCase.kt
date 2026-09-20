@@ -11,26 +11,30 @@ class FindPackagesAtRiskOfDamageUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
 
-    operator fun invoke(): List<DamageRiskResult> {
-        val packageRequirements = packageRepository.getAllPackageRequirements()
-            .associateBy { requirement -> requirement.packageId }
-        val warehouseServices = warehouseRepository.getAllWarehouseServices()
-            .associateBy { services -> services.warehouseId }
-        return packageRepository.getAllPackages().data.mapNotNull { cargoPackage ->
-            val requirements = packageRequirements[cargoPackage.id]
-                ?: return@mapNotNull null
-            val warehouseId = cargoPackage.originWarehouse.id
-            val services = warehouseServices[warehouseId]
-                ?: return@mapNotNull null
-            val reason = findRiskReason(requirements = requirements, services = services)
-            if (reason == null) {
-                null
-            } else {
-                DamageRiskResult(packageId = cargoPackage.id, warehouseId = warehouseId, reason = reason)
+    suspend operator fun invoke(): Result<List<DamageRiskResult>> {
+        return runCatching {
+            val packageRequirements = packageRepository.getAllPackageRequirements()
+                .getOrThrow()
+                .associateBy { requirement -> requirement.packageId }
+            val warehouseServices = warehouseRepository.getAllWarehouseServices()
+                .getOrThrow()
+                .associateBy { services -> services.warehouseId }
+            packageRepository.getAllPackages().getOrThrow().mapNotNull { cargoPackage ->
+                val requirements = packageRequirements[cargoPackage.id]
+                    ?: return@mapNotNull null
+                val warehouseId = cargoPackage.originWarehouse.id
+                val services = warehouseServices[warehouseId]
+                    ?: return@mapNotNull null
+                val reason = findRiskReason(requirements = requirements, services = services)
+                if (reason == null) {
+                    null
+                } else {
+                    DamageRiskResult(packageId = cargoPackage.id, warehouseId = warehouseId, reason = reason)
+                }
             }
+
+
         }
-
-
     }
 
     private fun findRiskReason(

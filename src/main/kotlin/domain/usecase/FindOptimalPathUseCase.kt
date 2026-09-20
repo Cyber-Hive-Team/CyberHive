@@ -13,14 +13,14 @@ class FindOptimalPathUseCase(
     private val routeRepository: RouteRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         startWarehouseId: String,
         destinationWarehouseId: String
     ): RoutingResult {
-        val warehouses = warehouseRepository.getAllWarehouses().data
+        val warehouses = warehouseRepository.getAllWarehouses().getOrThrow()
         val start = findWarehouse(warehouses, startWarehouseId)
         val destination = findWarehouse(warehouses, destinationWarehouseId)
-        val routes = routeRepository.getAllRoutes().data
+        val routes = routeRepository.getAllRoutes().getOrThrow()
         val graph = RouteWarehouseGraph(routes)
         val router = DijkstraRouter(graph = graph, allWarehouses = warehouses)
 

@@ -1,0 +1,5 @@
+row_number,vehicleId,currentHubId,maxCapacityKg,costPerKm,reasons
+67,TRK-0066,,10839.98,3.07,Missing foreign key: currentHubId
+72,TRK-0071,,8924.04,3.07,Missing foreign key: currentHubId
+234,TRK-0233,,1503.32,1.6,Missing foreign key: currentHubId
+267,TRK-0266,,5647.54,3.07,Missing foreign key: currentHubId

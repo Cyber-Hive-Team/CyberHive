@@ -6,29 +6,29 @@ import org.example.domain.repository.WarehouseRepository
 class AssignPackageToCargoQueueUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
         warehouseId: String,
         cargoPackage: Package
-    ): Boolean {
-        val alreadyExists =
-            warehouseRepository.isPackageInCargoQueue(
-                warehouseId,
-                cargoPackage.id
-            )
-
-        if (alreadyExists) {
-            return false
+    ): Result<Boolean> {
+        return runCatching {
+            val alreadyExists =
+                warehouseRepository.isPackageInCargoQueue(
+                    warehouseId,
+                    cargoPackage.id
+                ).getOrThrow()
+            if (alreadyExists) {
+                false
+            } else {
+                val added = warehouseRepository.addPackageToCargoQueue(
+                    warehouseId,
+                    cargoPackage
+                ).getOrThrow()
+                if (added) {
+                    warehouseRepository.sortCargoQueue(warehouseId).getOrThrow()
+                } else {
+                    false
+                }
+            }
         }
-        val added = warehouseRepository.addPackageToCargoQueue(
-            warehouseId,
-            cargoPackage
-        )
-
-        if (!added) {
-            return false
-        }
-        return warehouseRepository.sortCargoQueue(
-            warehouseId
-        )
     }
 }

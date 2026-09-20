@@ -13,9 +13,10 @@ class DispatchVehicleCommand(
 
     private var dispatchedPackages: List<Package> = emptyList()
 
-    override fun execute(): Boolean {
+    override suspend fun execute(): Boolean {
         val result = dispatchVehicleUseCase(vehicleId)
-        dispatchedPackages = result.data
+
+        dispatchedPackages = result.getOrThrow()
 
         if (dispatchedPackages.isEmpty()) {
             throw CommandExecutionException(
@@ -26,7 +27,7 @@ class DispatchVehicleCommand(
         return true
     }
 
-    override fun undo(): Boolean {
+    override suspend fun undo(): Boolean {
         if (dispatchedPackages.isEmpty()) {
             throw CommandExecutionException(
                 "Cannot undo: No dispatched packages found to restore for vehicle '$vehicleId'."
@@ -37,7 +38,7 @@ class DispatchVehicleCommand(
             val restored = assignPackageToCargoQueueUseCase(
                 warehouseId = cargoPackage.originWarehouse.id,
                 cargoPackage = cargoPackage
-            )
+            ).getOrThrow()
 
             if (!restored) {
                 throw CommandExecutionException(
@@ -51,7 +52,7 @@ class DispatchVehicleCommand(
         return true
     }
 
-    override fun describe(): String {
+    override suspend fun describe(): String {
         val packageIds = dispatchedPackages.joinToString { it.id }
 
         return "Dispatch vehicle $vehicleId | loaded packages: [$packageIds]"

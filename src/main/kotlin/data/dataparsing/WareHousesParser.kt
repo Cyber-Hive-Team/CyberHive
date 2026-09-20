@@ -1,7 +1,8 @@
 package org.example.data.dataparsing
 
 import org.example.data.dataholder.RawResult
-import org.example.data.dataholder.WareHouseRaw
+import org.example.data.dataholder.WarehouseRaw
+import org.example.data.exception.InvalidColumnCountException
 import org.example.domain.model.RegionalZone
 
 private const val REQUIRED_COLUMNS_COUNT = 5
@@ -11,13 +12,12 @@ private const val ZONE_INDEX = 2
 private const val LAT_INDEX = 3
 private const val LON_INDEX = 4
 
-fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<WareHouseRaw> {
+fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<WarehouseRaw> {
     val columns = row.split(",").map { it.trim() }
 
     if (!hasRequiredColumns(columns)) {
-        return RawResult(
-            rawData = null,
-            errorMessage = "Row ${rowIndex + 1} skipped - missing columns"
+        throw InvalidColumnCountException(
+            "Row ${rowIndex + 1} skipped - missing columns"
         )
     }
 
@@ -49,8 +49,8 @@ private fun convertToZone(zoneText: String): RegionalZone? {
 }
 
 
-private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): WareHouseRaw {
-    return WareHouseRaw(
+private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): WarehouseRaw {
+    return WarehouseRaw(
         id = columns[ID_INDEX].uppercase(),
         name = columns[NAME_INDEX],
         regionalZone = zone,

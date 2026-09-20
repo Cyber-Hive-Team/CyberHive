@@ -1,7 +1,7 @@
 package org.example.domain.command
 
 interface Command {
-    fun execute(): Boolean
-    fun undo(): Boolean
-    fun describe(): String
+    suspend fun execute(): Boolean
+    suspend fun undo(): Boolean
+    suspend fun describe(): String
 }

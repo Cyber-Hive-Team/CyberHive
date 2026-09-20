@@ -1,11 +1,11 @@
-package data.mapper.csv
+package org.example.data.mapper.csv
 
-import org.example.data.dataholder.WareHouseRaw
+import org.example.data.dataholder.WarehouseRaw
 import org.example.domain.model.Warehouse
 
 class WarehouseMapper {
 
-    fun map(raw: WareHouseRaw): Warehouse {
+    fun map(raw: WarehouseRaw): Warehouse {
         return Warehouse(
             id = raw.id,
             name = raw.name,

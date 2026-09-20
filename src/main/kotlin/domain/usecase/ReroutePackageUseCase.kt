@@ -3,15 +3,14 @@ package org.example.domain.usecase
 import org.example.domain.algorithm.search.Router
 import org.example.domain.model.Package
 import org.example.domain.model.Route
-import org.example.domain.model.result.RoutingResult
 import org.example.domain.model.Warehouse
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.exception.RouteNotFoundException
+import org.example.domain.model.input.ReroutePackageInput
+import org.example.domain.model.result.RoutingResult
 import org.example.domain.pricing.RoutePricingEngine
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.model.input.ReroutePackageInput
-import org.example.domain.model.exception.PackageNotFoundException
-import org.example.domain.model.exception.WarehouseNotFoundException
-import org.example.domain.model.exception.RouteNotFoundException
 
 class ReroutePackageUseCase(
     private val packageRepository: PackageRepository,
@@ -20,41 +19,38 @@ class ReroutePackageUseCase(
     private val pricingEngine: RoutePricingEngine
 ) {
     @Suppress("ThrowsCount")
-    operator fun invoke(input: ReroutePackageInput
-    ): RoutingResult {
-        val cargoPackage = fetchPackage(input.packageId)
-            ?: throw PackageNotFoundException(
-                "Package not found with ID: ${input.packageId}"
-            )
+    suspend operator fun invoke(
+        input: ReroutePackageInput
+    ): Result<RoutingResult> {
+        return runCatching {
+            val cargoPackage = fetchPackage(input.packageId)
+                ?: throw PackageNotFoundException(
+                    "Package not found with ID: ${input.packageId}"
+                )
+            val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
 
-        val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
-            ?: throw WarehouseNotFoundException(
-                "Destination warehouse not found with ID: ${input.newDestinationWarehouseId}"
-            )
+            val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
+                ?: throw RouteNotFoundException(
+                    "No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}"
+                )
 
-        val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
-            ?: throw RouteNotFoundException(
-                "No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}"
+            val updatedPackage = createUpdatedPackage(
+                cargoPackage,
+                newDestination,
+                calculatedRoute
             )
-
-        val updatedPackage = createUpdatedPackage(
-            cargoPackage,
-            newDestination,
+            updateCargoQueue(newDestination.id, updatedPackage)
             calculatedRoute
-        )
-
-        updateCargoQueue(newDestination.id, updatedPackage)
-
-        return calculatedRoute
+        }
     }
 
-    private fun fetchPackage(packageId: String): Package? {
-        return packageRepository.getAllPackages().data
+    private suspend fun fetchPackage(packageId: String): Package? {
+        return packageRepository.getAllPackages().getOrThrow()
             .firstOrNull { it.id == packageId }
     }
 
-    private fun fetchWarehouse(warehouseId: String): Warehouse? {
-        return warehouseRepository.getWarehouseById(warehouseId)
+    private suspend fun fetchWarehouse(warehouseId: String): Warehouse {
+        return warehouseRepository.getById(warehouseId).getOrThrow()
     }
 
     private fun calculateNewRoute(
@@ -88,16 +84,16 @@ class ReroutePackageUseCase(
         )
     }
 
-    private fun updateCargoQueue(
+    private suspend fun updateCargoQueue(
         warehouseId: String,
         updatedPackage: Package
     ) {
         val isAdded = warehouseRepository.addPackageToCargoQueue(
             warehouseId,
             updatedPackage
-        )
+        ).getOrThrow()
         if (isAdded) {
-            warehouseRepository.sortCargoQueue(warehouseId)
+            warehouseRepository.sortCargoQueue(warehouseId).getOrThrow()
         }
     }
 }

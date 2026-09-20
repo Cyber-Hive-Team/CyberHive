@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
+    kotlin("jvm") version "2.4.20"
     id("io.gitlab.arturbosch.detekt") version "1.23.5"
     alias(libs.plugins.androidApplication) apply false
     alias(libs.plugins.androidLibrary) apply false
@@ -8,19 +8,32 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     kotlin("plugin.serialization") version "2.0.0"
+    kotlin("plugin.serialization") version "2.4.20"
+    id("application")
 }
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
+
 repositories {
     mavenCentral()
 }
 
+
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    implementation(
+        "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
+    )
+
+    implementation("io.ktor:ktor-client-core:3.5.2")
+    implementation("io.ktor:ktor-client-cio:3.5.2")
+    implementation("io.ktor:ktor-client-content-negotiation:3.5.2")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.2")
 }
+
 
 detekt {
     config.setFrom("config/detekt/detekt.yml")
@@ -28,9 +41,16 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+
 kotlin {
     jvmToolchain(21)
 }
+
+
+application {
+    mainClass.set("org.example.presentation.MainKt")
+}
+
 
 tasks.test {
     useJUnitPlatform()

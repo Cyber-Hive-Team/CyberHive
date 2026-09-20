@@ -3,10 +3,9 @@ package org.example.presentation
 import org.example.domain.algorithm.tree.WarehouseHierarchyBuilder
 import org.example.domain.usecase.TraceHubLineageUseCase
 
-class TraceHubLineageDemoRunner {
-
-    fun run(warehouseId: String) {
-        val data = DataLoader().load()
+class TraceHubLineageDemoRunner(private val dataLoader: DataLoader) {
+    suspend fun run(warehouseId: String) {
+        val data = dataLoader.load()
         val tree = WarehouseHierarchyBuilder(warehouses = data.warehouses, routes = data.routes).build()
         if (tree == null) {
             println("Could not build warehouse hierarchy.")

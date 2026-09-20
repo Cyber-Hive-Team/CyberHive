@@ -1,13 +1,27 @@
 package org.example.domain.repository
 
-import org.example.domain.model.result.Result
 import org.example.domain.model.Vehicle
 
+
 interface VehicleRepository {
-    fun getVehicles(): Result<List<Vehicle>>
-    fun getVehicleById(vehicleId: String): Vehicle?
-    fun getVehiclesByWarehouseId(warehouseId: String): Result<List<Vehicle>>
-    fun reassignVehicle(vehicleId: String, warehouseId: String): Boolean
-    fun removeVehicle(vehicleId: String): Boolean
+    suspend fun getVehicles(): Result<List<Vehicle>>
+    suspend fun getVehiclesByWarehouseId(warehouseId: String): Result<List<Vehicle>>
+    suspend fun reassignVehicle(vehicleId: String, warehouseId: String): Result<Boolean>
+    suspend fun removeVehicle(vehicleId: String): Result<Boolean>
+    suspend fun getById(
+        vehicleId: String
+    ): Result<Vehicle>
+    suspend fun save(
+        vehicle: Vehicle
+    ): Result<Vehicle>
+
+    suspend fun update(
+        vehicle: Vehicle
+    ): Result<Vehicle>
+
+    suspend fun delete(
+        id: String
+    ): Result<Boolean>
 }
+
 

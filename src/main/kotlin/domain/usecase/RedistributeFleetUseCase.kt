@@ -15,17 +15,19 @@ class RedistributeFleetUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    operator fun invoke(): List<VehicleTransferResult> {
-        val shortages = findFleetShortageUseCase()
-        val surpluses = findFleetSurplusUseCase()
-        return distributeVehicles(
-            shortages = shortages,
-            surpluses = surpluses
-        )
+    suspend operator fun invoke(): Result<List<VehicleTransferResult>> {
+        return runCatching {
+            val shortages = findFleetShortageUseCase()
+            val surpluses = findFleetSurplusUseCase()
+            distributeVehicles(
+                shortages = shortages,
+                surpluses = surpluses
+            )
 
+        }
     }
 
-    private fun distributeVehicles(
+    private suspend fun distributeVehicles(
         shortages: List<FleetShortageResult>,
         surpluses: List<FleetSurplusResult>
     ): List<VehicleTransferResult> {
@@ -46,7 +48,7 @@ class RedistributeFleetUseCase(
 
     }
 
-    private fun distributeForShortage(
+    private suspend fun distributeForShortage(
         shortage: FleetShortageResult,
         surpluses: List<FleetSurplusResult>,
         remainingSurplus: MutableMap<String, Double>
@@ -70,7 +72,7 @@ class RedistributeFleetUseCase(
 
     }
 
-    private fun transferFromSurplus(
+    private suspend fun transferFromSurplus(
         shortage: FleetShortageResult, surplus: FleetSurplusResult,
         remainingShortage: Double, remainingSurplus: MutableMap<String, Double>
     ): TransferCalculationResult {
@@ -81,7 +83,7 @@ class RedistributeFleetUseCase(
         }
         val vehicles = vehicleRepository
             .getVehiclesByWarehouseId(surplus.warehouseId)
-            .data
+            .getOrThrow()
             .sortedByDescending { vehicle ->
                 vehicle.maxCapacityKg
             }
@@ -103,13 +105,14 @@ class RedistributeFleetUseCase(
 
     }
 
-    private fun transferVehicle(
+    private suspend fun transferVehicle(
         vehicleId: String,
         vehicleCapacity: Double,
         fromWarehouseId: String,
         toWarehouseId: String
     ): VehicleTransferResult {
         val reassigned = vehicleRepository.reassignVehicle(vehicleId = vehicleId, warehouseId = toWarehouseId)
+            .getOrThrow()
         if (!reassigned) {
             throw VehicleReassignmentFailedException()
         }

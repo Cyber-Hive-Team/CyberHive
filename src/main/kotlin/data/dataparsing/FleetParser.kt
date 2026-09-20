@@ -2,6 +2,8 @@ package org.example.data.dataparsing
 
 import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.VehicleRaw
+import org.example.data.exception.InvalidColumnCountException
+import org.example.data.exception.MissingRequiredFieldException
 import java.io.File
 
 private const val FIRST_DATA_ROW = 1
@@ -40,10 +42,7 @@ private fun parseLine(
     val columns = line.split(",").map { it.trim() }
 
     if (columns.size < REQUIRED_COLUMNS) {
-        return RawResult(
-            rawData = null,
-            errorMessage = "Invalid vehicle row: $lineNumber"
-        )
+        throw InvalidColumnCountException("Invalid vehicle row: $lineNumber")
     }
     val vehicleItem = parseFleetRow(
         columns[ID_INDEX],
@@ -71,7 +70,7 @@ private fun parseFleetRow(
     cost: String
 ): VehicleRaw? {
     if (vehicleId.isBlank() || currentHubId.isBlank()) {
-        return null
+       throw MissingRequiredFieldException("Vehicle row $vehicleId has missing required fields")
     }
 
     return VehicleRaw(

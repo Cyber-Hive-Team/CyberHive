@@ -1,6 +1,5 @@
 package org.example.domain.usecase
 
-import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 
 private const val ZERO_VALUE = 0.0
@@ -9,27 +8,28 @@ class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
 
-    operator fun invoke(warehouseId: String): Double {
-        val warehouse = warehouseRepository
-            .getWarehouseById(warehouseId)
-            ?: throw WarehouseNotFoundException()
+    suspend operator fun invoke(warehouseId: String): Result<Double> {
+        return runCatching {
+            val warehouse = warehouseRepository
+                .getById(warehouseId)
+                .getOrThrow()
+            val totalQueueWeight = warehouse.getCargoQueue()
+                .map { it.weight }
+                .fold(ZERO_VALUE) { total, weight ->
+                    total + weight
+                }
 
-        val totalQueueWeight = warehouse.getCargoQueue()
-            .map { it.weight }
-            .fold(ZERO_VALUE) { total, weight ->
-                total + weight
+            val totalFleetCapacity = warehouse.getStationedVehicles()
+                .map { it.maxCapacityKg }
+                .fold(ZERO_VALUE) { total, capacity ->
+                    total + capacity
+                }
+
+            if (totalFleetCapacity == ZERO_VALUE) {
+                ZERO_VALUE
+            } else {
+                totalQueueWeight / totalFleetCapacity
             }
-
-        val totalFleetCapacity = warehouse.getStationedVehicles()
-            .map { it.maxCapacityKg }
-            .fold(ZERO_VALUE) { total, capacity ->
-                total + capacity
-            }
-
-        return if (totalFleetCapacity == ZERO_VALUE) {
-            ZERO_VALUE
-        } else {
-            totalQueueWeight / totalFleetCapacity
         }
     }
 }
