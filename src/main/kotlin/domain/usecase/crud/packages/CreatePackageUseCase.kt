@@ -1,11 +1,11 @@
 package org.example.domain.usecase.crud.packages
 
 import org.example.domain.model.Package
+import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.repository.PackageRepository
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.Validator
-import org.example.domain.model.exception.EntityValidationException
 
 
 class CreatePackageUseCase(
@@ -25,7 +25,7 @@ class CreatePackageUseCase(
             ) {
 
                 ValidationResult.Success -> {
-                    packageRepository.save(cargoPackage)
+                    packageRepository.save(cargoPackage).getOrThrow()
                 }
 
 

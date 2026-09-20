@@ -38,7 +38,7 @@ class DispatchVehicleCommand(
             val restored = assignPackageToCargoQueueUseCase(
                 warehouseId = cargoPackage.originWarehouse.id,
                 cargoPackage = cargoPackage
-            )
+            ).getOrThrow()
 
             if (!restored) {
                 throw CommandExecutionException(

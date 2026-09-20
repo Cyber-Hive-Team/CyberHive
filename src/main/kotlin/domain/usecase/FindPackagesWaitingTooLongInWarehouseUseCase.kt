@@ -14,25 +14,28 @@ class FindPackagesWaitingTooLongInWarehouseUseCase(
 
     suspend operator fun invoke(
         maxWaitingHours: Long
-    ): List<WaitingPackageResult> {
-        validateWaitingHours(maxWaitingHours)
-        val now = LocalDateTime.now()
-        return packageRepository
-            .getAllWarehouseStays()
-            .map { stay ->
-                val waitingHours =
-                    Duration.between(
-                        stay.arrivedAt,
-                        now
-                    ).toHours()
-                WaitingPackageResult(packageId = stay.packageId, waitingHours = waitingHours)
-            }
-            .filter { result ->
-                result.waitingHours > maxWaitingHours
-            }
-            .sortedByDescending { result ->
-                result.waitingHours
-            }
+    ): Result<List<WaitingPackageResult>> {
+        return runCatching {
+            validateWaitingHours(maxWaitingHours)
+            val now = LocalDateTime.now()
+            packageRepository
+                .getAllWarehouseStays()
+                .getOrThrow()
+                .map { stay ->
+                    val waitingHours =
+                        Duration.between(
+                            stay.arrivedAt,
+                            now
+                        ).toHours()
+                    WaitingPackageResult(packageId = stay.packageId, waitingHours = waitingHours)
+                }
+                .filter { result ->
+                    result.waitingHours > maxWaitingHours
+                }
+                .sortedByDescending { result ->
+                    result.waitingHours
+                }
+        }
     }
 
 

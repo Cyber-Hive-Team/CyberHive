@@ -1,7 +1,6 @@
 package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
-import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.model.input.FindFewestHopsRouteInput
 import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
@@ -13,23 +12,17 @@ class FindFewestHopsRouteUseCase(
 
     suspend operator fun invoke(
         input :FindFewestHopsRouteInput
-    ): RoutingResult {
+    ): Result<RoutingResult> {
+        return runCatching {
+            val startWarehouse = warehouseRepository.getById(input.startWarehouseId)
+                .getOrThrow()
 
-        val startWarehouse = warehouseRepository.getById(input.startWarehouseId)
-            ?: throw WarehouseNotFoundException(
-                "Start warehouse not found with ID: ${input.startWarehouseId}"
-            )
+            val destinationWarehouse = warehouseRepository.getById(input.destinationWarehouseId)
+                .getOrThrow()
 
-        val destinationWarehouse = warehouseRepository.getById(input.destinationWarehouseId)
-            ?: throw WarehouseNotFoundException(
-                "Destination warehouse not found with ID: ${input.destinationWarehouseId}"
-            )
+            router.findPath(start = startWarehouse, destination = destinationWarehouse)
 
-        return router.findPath(
-            start = startWarehouse,
-            destination = destinationWarehouse
-        )
-
+        }
     }
 
 }

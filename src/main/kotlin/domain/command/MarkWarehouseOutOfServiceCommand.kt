@@ -17,7 +17,7 @@ class MarkWarehouseOutOfServiceCommand(
     override suspend fun execute(): Boolean {
         previousStatus = warehouseStatusRepository.getStatus(warehouseId)
 
-        markWarehouseOutOfServiceUseCase(warehouseId)
+        markWarehouseOutOfServiceUseCase(warehouseId).getOrThrow()
 
         updated = true
         return true

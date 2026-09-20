@@ -9,16 +9,17 @@ class FindLatePackagesUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    suspend operator fun invoke(): List<LatePackageResult> {
+    suspend operator fun invoke(): Result<List<LatePackageResult>> {
 
         return packageRepository
             .getAllDeliveryTimes()
+            .map { deliveryTimes ->
+                deliveryTimes
             .filter { delivery ->
                 delivery.actualArrivalTime >
                         delivery.expectedArrivalTime
             }
             .map { delivery ->
-
                 val delayMinutes =
                     (delivery.actualArrivalTime -
                             delivery.expectedArrivalTime
@@ -34,5 +35,6 @@ class FindLatePackagesUseCase(
             }
     }
 
+    }
 }
 

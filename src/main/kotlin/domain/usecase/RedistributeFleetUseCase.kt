@@ -15,14 +15,16 @@ class RedistributeFleetUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    suspend operator fun invoke(): List<VehicleTransferResult> {
-        val shortages = findFleetShortageUseCase()
-        val surpluses = findFleetSurplusUseCase()
-        return distributeVehicles(
-            shortages = shortages,
-            surpluses = surpluses
-        )
+    suspend operator fun invoke(): Result<List<VehicleTransferResult>> {
+        return runCatching {
+            val shortages = findFleetShortageUseCase()
+            val surpluses = findFleetSurplusUseCase()
+            distributeVehicles(
+                shortages = shortages,
+                surpluses = surpluses
+            )
 
+        }
     }
 
     private suspend fun distributeVehicles(
@@ -110,6 +112,7 @@ class RedistributeFleetUseCase(
         toWarehouseId: String
     ): VehicleTransferResult {
         val reassigned = vehicleRepository.reassignVehicle(vehicleId = vehicleId, warehouseId = toWarehouseId)
+            .getOrThrow()
         if (!reassigned) {
             throw VehicleReassignmentFailedException()
         }

@@ -11,17 +11,11 @@ class RouteRepositoryImpl(
     private val dependencies: RouteRepositoryDependencies
 ) : RouteRepository {
 
-
     private val warnings =
         mutableListOf<String>()
-
-
     private val routes =
         mutableListOf<Route>()
-
-
     private var isLoaded = false
-
 
     override suspend fun getAllRoutes(): Result<List<Route>> {
 
@@ -52,32 +46,16 @@ class RouteRepositoryImpl(
         }
     }
 
-    @Suppress("LongMethod")
+
     private fun mapRouteSafely(
         dto: RouteResponseDto
     ): Route? {
-
         return runCatching {
-
             val originWarehouse =
-                findWarehouse(
-                    dto.originHubId,
-                    dto.routeId,
-                    "origin"
-                )
-
-
+                findWarehouse(dto.originHubId, dto.routeId, "origin")
             val destinationWarehouse =
-                findWarehouse(
-                    dto.destinationHubId,
-                    dto.routeId,
-                    "destination"
-                )
-
-
-            dependencies.remoteValidator
-                .validate(dto)
-
+                findWarehouse(dto.destinationHubId, dto.routeId, "destination")
+            dependencies.remoteValidator.validate(dto)
 
             dependencies.remoteMapper
                 .mapToDomain(
@@ -85,19 +63,11 @@ class RouteRepositoryImpl(
                     originWarehouse = originWarehouse,
                     destinationWarehouse = destinationWarehouse
                 )
-
         }.getOrElse { exception ->
-
             if (exception is NullRequiredFieldException) {
-
-                warnings.add(
-                    "Route '${dto.routeId}': ${exception.message}"
-                )
-
+                warnings.add("Route '${dto.routeId}': ${exception.message}")
                 null
-
             } else {
-
                 throw exception
             }
         }
@@ -116,114 +86,84 @@ class RouteRepositoryImpl(
             )
 
 
-    @Suppress("ReturnCount")
+
     override suspend fun getById(
         routeId: String
-    ): Route? {
-
-        routes.firstOrNull {
+    ): Result<Route> {
+        val cachedRoute = routes.firstOrNull {
             it.id == routeId
-        }?.let {
-            return it
         }
-
-
+        if (cachedRoute != null) {
+            return Result.success(cachedRoute)
+        }
+        return runCatching {
         val dto =
             dependencies.remoteDataSource
                 .getById(routeId)
-                ?: return null
-
-
-        val route =
-            mapRouteSafely(dto)
-
-
-        route?.let {
-            routes.add(it)
+                ?: error("Route with id '$routeId' was not found.")
+            val route = mapRouteSafely(dto) ?: error("Route mapping failed.")
+            routes.add(route)
+            route
         }
-
-
-        return route
     }
 
 
     override suspend fun save(
         route: Route
-    ): Route {
-
-        val request =
-            dependencies.remoteMapper
-                .mapToCreateRequest(route)
-
-
-        val dto =
-            dependencies.remoteDataSource
-                .save(request)
-
-
-        val savedRoute =
-            mapRouteSafely(dto)
-                ?: route
-
-
-        routes.add(savedRoute)
-
-
-        return savedRoute
+    ): Result<Route> {
+        return runCatching {
+            val request =
+                dependencies.remoteMapper
+                    .mapToCreateRequest(route)
+            val dto =
+                dependencies.remoteDataSource
+                    .save(request)
+            val savedRoute =
+                mapRouteSafely(dto)
+                    ?: route
+            routes.add(savedRoute)
+            savedRoute
+        }
     }
 
 
     override suspend fun update(
         route: Route
-    ): Route {
-
-        val request =
-            dependencies.remoteMapper
-                .mapToUpdateRequest(route)
-
-
-        val dto =
-            dependencies.remoteDataSource
-                .update(
-                    id = route.id,
-                    request = request
-                )
-
-
-        val updatedRoute =
-            mapRouteSafely(dto)
+    ): Result<Route> {
+        return runCatching {
+            val request =
+                dependencies.remoteMapper
+                    .mapToUpdateRequest(route)
+            val dto =
+                dependencies.remoteDataSource
+                    .update(
+                        id = route.id,
+                        request = request
+                    )
+            val updatedRoute = mapRouteSafely(dto)
                 ?: route
 
-
-        routes.removeIf {
-            it.id == route.id
+            routes.removeIf {
+                it.id == route.id
+            }
+            routes.add(updatedRoute)
+            updatedRoute
         }
-
-
-        routes.add(updatedRoute)
-
-
-        return updatedRoute
     }
 
 
     override suspend fun delete(
         id: String
-    ): Boolean {
+    ): Result<Boolean> {
+        return runCatching {
+            val deleted = dependencies.remoteDataSource.delete(id)
+            if (deleted) {
 
-        val deleted =
-            dependencies.remoteDataSource
-                .delete(id)
-
-
-        if (deleted) {
-
-            routes.removeIf {
-                it.id == id
+                routes.removeIf {
+                    it.id == id
+                }
             }
+            deleted
         }
-
-
-        return deleted
     }
 }

@@ -9,13 +9,13 @@ import org.example.domain.model.input.PackageDeliveryTime
 interface PackageRepository {
     suspend fun getAllPackages(): Result<List<Package>>
     suspend fun getPackagesByWarehouseId(warehouseId: String): Result<List<Package>>
-    suspend fun getAllWarehouseStays(): List<PackageWarehouseStay>
-    suspend fun getAllDeliveryTimes(): List<PackageDeliveryTime>
-    suspend fun getAllPackageRequirements(): List<PackageRequirements>
-    suspend fun getById(packageId: String): Package?
+    suspend fun getAllWarehouseStays(): Result<List<PackageWarehouseStay>>
+    suspend fun getAllDeliveryTimes(): Result<List<PackageDeliveryTime>>
+    suspend fun getAllPackageRequirements(): Result<List<PackageRequirements>>
+    suspend fun getById(packageId: String): Result<Package>
     suspend fun save(
         cargoPackage: Package
-    ): Package
+    ): Result<Package>
 
     suspend fun update(
         id: String,
@@ -23,11 +23,11 @@ interface PackageRepository {
         priority: Priority? = null,
         originHubId: String,
         destinationHubId: String
-    ): Package
+    ): Result<Package>
 
     suspend fun delete(
         id: String
-    ): Boolean
+    ): Result<Boolean>
 }
 
 

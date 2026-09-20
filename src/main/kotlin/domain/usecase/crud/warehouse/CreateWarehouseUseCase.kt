@@ -24,7 +24,7 @@ class CreateWarehouseUseCase(
             ) {
 
                 ValidationResult.Success -> {
-                    warehouseRepository.save(warehouse)
+                    warehouseRepository.save(warehouse).getOrThrow()
                 }
 
 

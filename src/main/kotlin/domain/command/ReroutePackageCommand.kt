@@ -20,7 +20,7 @@ class ReroutePackageCommand(
             newDestinationWarehouseId = newDestinationWarehouseId
         )
 
-        reroutePackageUseCase(input)
+        reroutePackageUseCase(input).getOrThrow()
         isReroutedSuccessfully = true
         return true
     }

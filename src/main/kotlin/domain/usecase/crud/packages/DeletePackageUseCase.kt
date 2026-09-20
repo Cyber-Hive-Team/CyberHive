@@ -1,7 +1,6 @@
 package org.example.domain.usecase.crud.packages
 
 import org.example.domain.repository.PackageRepository
-import org.example.domain.model.exception.PackageNotFoundException
 
 class DeletePackageUseCase(
     private val packageRepository: PackageRepository
@@ -12,11 +11,9 @@ class DeletePackageUseCase(
 
         return runCatching {
 
-            packageRepository.getById(id)
-                ?: throw PackageNotFoundException()
+            packageRepository.getById(id).getOrThrow()
 
-
-            packageRepository.delete(id)
+            packageRepository.delete(id).getOrThrow()
         }
     }
 }

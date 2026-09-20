@@ -11,17 +11,11 @@ class VehicleRepositoryImpl(
     private val dependencies: VehicleRepositoryDependencies
 ) : VehicleRepository {
 
-
     private val vehicles =
         mutableListOf<Vehicle>()
-
-
     private val warnings =
         mutableListOf<String>()
-
-
     private var isLoaded = false
-
 
     override suspend fun getVehicles(): Result<List<Vehicle>> {
 
@@ -100,7 +94,6 @@ class VehicleRepositoryImpl(
 
         return getVehicles()
             .map { vehicles ->
-
                 vehicles.filter {
                     it.currentHub.id == warehouseId
                 }
@@ -111,170 +104,134 @@ class VehicleRepositoryImpl(
     override suspend fun reassignVehicle(
         vehicleId: String,
         warehouseId: String
-    ): Boolean {
+    ): Result<Boolean> {
+        return runCatching {
+            getVehicles()
+                .getOrThrow()
+            val index =
+                vehicles.indexOfFirst {
+                    it.id == vehicleId
+                }
 
-        getVehicles()
-            .getOrThrow()
 
+            val targetWarehouse =
+                dependencies.warehouseMap[warehouseId]
 
-        val index =
-            vehicles.indexOfFirst {
-                it.id == vehicleId
+            if (
+                index == -1 ||
+                targetWarehouse == null
+            ) {
+                return@runCatching false
             }
-
-
-        val targetWarehouse =
-            dependencies.warehouseMap[warehouseId]
-
-
-        if (
-            index == -1 ||
-            targetWarehouse == null
-        ) {
-            return false
+            val oldVehicle = vehicles[index]
+            vehicles[index] =
+                Vehicle(
+                    id = oldVehicle.id,
+                    currentHub = targetWarehouse,
+                    maxCapacityKg = oldVehicle.maxCapacityKg,
+                    costPerKm = oldVehicle.costPerKm
+                )
+            true
         }
-
-
-        val oldVehicle =
-            vehicles[index]
-
-
-        vehicles[index] =
-            Vehicle(
-                id = oldVehicle.id,
-                currentHub = targetWarehouse,
-                maxCapacityKg = oldVehicle.maxCapacityKg,
-                costPerKm = oldVehicle.costPerKm
-            )
-
-
-        return true
     }
 
 
     override suspend fun removeVehicle(
         vehicleId: String
-    ): Boolean {
+    ): Result<Boolean> {
+        return runCatching {
+            getVehicles()
+                .getOrThrow()
 
-        getVehicles()
-            .getOrThrow()
-
-
-        return vehicles.removeIf {
-            it.id == vehicleId
+            vehicles.removeIf {
+                it.id == vehicleId
+            }
         }
     }
 
 
-    @Suppress("ReturnCount")
     override suspend fun getById(
         vehicleId: String
-    ): Vehicle? {
+    ): Result<Vehicle> {
 
-
-        vehicles.firstOrNull {
+        val cachedVehicle = vehicles.firstOrNull {
             it.id == vehicleId
-        }?.let {
-            return it
         }
-
-
+        if (cachedVehicle != null) {
+            return Result.success(cachedVehicle)
+        }
+        return runCatching {
         val dto =
             dependencies.remoteDataSource
                 .getById(vehicleId)
-                ?: return null
-
+                ?: error("Vehicle with id '$vehicleId' was not found.")
 
         val vehicle =
-            mapVehicleSafely(dto)
+            mapVehicleSafely(dto) ?: error("Vehicle mapping failed.")
+            vehicles.add(vehicle)
 
-
-        vehicle?.let {
-            vehicles.add(it)
+            vehicle
         }
-
-
-        return vehicle
     }
 
 
     override suspend fun save(
         vehicle: Vehicle
-    ): Vehicle {
-
-        val request =
-            dependencies.remoteMapper
-                .mapToCreateRequest(vehicle)
-
-
-        val dto =
-            dependencies.remoteDataSource
-                .save(request)
-
-
-        val savedVehicle =
-            mapVehicleSafely(dto)
-                ?: vehicle
-
-
-        vehicles.add(savedVehicle)
-
-
-        return savedVehicle
+    ): Result<Vehicle> {
+        return runCatching {
+            val request =
+                dependencies.remoteMapper
+                    .mapToCreateRequest(vehicle)
+            val dto =
+                dependencies.remoteDataSource
+                    .save(request)
+            val savedVehicle =
+                mapVehicleSafely(dto)
+                    ?: vehicle
+            vehicles.add(savedVehicle)
+            savedVehicle
+        }
     }
 
 
     override suspend fun update(
         vehicle: Vehicle
-    ): Vehicle {
-
-        val request =
-            dependencies.remoteMapper
-                .mapToUpdateRequest(vehicle)
-
-
+    ): Result<Vehicle> {
+        return runCatching {
+            val request =
+                dependencies.remoteMapper
+                    .mapToUpdateRequest(vehicle)
         val dto =
             dependencies.remoteDataSource
                 .update(
                     id = vehicle.id,
                     request = request
                 )
-
-
         val updatedVehicle =
             mapVehicleSafely(dto)
                 ?: vehicle
-
-
         vehicles.removeIf {
             it.id == vehicle.id
         }
-
-
         vehicles.add(updatedVehicle)
-
-
-        return updatedVehicle
+            updatedVehicle
+        }
     }
 
 
     override suspend fun delete(
         id: String
-    ): Boolean {
-
+    ): Result<Boolean> {
+        return runCatching {
         val deleted =
             dependencies.remoteDataSource
                 .delete(id)
-
-
         if (deleted) {
-
             vehicles.removeIf {
                 it.id == id
             }
         }
-
-
-        return deleted
+            deleted
+    }
     }
 }

@@ -24,7 +24,7 @@ class UpdatePackageUseCase (
             ) {
 
                 ValidationResult.Success -> {
-                    packageRepository.save(cargoPackage)
+                    packageRepository.save(cargoPackage).getOrThrow()
                 }
 
 
