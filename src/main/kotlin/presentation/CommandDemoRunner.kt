@@ -24,16 +24,17 @@ class InMemoryWarehouseRepository(
 
     override suspend fun getById(
         id: String
-    ): Result<Warehouse> =
+    ): Result<Warehouse> {
         return byId[id]
-            ?.let {
-                Result.success(it)
+            ?.let { warehouse ->
+                Result.success(warehouse)
             }
             ?: Result.failure(
                 WarehouseNotFoundException(
                     "Warehouse with id '$id' was not found."
                 )
             )
+    }
 
 
     override suspend fun addPackageToCargoQueue(
