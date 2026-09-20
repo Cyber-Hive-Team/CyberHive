@@ -1,11 +1,11 @@
-package org.example.data.datasource.local
+package org.example.data.datasource.local.csv
 
 import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.RouteRaw
 import org.example.data.dataparsing.parseRoutes
 import org.example.data.datasource.RouteDataSource
 
-class CsvRouteDataSource(
+class CsvRouteLocalDataSource(
     private val filePath: String
 ) : RouteDataSource {
 
