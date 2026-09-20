@@ -63,71 +63,24 @@ data class LoadedData(
     val vehicleRepository: VehicleRepository
 )
 
-@Suppress("LongMethod")
+
 class DataLoader(
     private val httpClient: SupabaseHttpClient,
     private val supabaseConfig: SupabaseConfig
 ) {
-
-
     private val client by lazy {
         httpClient.create()
     }
 
-
     suspend fun load(): LoadedData {
-
-        val warehouseRepository =
-            createWarehouseRepository()
-
-
-        val warehouses =
-            loadWarehouses(
-                warehouseRepository
-            )
-
-
-        val warehouseMap =
-            warehouses.associateBy {
-                it.id
-            }
-
-
-        val packages =
-            loadPackages(
-                warehouseMap,
-                warehouseRepository
-            )
-
-
-        val vehicleRepository =
-            createVehicleRepository(
-                warehouseMap,
-                warehouseRepository
-            )
-
-
-        val vehicles =
-            vehicleRepository
-                .getVehicles()
-                .getOrThrow()
-
-
-        val routes =
-            loadRoutes(
-                warehouseMap,
-                warehouseRepository
-            )
-
-
-        printLoadingResult(
-            warehouses,
-            packages,
-            vehicles,
-            routes
-        )
-
-
+        val warehouseRepository = createWarehouseRepository()
+        val warehouses = loadWarehouses(warehouseRepository)
+        val warehouseMap = warehouses.associateBy { it.id }
+        val packages = loadPackages(warehouseMap, warehouseRepository)
+        val vehicleRepository = createVehicleRepository(warehouseMap, warehouseRepository)
+        val vehicles = vehicleRepository.getVehicles().getOrThrow()
+        val routes = loadRoutes(warehouseMap, warehouseRepository)
+        printLoadingResult(warehouses, packages, vehicles, routes)
         return LoadedData(
             warehouses = warehouses,
             packages = packages,
@@ -144,22 +97,10 @@ class DataLoader(
         vehicles: List<Vehicle>,
         routes: List<Route>
     ) {
-
-        println(
-            "Warehouses loaded: ${warehouses.size}"
-        )
-
-        println(
-            "Packages loaded: ${packages.size}"
-        )
-
-        println(
-            "Vehicles loaded: ${vehicles.size}"
-        )
-
-        println(
-            "Routes loaded: ${routes.size}"
-        )
+        println("Warehouses loaded: ${warehouses.size}")
+        println("Packages loaded: ${packages.size}")
+        println("Vehicles loaded: ${vehicles.size}")
+        println("Routes loaded: ${routes.size}")
     }
 
 
@@ -169,71 +110,31 @@ class DataLoader(
     ): VehicleRepository {
 
         return VehicleRepositoryImpl(
-
             VehicleRepositoryDependencies(
-
-                localDataSource =
-                    CsvVehicleDataSource(
-                        VEHICLE_FILE
-                    ),
-
-                localMapper =
-                    VehicleMapper(),
-
-                validator =
-                    VehicleValidator(),
-
-                warehouseMap =
-                    map,
-
+                localDataSource = CsvVehicleDataSource(VEHICLE_FILE),
+                localMapper = VehicleMapper(),
+                validator = VehicleValidator(),
+                warehouseMap = map,
                 remoteDataSource =
-                    SupabaseVehicleRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                remoteMapper =
-                    VehicleDtoMapper(),
-
-                remoteValidator =
-                    VehicleRemoteValidator(),
-
-                warehouseRepository =
-                    warehouseRepository
+                    SupabaseVehicleRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+                remoteMapper = VehicleDtoMapper(),
+                remoteValidator = VehicleRemoteValidator(),
+                warehouseRepository = warehouseRepository
             )
         )
     }
 
 
-    private fun createWarehouseRepository():
-            WarehouseRepository {
-
+    private fun createWarehouseRepository(): WarehouseRepository {
         return WarehouseRepositoryImpl(
-
             WarehouseRepositoryDependencies(
-
-                localDataSource =
-                    CsvWarehouseDataSource(
-                        WAREHOUSE_FILE
-                    ),
-
-                localMapper =
-                    WarehouseMapper(),
-
-                validator =
-                    WarehouseValidator(),
-
+                localDataSource = CsvWarehouseDataSource(WAREHOUSE_FILE),
+                localMapper = WarehouseMapper(),
+                validator = WarehouseValidator(),
                 remoteDataSource =
-                    SupabaseWarehouseRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                remoteMapper =
-                    WarehouseRemoteMapper(),
-
-                remoteValidator =
-                    WarehouseRemoteValidator()
+                    SupabaseWarehouseRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+                remoteMapper = WarehouseRemoteMapper(),
+                remoteValidator = WarehouseRemoteValidator()
             )
         )
     }
@@ -253,39 +154,16 @@ class DataLoader(
         map: Map<String, Warehouse>,
         warehouseRepository: WarehouseRepository
     ): List<Package> {
-
         return PackageRepositoryImpl(
-
             PackageRepositoryDependencies(
-
-                localDataSource =
-                    CsvPackageDataSource(
-                        PACKAGE_FILE
-                    ),
-
-                localMapper =
-                    PackageMapper(),
-
-                validator =
-                    PackageValidator(),
-
-                warehouseMap =
-                    map,
-
-                remoteDataSource =
-                    SupabasePackageRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                remoteMapper =
-                    PackageRemoteMapper(),
-
-                remoteValidator =
-                    PackageRemoteValidator(),
-
-                warehouseRepository =
-                    warehouseRepository
+                localDataSource = CsvPackageDataSource(PACKAGE_FILE),
+                localMapper = PackageMapper(),
+                validator = PackageValidator(),
+                warehouseMap = map,
+                remoteDataSource = SupabasePackageRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+                remoteMapper = PackageRemoteMapper(),
+                remoteValidator = PackageRemoteValidator(),
+                warehouseRepository = warehouseRepository
             )
         )
             .getAllPackages()
@@ -297,39 +175,17 @@ class DataLoader(
         map: Map<String, Warehouse>,
         warehouseRepository: WarehouseRepository
     ): List<Route> {
-
         return RouteRepositoryImpl(
-
             RouteRepositoryDependencies(
-
-                localDataSource =
-                    CsvRouteDataSource(
-                        ROUTE_FILE
-                    ),
-
-                localMapper =
-                    RouteMapper(),
-
-                validator =
-                    RouteValidator(),
-
-                warehouseMap =
-                    map,
-
+                localDataSource = CsvRouteDataSource(ROUTE_FILE),
+                localMapper = RouteMapper(),
+                validator = RouteValidator(),
+                warehouseMap = map,
                 remoteDataSource =
-                    SupabaseRouteRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                remoteMapper =
-                    RouteDtoMapper(),
-
-                remoteValidator =
-                    RouteRemoteValidator(),
-
-                warehouseRepository =
-                    warehouseRepository
+                    SupabaseRouteRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+                remoteMapper = RouteDtoMapper(),
+                remoteValidator = RouteRemoteValidator(),
+                warehouseRepository = warehouseRepository
             )
         )
             .getAllRoutes()
