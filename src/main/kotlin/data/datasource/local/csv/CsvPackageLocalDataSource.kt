@@ -1,11 +1,11 @@
-package org.example.data.datasource.local
+package org.example.data.datasource.local.csv
 
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.RawResult
 import org.example.data.dataparsing.parsePackages
 import org.example.data.datasource.PackageDataSource
 
-class CsvPackageDataSource(
+class CsvPackageLocalDataSource(
     private val filePath: String
 ) : PackageDataSource {
 

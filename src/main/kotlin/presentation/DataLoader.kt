@@ -1,9 +1,9 @@
 package org.example.presentation
 
-import org.example.data.datasource.local.CsvPackageDataSource
-import org.example.data.datasource.local.CsvRouteDataSource
-import org.example.data.datasource.local.CsvVehicleDataSource
-import org.example.data.datasource.local.CsvWarehouseDataSource
+import org.example.data.datasource.local.csv.CsvPackageLocalDataSource
+import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
+import org.example.data.datasource.local.csv.CsvVehicleLocalDataSource
+import org.example.data.datasource.local.csv.CsvWarehouseLocalDataSource
 import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasource
@@ -111,7 +111,7 @@ class DataLoader(
 
         return VehicleRepositoryImpl(
             VehicleRepositoryDependencies(
-                localDataSource = CsvVehicleDataSource(VEHICLE_FILE),
+                localDataSource = CsvVehicleLocalDataSource(VEHICLE_FILE),
                 localMapper = VehicleMapper(),
                 validator = VehicleValidator(),
                 warehouseMap = map,
@@ -128,7 +128,7 @@ class DataLoader(
     private fun createWarehouseRepository(): WarehouseRepository {
         return WarehouseRepositoryImpl(
             WarehouseRepositoryDependencies(
-                localDataSource = CsvWarehouseDataSource(WAREHOUSE_FILE),
+                localDataSource = CsvWarehouseLocalDataSource(WAREHOUSE_FILE),
                 localMapper = WarehouseMapper(),
                 validator = WarehouseValidator(),
                 remoteDataSource =
@@ -156,7 +156,7 @@ class DataLoader(
     ): List<Package> {
         return PackageRepositoryImpl(
             PackageRepositoryDependencies(
-                localDataSource = CsvPackageDataSource(PACKAGE_FILE),
+                localDataSource = CsvPackageLocalDataSource(PACKAGE_FILE),
                 localMapper = PackageMapper(),
                 validator = PackageValidator(),
                 warehouseMap = map,
@@ -177,7 +177,7 @@ class DataLoader(
     ): List<Route> {
         return RouteRepositoryImpl(
             RouteRepositoryDependencies(
-                localDataSource = CsvRouteDataSource(ROUTE_FILE),
+                localDataSource = CsvRouteLocalDataSource(ROUTE_FILE),
                 localMapper = RouteMapper(),
                 validator = RouteValidator(),
                 warehouseMap = map,
