@@ -1,12 +1,11 @@
 package org.example.domain.usecase.crud.route
 
 import org.example.domain.model.Route
+import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
-import org.example.domain.validator.Validator
 import org.example.domain.validator.ValidationResult
-import org.example.domain.model.exception.EntityValidationException
-import org.example.domain.model.exception.RouteNotFoundException
+import org.example.domain.validator.Validator
 
 class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
@@ -17,8 +16,7 @@ class UpdateRouteUseCase(
 
         return runCatching {
 
-            routeRepository.getById(input.id)
-                ?: throw RouteNotFoundException()
+            routeRepository.getById(input.id).getOrThrow()
 
             when (val validation = routeValidator.validateUpdate(input)) {
 
@@ -36,7 +34,7 @@ class UpdateRouteUseCase(
                             ?: route.typicalDelayMin
                     )
 
-                    routeRepository.update(updatedRoute)
+                    routeRepository.update(updatedRoute).getOrThrow()
                 }
 
                 is ValidationResult.Failure -> {

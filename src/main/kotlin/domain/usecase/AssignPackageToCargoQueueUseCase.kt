@@ -9,26 +9,26 @@ class AssignPackageToCargoQueueUseCase(
     suspend operator fun invoke(
         warehouseId: String,
         cargoPackage: Package
-    ): Boolean {
-        val alreadyExists =
-            warehouseRepository.isPackageInCargoQueue(
-                warehouseId,
-                cargoPackage.id
-            )
-
-        val result = if (alreadyExists) {
-            false
-        } else {
-            val added = warehouseRepository.addPackageToCargoQueue(
-                warehouseId,
-                cargoPackage
-            )
-            if (added) {
-                warehouseRepository.sortCargoQueue(warehouseId)
-            } else {
+    ): Result<Boolean> {
+        return runCatching {
+            val alreadyExists =
+                warehouseRepository.isPackageInCargoQueue(
+                    warehouseId,
+                    cargoPackage.id
+                ).getOrThrow()
+            if (alreadyExists) {
                 false
+            } else {
+                val added = warehouseRepository.addPackageToCargoQueue(
+                    warehouseId,
+                    cargoPackage
+                ).getOrThrow()
+                if (added) {
+                    warehouseRepository.sortCargoQueue(warehouseId).getOrThrow()
+                } else {
+                    false
+                }
+            }
         }
-    }
-        return result
     }
 }

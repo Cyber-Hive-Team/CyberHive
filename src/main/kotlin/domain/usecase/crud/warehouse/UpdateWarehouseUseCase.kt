@@ -2,7 +2,6 @@ package org.example.domain.usecase.crud.warehouse
 
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.EntityValidationException
-import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.validator.ValidationResult
@@ -20,7 +19,7 @@ class UpdateWarehouseUseCase(
         return runCatching {
 
             warehouseRepository.getById(input.id)
-                ?: throw WarehouseNotFoundException()
+                .getOrThrow()
 
 
             when (
@@ -36,7 +35,7 @@ class UpdateWarehouseUseCase(
                         regionalZone = input.regionalZone,
                         latitude = input.latitude,
                         longitude = input.longitude
-                    )
+                    ).getOrThrow()
                 }
 
 

@@ -1,6 +1,5 @@
 package org.example.domain.usecase.crud.warehouse
 
-import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 
 class DeleteWarehouseUseCase(
@@ -14,10 +13,10 @@ class DeleteWarehouseUseCase(
         return runCatching {
 
             warehouseRepository.getById(id)
-                ?: throw WarehouseNotFoundException()
+                .getOrThrow()
 
 
-            warehouseRepository.delete(id)
+            warehouseRepository.delete(id).getOrThrow()
         }
     }
 }

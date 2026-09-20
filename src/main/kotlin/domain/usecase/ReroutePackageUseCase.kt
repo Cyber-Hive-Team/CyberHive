@@ -6,7 +6,6 @@ import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.exception.RouteNotFoundException
-import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.model.input.ReroutePackageInput
 import org.example.domain.model.result.RoutingResult
 import org.example.domain.pricing.RoutePricingEngine
@@ -22,31 +21,27 @@ class ReroutePackageUseCase(
     @Suppress("ThrowsCount")
     suspend operator fun invoke(
         input: ReroutePackageInput
-    ): RoutingResult {
-        val cargoPackage = fetchPackage(input.packageId)
-            ?: throw PackageNotFoundException(
-                "Package not found with ID: ${input.packageId}"
-            )
+    ): Result<RoutingResult> {
+        return runCatching {
+            val cargoPackage = fetchPackage(input.packageId)
+                ?: throw PackageNotFoundException(
+                    "Package not found with ID: ${input.packageId}"
+                )
+            val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
 
-        val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
-            ?: throw WarehouseNotFoundException(
-                "Destination warehouse not found with ID: ${input.newDestinationWarehouseId}"
-            )
+            val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
+                ?: throw RouteNotFoundException(
+                    "No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}"
+                )
 
-        val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
-            ?: throw RouteNotFoundException(
-                "No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}"
+            val updatedPackage = createUpdatedPackage(
+                cargoPackage,
+                newDestination,
+                calculatedRoute
             )
-
-        val updatedPackage = createUpdatedPackage(
-            cargoPackage,
-            newDestination,
+            updateCargoQueue(newDestination.id, updatedPackage)
             calculatedRoute
-        )
-
-        updateCargoQueue(newDestination.id, updatedPackage)
-
-        return calculatedRoute
+        }
     }
 
     private suspend fun fetchPackage(packageId: String): Package? {
@@ -54,8 +49,8 @@ class ReroutePackageUseCase(
             .firstOrNull { it.id == packageId }
     }
 
-    private suspend fun fetchWarehouse(warehouseId: String): Warehouse? {
-        return warehouseRepository.getById(warehouseId)
+    private suspend fun fetchWarehouse(warehouseId: String): Warehouse {
+        return warehouseRepository.getById(warehouseId).getOrThrow()
     }
 
     private fun calculateNewRoute(
@@ -96,9 +91,9 @@ class ReroutePackageUseCase(
         val isAdded = warehouseRepository.addPackageToCargoQueue(
             warehouseId,
             updatedPackage
-        )
+        ).getOrThrow()
         if (isAdded) {
-            warehouseRepository.sortCargoQueue(warehouseId)
+            warehouseRepository.sortCargoQueue(warehouseId).getOrThrow()
         }
     }
 }

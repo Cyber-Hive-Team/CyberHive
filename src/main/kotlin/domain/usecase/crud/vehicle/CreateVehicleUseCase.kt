@@ -16,7 +16,7 @@ class CreateVehicleUseCase(
         return runCatching {
             when (val validation = validator.validateCreate(vehicle)) {
             ValidationResult.Success -> {
-                    vehicleRepository.save(vehicle)
+                vehicleRepository.save(vehicle).getOrThrow()
                 }
 
             is ValidationResult.Failure -> {

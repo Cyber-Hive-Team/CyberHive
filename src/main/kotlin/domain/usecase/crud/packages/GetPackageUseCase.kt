@@ -2,7 +2,6 @@ package org.example.domain.usecase.crud.packages
 
 import org.example.domain.model.Package
 import org.example.domain.repository.PackageRepository
-import org.example.domain.model.exception.PackageNotFoundException
 
 class GetPackageUseCase(
     private val packageRepository: PackageRepository
@@ -15,8 +14,7 @@ class GetPackageUseCase(
         return runCatching {
 
             packageRepository.getById(id)
-                ?: throw PackageNotFoundException()
-
+                .getOrThrow()
         }
     }
 }

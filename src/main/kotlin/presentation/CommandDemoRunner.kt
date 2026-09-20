@@ -23,7 +23,7 @@ class InMemoryWarehouseRepository(
 
     override suspend fun getById(
         id: String
-    ): Warehouse? =
+    ): Result<Warehouse> =
         byId[id]
 
 

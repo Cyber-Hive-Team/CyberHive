@@ -1,7 +1,6 @@
 package org.example.domain.usecase.crud.warehouse
 
 import org.example.domain.model.Warehouse
-import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 
 class GetWarehouseByIdUseCase(
@@ -14,8 +13,8 @@ class GetWarehouseByIdUseCase(
 
         return runCatching {
 
-            warehouseRepository.getById(id)
-                ?: throw WarehouseNotFoundException()
+            warehouseRepository.getById(id).getOrThrow()
+
 
         }
     }
