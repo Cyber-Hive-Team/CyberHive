@@ -21,6 +21,14 @@ val previewDestinationWarehouse = Warehouse(
     longitude = 36.8
 )
 
+val previewWestWarehouse = Warehouse(
+    id = "WH-003",
+    name = "West Distribution Center",
+    regionalZone = RegionalZone.WEST,
+    latitude = 33.8,
+    longitude = 35.9
+)
+
 val previewUrgentPackage = Package(
     id = "PKG-000001",
     weight = 8.5,
