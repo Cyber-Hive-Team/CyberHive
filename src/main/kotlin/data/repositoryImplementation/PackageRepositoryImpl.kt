@@ -1,6 +1,13 @@
 package org.example.data.repositoryImplementation
 
+import java.time.LocalDateTime
+import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import org.example.data.exception.NullRequiredFieldException
+import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.PackageResponseDto
 import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
 import org.example.domain.model.Package
@@ -9,11 +16,6 @@ import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.Priority
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.repository.PackageRepository
-import java.time.LocalDateTime
-import kotlin.random.Random
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 
 private const val MIN_WAITING_HOURS = 1L
@@ -27,7 +29,8 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 
 
 class PackageRepositoryImpl(
-    private val dependencies: PackageRepositoryDependencies
+    private val dependencies: PackageRepositoryDependencies,
+    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
 ) : PackageRepository {
 
 
@@ -45,33 +48,19 @@ class PackageRepositoryImpl(
     override suspend fun getAllPackages(): Result<List<Package>> {
 
         return runCatching {
-
             if (isLoaded) {
                 return@runCatching packages.toList()
             }
-
-
-            val loadedPackages =
-                dependencies.remoteDataSource
+            val loadedPackages = dependencies.remoteDataSource
                     .getAll()
-                    .mapNotNull {
-                        mapPackageSafely(it)
-                    }
-
-
-            packages.addAll(
-                loadedPackages
-            )
-
-
+                .mapNotNull { mapPackageSafely(it) }
+            packages.addAll(loadedPackages)
             isLoaded = true
-
-
             packages.toList()
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
-    @Suppress("LongMethod")
+
     private fun mapPackageSafely(
         dto: PackageResponseDto
     ): Package? {
@@ -138,7 +127,6 @@ class PackageRepositoryImpl(
     override suspend fun getById(
         packageId: String
     ): Result<Package> {
-
         val cachedPackage = packages.firstOrNull {
             it.id == packageId
         }
@@ -150,14 +138,10 @@ class PackageRepositoryImpl(
             dependencies.remoteDataSource
                 .getById(packageId)
                 ?: error("Package with id '$packageId' was not found.")
-
-        val packageModel =
-            mapPackageSafely(dto) ?: error("Package mapping failed.")
-
+            val packageModel = mapPackageSafely(dto) ?: error("Package mapping failed.")
             packages.add(packageModel)
-
             packageModel
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -169,7 +153,7 @@ class PackageRepositoryImpl(
                 packages.map {
                     createWarehouseStay(it)
                 }
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -199,7 +183,8 @@ class PackageRepositoryImpl(
                 packages.map {
                 createDeliveryTime(it)
             }
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
+
     }
 
 
@@ -236,11 +221,11 @@ class PackageRepositoryImpl(
     ): Result<List<Package>> {
 
         return getAllPackages()
-            .map { packages ->
+            .mapCatching { packages ->
                 packages.filter {
                     it.originWarehouse.id == warehouseId
                 }
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -257,7 +242,7 @@ class PackageRepositoryImpl(
                     requiresSpecialHandling = Random.nextBoolean()
                 )
             }
-    }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -282,7 +267,7 @@ class PackageRepositoryImpl(
                     ?: cargoPackage
             packages.add(packageModel)
             packageModel
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -320,7 +305,7 @@ class PackageRepositoryImpl(
             }
             packages.add(updatedPackage)
             updatedPackage
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -337,6 +322,6 @@ class PackageRepositoryImpl(
                 }
             }
             deleted
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 }

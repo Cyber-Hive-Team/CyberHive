@@ -1,6 +1,8 @@
 package org.example.data.repositoryImplementation
 
 import org.example.data.exception.NullRequiredFieldException
+import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
@@ -8,7 +10,8 @@ import org.example.domain.repository.VehicleRepository
 
 
 class VehicleRepositoryImpl(
-    private val dependencies: VehicleRepositoryDependencies
+    private val dependencies: VehicleRepositoryDependencies,
+    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
 ) : VehicleRepository {
 
     private val vehicles =
@@ -43,7 +46,7 @@ class VehicleRepositoryImpl(
 
 
             vehicles.toList()
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -93,11 +96,11 @@ class VehicleRepositoryImpl(
     ): Result<List<Vehicle>> {
 
         return getVehicles()
-            .map { vehicles ->
+            .mapCatching { vehicles ->
                 vehicles.filter {
                     it.currentHub.id == warehouseId
                 }
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -132,7 +135,7 @@ class VehicleRepositoryImpl(
                     costPerKm = oldVehicle.costPerKm
                 )
             true
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -146,7 +149,7 @@ class VehicleRepositoryImpl(
             vehicles.removeIf {
                 it.id == vehicleId
             }
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -164,14 +167,14 @@ class VehicleRepositoryImpl(
         val dto =
             dependencies.remoteDataSource
                 .getById(vehicleId)
-                ?: error("Vehicle with id '$vehicleId' was not found.")
-
+                ?: throw NullRequiredFieldException("Vehicle '$vehicleId' mapping failed.")
         val vehicle =
-            mapVehicleSafely(dto) ?: error("Vehicle mapping failed.")
+            mapVehicleSafely(dto)
+                ?: throw NullRequiredFieldException("Vehicle '$vehicleId' mapping failed.")
             vehicles.add(vehicle)
 
             vehicle
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -187,10 +190,10 @@ class VehicleRepositoryImpl(
                     .save(request)
             val savedVehicle =
                 mapVehicleSafely(dto)
-                    ?: vehicle
+                    ?: throw NullRequiredFieldException("Vehicle '${vehicle.id}' save mapping failed.")
             vehicles.add(savedVehicle)
             savedVehicle
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -209,13 +212,13 @@ class VehicleRepositoryImpl(
                 )
         val updatedVehicle =
             mapVehicleSafely(dto)
-                ?: vehicle
+                ?: throw NullRequiredFieldException("Vehicle '${vehicle.id}' update mapping failed.")
         vehicles.removeIf {
             it.id == vehicle.id
         }
         vehicles.add(updatedVehicle)
             updatedVehicle
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -232,6 +235,6 @@ class VehicleRepositoryImpl(
             }
         }
             deleted
-    }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 }
