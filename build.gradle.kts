@@ -7,9 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform) apply false
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
-    kotlin("plugin.serialization") version "2.0.0"
     kotlin("plugin.serialization") version "2.4.20"
-    id("application")
 }
 
 group = "org.example"
@@ -47,9 +45,7 @@ kotlin {
 }
 
 
-application {
-    mainClass.set("org.example.presentation.MainKt")
-}
+
 
 
 tasks.test {
