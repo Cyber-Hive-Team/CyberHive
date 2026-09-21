@@ -38,7 +38,6 @@ class DataExceptionMapper {
             is NullRequiredFieldException -> {
                 InvalidDataException(cause = exception)
             }
-
             is DataException -> {
                 DataAccessException(cause = exception)
             }
@@ -52,6 +51,7 @@ class DataExceptionMapper {
             is ClientRequestException -> {
                 mapClientRequestException(exception)
             }
+
             is ServerResponseException -> {
                 NetworkException(cause = exception)
             }
@@ -59,6 +59,7 @@ class DataExceptionMapper {
             is NumberFormatException -> {
                 InvalidDataException(cause = exception)
             }
+
             else -> {
                 UnknownException(cause = exception)
             }

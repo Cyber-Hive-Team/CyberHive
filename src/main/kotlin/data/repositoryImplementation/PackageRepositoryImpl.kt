@@ -66,38 +66,21 @@ class PackageRepositoryImpl(
     ): Package? {
         return runCatching {
             val originWarehouse =
-                findWarehouse(
-                    dto.originHubId,
-                    dto.id,
-                    "origin"
-                )
+                findWarehouse(dto.originHubId, dto.id, "origin")
             val destinationWarehouse =
-                findWarehouse(
-                    dto.destinationHubId,
-                    dto.id,
-                    "destination"
-                )
-            dependencies.remoteValidator
-                .validate(dto)
+                findWarehouse(dto.destinationHubId, dto.id, "destination")
+            dependencies.remoteValidator.validate(dto)
             dependencies.remoteMapper
                 .mapToDomainModel(
                     dto = dto,
                     originWarehouse = originWarehouse,
                     destinationWarehouse = destinationWarehouse
                 )
-
         }.getOrElse { exception ->
-
             if (exception is NullRequiredFieldException) {
-
-                warnings.add(
-                    "Package '${dto.id}': ${exception.message}"
-                )
-
+                warnings.add("Package '${dto.id}': ${exception.message}")
                 null
-
             } else {
-
                 throw exception
             }
         }
