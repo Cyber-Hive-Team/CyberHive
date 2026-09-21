@@ -27,43 +27,51 @@ class DataExceptionMapper {
         if (exception is CancellationException) {
             throw exception
         }
+
+        return when {
+            exception is DomainException -> exception
+            exception is DataException -> mapDataException(exception)
+            exception is ClientRequestException ->
+                mapClientRequestException(exception)
+
+            isNetworkError(exception) ->
+                NetworkException(cause = exception)
+
+            isInvalidDataError(exception) ->
+                InvalidDataException(cause = exception)
+
+            else -> UnknownException(cause = exception)
+        }
+    }
+
+    private fun mapDataException(
+        exception: DataException
+    ): DomainException {
         return when (exception) {
-            is DomainException -> exception
-            is FileNotFoundDataException -> {
+            is FileNotFoundDataException ->
                 DataAccessException(cause = exception)
-            }
+
             is EmptyFileDataException,
             is InvalidColumnCountException,
             is MissingRequiredFieldException,
-            is NullRequiredFieldException -> {
+            is NullRequiredFieldException ->
                 InvalidDataException(cause = exception)
-            }
-            is DataException -> {
-                DataAccessException(cause = exception)
-            }
-            is HttpRequestTimeoutException,
-            is ConnectTimeoutException,
-            is SocketTimeoutException,
-            is IOException -> {
-                NetworkException(cause = exception)
-            }
 
-            is ClientRequestException -> {
-                mapClientRequestException(exception)
-            }
-
-            is ServerResponseException -> {
-                NetworkException(cause = exception)
-            }
-            is SerializationException,
-            is NumberFormatException -> {
-                InvalidDataException(cause = exception)
-            }
-
-            else -> {
-                UnknownException(cause = exception)
-            }
+            else -> DataAccessException(cause = exception)
         }
+    }
+
+    private fun isNetworkError(exception: Throwable): Boolean {
+        return exception is HttpRequestTimeoutException ||
+                exception is ConnectTimeoutException ||
+                exception is SocketTimeoutException ||
+                exception is IOException ||
+                exception is ServerResponseException
+    }
+
+    private fun isInvalidDataError(exception: Throwable): Boolean {
+        return exception is SerializationException ||
+                exception is NumberFormatException
     }
 
     private fun mapClientRequestException(
