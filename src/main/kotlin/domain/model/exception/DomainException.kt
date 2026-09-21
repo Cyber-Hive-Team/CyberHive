@@ -60,6 +60,5 @@ class EntityValidationException(message: String, cause: Throwable? = null) : Dom
 class NetworkException(message: String = NETWORK_ERROR, cause: Throwable? = null) : DomainException(message, cause)
 class DataAccessException(message: String = DATA_ACCESS_FAILED, cause: Throwable? = null) :
     DomainException(message, cause)
-
 class InvalidDataException(message: String = INVALID_DATA, cause: Throwable? = null) : DomainException(message, cause)
 class UnknownException(message: String = UNKNOWN_ERROR, cause: Throwable? = null) : DomainException(message, cause)
