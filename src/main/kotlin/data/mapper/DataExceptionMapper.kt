@@ -99,3 +99,17 @@ class DataExceptionMapper {
         }
     }
 }
+
+fun <T> Result<T>.mapFailureToDomain(
+    exceptionMapper: DataExceptionMapper
+): Result<T> =
+    fold(
+        onSuccess = { value ->
+            Result.success(value)
+        },
+        onFailure = { exception ->
+            Result.failure(
+                exceptionMapper.map(exception)
+            )
+        }
+    )
