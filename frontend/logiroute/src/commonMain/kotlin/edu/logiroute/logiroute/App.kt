@@ -11,7 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import edu.logiroute.logiroute.ui.components.PackagePriorityBadge
 import edu.logiroute.logiroute.ui.components.WarehouseIdentityBadge
+import edu.logiroute.logiroute.ui.components.WarehouseSummaryCard
+import edu.logiroute.logiroute.ui.preview.previewActiveWarehouse
 import edu.logiroute.logiroute.ui.preview.previewDestinationWarehouse
+import edu.logiroute.logiroute.ui.preview.previewEmptyWarehouse
 import edu.logiroute.logiroute.ui.preview.previewLowPackage
 import edu.logiroute.logiroute.ui.preview.previewOriginWarehouse
 import edu.logiroute.logiroute.ui.preview.previewStandardPackage
@@ -33,6 +36,8 @@ fun App() {
             PackagePriorityBadge(pkg = previewLowPackage)
             WarehouseIdentityBadge(warehouse = previewOriginWarehouse)
             WarehouseIdentityBadge(warehouse = previewDestinationWarehouse)
+            WarehouseSummaryCard(warehouse = previewActiveWarehouse)
+            WarehouseSummaryCard(warehouse = previewEmptyWarehouse)
         }
     }
 }
