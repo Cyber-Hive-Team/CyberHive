@@ -27,14 +27,11 @@ class DataExceptionMapper {
         if (exception is CancellationException) {
             throw exception
         }
-
         return when (exception) {
             is DomainException -> exception
-
             is FileNotFoundDataException -> {
                 DataAccessException(cause = exception)
             }
-
             is EmptyFileDataException,
             is InvalidColumnCountException,
             is MissingRequiredFieldException,
@@ -45,7 +42,6 @@ class DataExceptionMapper {
             is DataException -> {
                 DataAccessException(cause = exception)
             }
-
             is HttpRequestTimeoutException,
             is ConnectTimeoutException,
             is SocketTimeoutException,
@@ -56,16 +52,13 @@ class DataExceptionMapper {
             is ClientRequestException -> {
                 mapClientRequestException(exception)
             }
-
             is ServerResponseException -> {
                 NetworkException(cause = exception)
             }
-
             is SerializationException,
             is NumberFormatException -> {
                 InvalidDataException(cause = exception)
             }
-
             else -> {
                 UnknownException(cause = exception)
             }

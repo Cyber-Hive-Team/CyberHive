@@ -64,29 +64,21 @@ class PackageRepositoryImpl(
     private fun mapPackageSafely(
         dto: PackageResponseDto
     ): Package? {
-
         return runCatching {
-
             val originWarehouse =
                 findWarehouse(
                     dto.originHubId,
                     dto.id,
                     "origin"
                 )
-
-
             val destinationWarehouse =
                 findWarehouse(
                     dto.destinationHubId,
                     dto.id,
                     "destination"
                 )
-
-
             dependencies.remoteValidator
                 .validate(dto)
-
-
             dependencies.remoteMapper
                 .mapToDomainModel(
                     dto = dto,
