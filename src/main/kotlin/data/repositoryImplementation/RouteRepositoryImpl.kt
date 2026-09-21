@@ -1,6 +1,9 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.exception.DataException
 import org.example.data.exception.NullRequiredFieldException
+import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.domain.model.Route
@@ -8,7 +11,8 @@ import org.example.domain.repository.RouteRepository
 
 
 class RouteRepositoryImpl(
-    private val dependencies: RouteRepositoryDependencies
+    private val dependencies: RouteRepositoryDependencies,
+    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
 ) : RouteRepository {
 
     private val warnings =
@@ -43,7 +47,7 @@ class RouteRepositoryImpl(
 
 
             routes.toList()
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -100,11 +104,11 @@ class RouteRepositoryImpl(
         val dto =
             dependencies.remoteDataSource
                 .getById(routeId)
-                ?: error("Route with id '$routeId' was not found.")
-            val route = mapRouteSafely(dto) ?: error("Route mapping failed.")
+                ?: throw DataException("Route with id '$routeId' was not found.")
+            val route = mapRouteSafely(dto) ?: throw NullRequiredFieldException("Route '$routeId' mapping failed.")
             routes.add(route)
             route
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -120,10 +124,10 @@ class RouteRepositoryImpl(
                     .save(request)
             val savedRoute =
                 mapRouteSafely(dto)
-                    ?: route
+                    ?: throw NullRequiredFieldException("Route '${route.id}' save mapping failed.")
             routes.add(savedRoute)
             savedRoute
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -141,14 +145,14 @@ class RouteRepositoryImpl(
                         request = request
                     )
             val updatedRoute = mapRouteSafely(dto)
-                ?: route
+                ?: throw NullRequiredFieldException("Route '${route.id}' save mapping failed.")
 
             routes.removeIf {
                 it.id == route.id
             }
             routes.add(updatedRoute)
             updatedRoute
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -164,6 +168,6 @@ class RouteRepositoryImpl(
                 }
             }
             deleted
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 }
