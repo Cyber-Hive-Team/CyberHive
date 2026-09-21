@@ -10,6 +10,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.example.data.remote.config.SupabaseConfig
 
+const val CONNECT_TIMEOUT_MS = 5_000L
+const val REQUEST_TIMEOUT_MS = 10_000L
+const val SOCKET_TIMEOUT_MS = 10_000L
+
 class SupabaseHttpClient(
     private val config: SupabaseConfig
 ) {
@@ -19,9 +23,9 @@ class SupabaseHttpClient(
         return HttpClient(CIO) {
             expectSuccess = true
             install(HttpTimeout) {
-                connectTimeoutMillis = 5_000
-                requestTimeoutMillis = 10_000
-                socketTimeoutMillis = 10_000
+                connectTimeoutMillis = CONNECT_TIMEOUT_MS
+                requestTimeoutMillis = REQUEST_TIMEOUT_MS
+                socketTimeoutMillis = SOCKET_TIMEOUT_MS
             }
             install(ContentNegotiation) {
                 json(Json {
