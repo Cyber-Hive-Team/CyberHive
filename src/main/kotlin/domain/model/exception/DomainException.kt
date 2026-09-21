@@ -31,6 +31,10 @@ open class DomainException(message: String, cause: Throwable? = null) : Exceptio
         const val INVALID_ORIGIN_WAREHOUSE = "Origin warehouse ID cannot be empty."
         const val INVALID_DESTINATION_WAREHOUSE = "Destination warehouse ID cannot be empty."
         const val INVALID_CURRENT_HUB = "Current hub ID cannot be empty."
+        const val NETWORK_ERROR = "Unable to connect to the remote service."
+        const val DATA_ACCESS_FAILED = "Failed to access data."
+        const val INVALID_DATA = "The received data is invalid."
+        const val UNKNOWN_ERROR = "An unexpected error occurred."
 
     }
 }
@@ -52,6 +56,9 @@ class InvalidRouteIdException(message: String = INVALID_ROUTE_ID) : DomainExcept
 class InvalidVehicleIdException(message: String = INVALID_VEHICLE_ID) : DomainException(message)
 class InvalidWarehouseIdException(message: String = INVALID_WAREHOUSE_ID) : DomainException(message)
 class SameWarehouseException(message: String = SAME_WAREHOUSE) : DomainException(message)
-
-
 class EntityValidationException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+class NetworkException(message: String = NETWORK_ERROR, cause: Throwable? = null) : DomainException(message, cause)
+class DataAccessException(message: String = DATA_ACCESS_FAILED, cause: Throwable? = null) :
+    DomainException(message, cause)
+class InvalidDataException(message: String = INVALID_DATA, cause: Throwable? = null) : DomainException(message, cause)
+class UnknownException(message: String = UNKNOWN_ERROR, cause: Throwable? = null) : DomainException(message, cause)

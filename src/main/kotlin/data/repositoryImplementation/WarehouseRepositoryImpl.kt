@@ -1,6 +1,9 @@
 package org.example.data.repositoryImplementation
 
+import kotlin.random.Random
 import org.example.data.exception.NullRequiredFieldException
+import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.mapFailureToDomain
 import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.RegionalZone
@@ -8,11 +11,11 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
-import kotlin.random.Random
 
 
 class WarehouseRepositoryImpl(
-    private val dependencies: WarehouseRepositoryDependencies
+    private val dependencies: WarehouseRepositoryDependencies,
+    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
 ) : WarehouseRepository {
 
 
@@ -44,7 +47,7 @@ class WarehouseRepositoryImpl(
             )
             isLoaded = true
             warehouses.toList()
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -77,7 +80,7 @@ class WarehouseRepositoryImpl(
                 )
 
                 true
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
 
     }
 
@@ -90,7 +93,7 @@ class WarehouseRepositoryImpl(
             .mapCatching { warehouse ->
                 warehouse.sortCargoQueue()
                 true
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -100,20 +103,20 @@ class WarehouseRepositoryImpl(
     ): Result<Boolean> {
 
         return getById(warehouseId)
-            .map { warehouse ->
+            .mapCatching { warehouse ->
                 warehouse
                     .getCargoQueue()
                     .any { cargoPackage ->
                         cargoPackage.id == packageId
                     }
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
     override suspend fun getAllWarehouseServices():
             Result<List<WarehouseServices>> {
         return getAllWarehouses()
-            .map { warehouses ->
+            .mapCatching { warehouses ->
                 warehouses.map { warehouse ->
                     WarehouseServices(
                         warehouseId = warehouse.id,
@@ -125,7 +128,7 @@ class WarehouseRepositoryImpl(
                             Random.nextBoolean()
                     )
                 }
-            }
+            }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -145,10 +148,10 @@ class WarehouseRepositoryImpl(
                 .getById(id)
                 ?: throw WarehouseNotFoundException()
             mapWarehouseSafely(remoteDto)
-                ?: throw NullRequiredFieldException()
+                ?: throw NullRequiredFieldException("Warehouse '$id' mapping failed.")
         }.onSuccess { warehouse ->
             warehouses.add(warehouse)
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -169,7 +172,7 @@ class WarehouseRepositoryImpl(
                     ?: warehouse
             warehouses.add(savedWarehouse)
             savedWarehouse
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -194,13 +197,15 @@ class WarehouseRepositoryImpl(
                     .update(id = id, request = requestDto)
             val updatedWarehouse =
                 mapWarehouseSafely(responseDto)
-                    ?: error("Warehouse update failed.")
+                    ?: throw NullRequiredFieldException(
+                        "Warehouse '$id' update failed."
+                    )
             warehouses.removeIf {
                 it.id == id
             }
             warehouses.add(updatedWarehouse)
             updatedWarehouse
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
     override suspend fun delete(
         id: String
@@ -215,6 +220,6 @@ class WarehouseRepositoryImpl(
                 }
             }
             deleted
-        }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 }
