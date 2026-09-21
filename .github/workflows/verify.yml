@@ -25,4 +25,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build, Test and Detekt
-        run: ./gradlew build detekt
+        run: ./gradlew build detekt -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m"
