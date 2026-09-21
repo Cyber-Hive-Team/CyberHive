@@ -3,6 +3,7 @@ package edu.logiroute.logiroute.ui.preview
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
 import org.example.domain.model.RegionalZone
+import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 
 val previewOriginWarehouse = Warehouse(
@@ -51,4 +52,62 @@ val previewLowPackage = Package(
     priority = Priority.LOW,
     originWarehouse = previewOriginWarehouse,
     destinationWarehouse = previewDestinationWarehouse
+)
+
+val previewActiveWarehouse = Warehouse(
+    id = "WH-005",
+    name = "East Logistics Hub",
+    regionalZone = RegionalZone.EAST,
+    latitude = 33.1,
+    longitude = 37.2
+).apply {
+    addPackages(
+        listOf(
+            Package(
+                id = "PKG-000010",
+                weight = 5.0,
+                priority = Priority.URGENT,
+                originWarehouse = previewOriginWarehouse,
+                destinationWarehouse = previewDestinationWarehouse
+            ),
+            Package(
+                id = "PKG-000011",
+                weight = 12.0,
+                priority = Priority.STANDARD,
+                originWarehouse = previewOriginWarehouse,
+                destinationWarehouse = previewDestinationWarehouse
+            ),
+            Package(
+                id = "PKG-000012",
+                weight = 3.5,
+                priority = Priority.LOW,
+                originWarehouse = previewOriginWarehouse,
+                destinationWarehouse = previewDestinationWarehouse
+            )
+        )
+    )
+    addVehicles(
+        listOf(
+            Vehicle(
+                id = "TRK-0001",
+                maxCapacityKg = 500.0,
+                costPerKm = 1.5,
+                currentHub = previewOriginWarehouse
+            ),
+            Vehicle(
+                id = "TRK-0002",
+                maxCapacityKg = 300.0,
+                costPerKm = 1.2,
+                currentHub = previewOriginWarehouse
+            )
+        )
+    )
+}
+
+val previewEmptyWarehouse = Warehouse(
+    id = "WH-006",
+    name = "South Depot",
+    regionalZone = RegionalZone.SOUTH,
+    latitude = 32.5,
+    longitude = 36.0
 )
