@@ -5,6 +5,7 @@ import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
+import org.example.data.exception.NullRequiredFieldException
 
 class RouteDtoMapper {
 
@@ -15,8 +16,14 @@ class RouteDtoMapper {
     ): Route {
         return Route(
             id = raw.routeId,
-            distanceKm = raw.distanceKm!!,
-            typicalDelayMin = raw.typicalDelayMin!!,
+            distanceKm = raw.distanceKm
+                ?: throw NullRequiredFieldException(
+                    "Route '${raw.routeId}' has null distanceKm."
+                ),
+            typicalDelayMin = raw.typicalDelayMin
+                ?: throw NullRequiredFieldException(
+                    "Route '${raw.routeId}' has null typicalDelayMin."
+                ),
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )

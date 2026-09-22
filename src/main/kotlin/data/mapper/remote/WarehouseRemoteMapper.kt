@@ -1,5 +1,6 @@
 package org.example.data.mapper.remote
 
+import org.example.data.exception.NullRequiredFieldException
 import org.example.data.remote.dto.request.CreateWarehouseRequestDto
 import org.example.data.remote.dto.request.UpdateWarehouseRequestDto
 import org.example.data.remote.dto.response.WarehouseResponseDto
@@ -14,17 +15,30 @@ class WarehouseRemoteMapper {
 
         return Warehouse(
             id = dto.id,
+
             name = dto.name,
+
             regionalZone =
-                RegionalZone.valueOf(
-                    dto.regionalZone!!
+                dto.regionalZone?.takeIf { it.isNotBlank() }?.let { RegionalZone.valueOf(it) }
+                    ?: throw NullRequiredFieldException(
+                        "Warehouse '${dto.id}' has null regionalZone."
+                    ),
+            latitude = dto.latitude
+                ?: throw NullRequiredFieldException(
+                    "Warehouse '${dto.id}' has null latitude."
                 ),
-            latitude = dto.latitude!!,
-            longitude = dto.longitude!!
+            longitude = dto.longitude
+                ?: throw NullRequiredFieldException(
+                    "Warehouse '${dto.id}' has null longitude."
+                )
         )
     }
 
-    fun mapToCreateRequest(warehouse: Warehouse): CreateWarehouseRequestDto {
+
+    fun mapToCreateRequest(
+        warehouse: Warehouse
+    ): CreateWarehouseRequestDto {
+
         return CreateWarehouseRequestDto(
             id = warehouse.id,
             name = warehouse.name,
@@ -32,8 +46,8 @@ class WarehouseRemoteMapper {
             latitude = warehouse.latitude,
             longitude = warehouse.longitude
         )
-
     }
+
 
     fun mapToUpdateRequest(
         name: String? = null,
@@ -41,13 +55,12 @@ class WarehouseRemoteMapper {
         latitude: Double? = null,
         longitude: Double? = null
     ): UpdateWarehouseRequestDto {
+
         return UpdateWarehouseRequestDto(
             name = name,
             regionalZone = regionalZone?.name,
             latitude = latitude,
             longitude = longitude
         )
-
     }
-
 }
