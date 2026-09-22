@@ -11,16 +11,12 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
-
+import org.example.data.remote.dto.response.WarehouseResponseDto
 
 class WarehouseRepositoryImpl(
     private val dependencies: WarehouseRepositoryDependencies,
     private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
-) : WarehouseRepository {
-
-
-    private val warnings =
-        mutableListOf<String>()
+) : BaseRepository(), WarehouseRepository {
 
 
     private val warehouses =
@@ -52,19 +48,14 @@ class WarehouseRepositoryImpl(
 
 
     private fun mapWarehouseSafely(
-        dto: org.example.data.remote.dto.response.WarehouseResponseDto
+        dto: WarehouseResponseDto
     ): Warehouse? {
 
-        return runCatching {
-            dependencies.remoteValidator
-                .validate(dto)
+        return mapSafely(dto.id) {
+
             dependencies.remoteMapper
                 .mapToDomainModel(dto)
-        }.getOrElse { exception ->
-            warnings.add(
-                "Warehouse '${dto.id}': ${exception.message}"
-            )
-            null
+
         }
     }
 
@@ -169,7 +160,9 @@ class WarehouseRepositoryImpl(
                     .save(requestDto)
             val savedWarehouse =
                 mapWarehouseSafely(responseDto)
-                    ?: warehouse
+                    ?: throw NullRequiredFieldException(
+                        "Warehouse '${responseDto.id}' mapping failed."
+                    )
             warehouses.add(savedWarehouse)
             savedWarehouse
         }.mapFailureToDomain(dataExceptionMapper)
