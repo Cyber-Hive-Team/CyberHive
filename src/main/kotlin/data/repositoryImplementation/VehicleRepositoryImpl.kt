@@ -7,17 +7,16 @@ import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
 import org.example.domain.repository.VehicleRepository
-
+import org.example.domain.model.exception.VehicleNotFoundException
 
 class VehicleRepositoryImpl(
     private val dependencies: VehicleRepositoryDependencies,
     private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
-) : VehicleRepository {
+) : BaseRepository(), VehicleRepository {
 
     private val vehicles =
         mutableListOf<Vehicle>()
-    private val warnings =
-        mutableListOf<String>()
+
     private var isLoaded = false
 
     override suspend fun getVehicles(): Result<List<Vehicle>> {
@@ -54,7 +53,7 @@ class VehicleRepositoryImpl(
         dto: VehicleResponseDto
     ): Vehicle? {
 
-        return runCatching {
+        return mapSafely(dto.vehicleId) {
 
             val currentHub =
                 dependencies.warehouseMap[dto.currentHubId]
@@ -62,31 +61,11 @@ class VehicleRepositoryImpl(
                         "Vehicle '${dto.vehicleId}' current hub not found."
                     )
 
-
-            dependencies.remoteValidator
-                .validate(dto)
-
-
             dependencies.remoteMapper
                 .mapToDomain(
                     raw = dto,
                     currentHub = currentHub
                 )
-
-        }.getOrElse { exception ->
-
-            if (exception is NullRequiredFieldException) {
-
-                warnings.add(
-                    "Vehicle '${dto.vehicleId}': ${exception.message}"
-                )
-
-                null
-
-            } else {
-
-                throw exception
-            }
         }
     }
 
@@ -167,7 +146,7 @@ class VehicleRepositoryImpl(
         val dto =
             dependencies.remoteDataSource
                 .getById(vehicleId)
-                ?: throw NullRequiredFieldException("Vehicle '$vehicleId' mapping failed.")
+                ?: throw VehicleNotFoundException()
         val vehicle =
             mapVehicleSafely(dto)
                 ?: throw NullRequiredFieldException("Vehicle '$vehicleId' mapping failed.")

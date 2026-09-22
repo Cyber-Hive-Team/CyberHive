@@ -6,7 +6,7 @@ import org.example.data.remote.dto.response.PackageResponseDto
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
 import org.example.domain.model.Warehouse
-
+import org.example.data.exception.NullRequiredFieldException
 
 class PackageRemoteMapper {
     fun mapToDomainModel(
@@ -17,7 +17,10 @@ class PackageRemoteMapper {
 
         return Package(
             id = dto.id,
-            weight = dto.weight!!,
+            weight = dto.weight
+                ?: throw NullRequiredFieldException(
+                    "Package '${dto.id}' has null weight."
+                ),
             priority = dto.priority?.let { Priority.valueOf(it) } ?: Priority.LOW,
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse

@@ -5,6 +5,7 @@ import org.example.data.remote.dto.request.UpdateVehicleRequestDto
 import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
+import org.example.data.exception.NullRequiredFieldException
 
 class VehicleDtoMapper {
 
@@ -15,8 +16,14 @@ class VehicleDtoMapper {
 
         return Vehicle(
             id = raw.vehicleId,
-            maxCapacityKg = raw.maxCapacityKg!!,
-            costPerKm = raw.costPerKm!!,
+            maxCapacityKg = raw.maxCapacityKg
+                ?: throw NullRequiredFieldException(
+                    "Vehicle '${raw.vehicleId}' has null maxCapacityKg."
+                ),
+            costPerKm = raw.costPerKm
+                ?: throw NullRequiredFieldException(
+                    "Vehicle '${raw.vehicleId}' has null costPerKm."
+                ),
             currentHub = currentHub
         )
     }
