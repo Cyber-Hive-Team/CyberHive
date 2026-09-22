@@ -30,11 +30,7 @@ class UpdateWarehouseUseCase(
                 ValidationResult.Success -> {
 
                     warehouseRepository.update(
-                        id = input.id,
-                        name = input.name,
-                        regionalZone = input.regionalZone,
-                        latitude = input.latitude,
-                        longitude = input.longitude
+                        input
                     ).getOrThrow()
                 }
 
