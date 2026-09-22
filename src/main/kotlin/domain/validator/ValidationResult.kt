@@ -10,6 +10,6 @@ sealed class ValidationResult {
 }
 
 data class FieldViolation(
-    val field: String,
+    val field: FieldError,
     val message: String
 )
