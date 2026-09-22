@@ -26,7 +26,7 @@ fun <T> retryWithBackoff(
 
         outcome.onFailure { error ->
             println(
-                "Attempt ${attempt + ATTEMPT_DISPLAY_OFFSET} failed: ${error::class.simpleName}. " +
+                "Attempt ${attempt + ATTEMPT_DISPLAY_OFFSET } failed: ${error::class.simpleName}. " +
                         "Retrying in ${currentDelay}ms"
             )
         }
