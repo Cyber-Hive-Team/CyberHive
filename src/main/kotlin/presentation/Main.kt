@@ -6,6 +6,7 @@ import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
 
+
 suspend fun main() {
     println("=== Cyber Hive ===")
     println(System.getenv("SUPABASE_URL"))
@@ -34,4 +35,6 @@ suspend fun main() {
     TraceHubLineageDemoRunner(dataLoader).run("WH-028")
     CommandInvokerDemoRunner(data.warehouses).run()
     GreedyFleetDispatcherRunner(dispatchFleetGreedyUseCase).run()
-}
+
+    }
+
