@@ -5,6 +5,10 @@ import org.example.data.remote.config.SupabaseConfig
 import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
+import java.io.IOException
+import org.example.data.retry.retryWithBackoff
+import org.example.domain.model.exception.InvalidDataException
+
 
 suspend fun main() {
     println("=== Cyber Hive ===")
@@ -34,4 +38,15 @@ suspend fun main() {
     TraceHubLineageDemoRunner(dataLoader).run("WH-028")
     CommandInvokerDemoRunner(data.warehouses).run()
     GreedyFleetDispatcherRunner(dispatchFleetGreedyUseCase).run()
-}
+
+
+
+        var calls = 0
+        val result = retryWithBackoff {
+            calls++
+            if (calls < 3) throw IOException("timeout")
+            "OK"
+        }
+        println(result)
+    }
+
