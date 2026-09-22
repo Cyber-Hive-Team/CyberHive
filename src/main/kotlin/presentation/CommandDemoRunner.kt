@@ -10,6 +10,7 @@ import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 import org.example.domain.model.input.UpdateWarehouseInput
+import org.example.domain.model.WarehouseStatus
 
 class InMemoryWarehouseRepository(
     warehouses: List<Warehouse>
@@ -154,6 +155,24 @@ class InMemoryWarehouseRepository(
             id
         }
     }
+
+    override suspend fun getStatus(
+        warehouseId: String
+    ): Result<WarehouseStatus> {
+
+        return Result.success(
+            WarehouseStatus.OPERATIONAL
+        )
+    }
+
+    override suspend fun updateStatus(
+        warehouseId: String,
+        status: WarehouseStatus
+    ): Result<Boolean> {
+
+        return Result.success(true)
+    }
+
 }
 class CommandInvokerDemoRunner(
     private val warehouses: List<Warehouse>
@@ -199,6 +218,7 @@ class CommandInvokerDemoRunner(
         }
         printQueue(targetWarehouse, "AFTER ${demoPackages.size} EXECUTES")
     }
+
 
     private fun buildDemoPackages(
         targetWarehouse: Warehouse

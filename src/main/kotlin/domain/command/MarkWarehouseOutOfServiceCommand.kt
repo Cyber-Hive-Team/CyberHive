@@ -2,20 +2,20 @@ package org.example.domain.command
 
 import org.example.domain.model.WarehouseStatus
 import org.example.domain.model.exception.CommandExecutionException
-import org.example.domain.repository.WarehouseStatusRepository
+import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.MarkWarehouseOutOfServiceUseCase
 
 class MarkWarehouseOutOfServiceCommand(
     private val warehouseId: String,
     private val markWarehouseOutOfServiceUseCase: MarkWarehouseOutOfServiceUseCase,
-    private val warehouseStatusRepository: WarehouseStatusRepository
+    private val warehouseRepository: WarehouseRepository
 ) : Command {
 
     private var previousStatus: WarehouseStatus? = null
     private var updated = false
 
     override suspend fun execute(): Boolean {
-        previousStatus = warehouseStatusRepository.getStatus(warehouseId)
+        previousStatus = warehouseRepository.getStatus(warehouseId).getOrThrow()
 
         markWarehouseOutOfServiceUseCase(warehouseId).getOrThrow()
 
@@ -35,10 +35,10 @@ class MarkWarehouseOutOfServiceCommand(
                 "Cannot undo: Previous status for warehouse '$warehouseId' is missing."
             )
 
-        val restored = warehouseStatusRepository.updateStatus(
+        val restored = warehouseRepository.updateStatus(
             warehouseId = warehouseId,
             status = statusToRestore
-        )
+        ).getOrThrow()
 
         if (!restored) {
             throw CommandExecutionException(
