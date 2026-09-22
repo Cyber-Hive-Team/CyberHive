@@ -6,8 +6,8 @@ import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
-import org.example.domain.repository.VehicleRepository
 import org.example.domain.model.exception.VehicleNotFoundException
+import org.example.domain.repository.VehicleRepository
 
 class VehicleRepositoryImpl(
     private val dependencies: VehicleRepositoryDependencies,
@@ -203,17 +203,14 @@ class VehicleRepositoryImpl(
 
     override suspend fun delete(
         id: String
-    ): Result<Boolean> {
+    ): Result<String> {
         return runCatching {
-        val deleted =
-            dependencies.remoteDataSource
-                .delete(id)
-        if (deleted) {
+            val deletedId = dependencies.remoteDataSource.delete(id)
             vehicles.removeIf {
-                it.id == id
+                it.id == deletedId
             }
-        }
-            deleted
+            deletedId
+
         }.mapFailureToDomain(dataExceptionMapper)
     }
 }

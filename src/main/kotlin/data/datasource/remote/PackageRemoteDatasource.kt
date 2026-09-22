@@ -23,5 +23,5 @@ interface PackageRemoteDatasource {
 
     suspend fun delete(
         id: String
-    ): Boolean
+    ): String
 }

@@ -23,5 +23,5 @@ interface VehicleRemoteDatasource {
 
     suspend fun delete(
         id: String
-    ): Boolean
+    ): String
 }

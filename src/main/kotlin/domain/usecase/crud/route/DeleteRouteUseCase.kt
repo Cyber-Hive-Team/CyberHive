@@ -7,7 +7,7 @@ class DeleteRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
 
-    suspend operator fun invoke(routeId: String): Result<Boolean> {
+    suspend operator fun invoke(routeId: String): Result<String> {
 
         return runCatching {
 

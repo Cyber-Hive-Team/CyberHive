@@ -6,7 +6,6 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import org.example.data.exception.NullRequiredFieldException
-import org.example.domain.model.exception.PackageNotFoundException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.PackageResponseDto
@@ -15,6 +14,7 @@ import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
 import org.example.domain.model.Priority
+import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.repository.PackageRepository
 
@@ -258,17 +258,13 @@ class PackageRepositoryImpl(
 
     override suspend fun delete(
         id: String
-    ): Result<Boolean> {
+    ): Result<String> {
         return runCatching {
-            val deleted =
-                dependencies.remoteDataSource
-                    .delete(id)
-            if (deleted) {
-                packages.removeIf {
-                    it.id == id
-                }
+            val deletedId = dependencies.remoteDataSource.delete(id)
+            packages.removeIf {
+                it.id == deletedId
             }
-            deleted
+            deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
 

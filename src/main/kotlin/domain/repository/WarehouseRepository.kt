@@ -20,5 +20,5 @@ interface WarehouseRepository {
         longitude: Double? = null
     ): Result<Warehouse>
 
-    suspend fun delete(id: String): Result<Boolean>
+    suspend fun delete(id: String): Result<String>
 }

@@ -137,9 +137,10 @@ class InMemoryWarehouseRepository(
 
     override suspend fun delete(
         id: String
-    ): Result<Boolean> {
+    ): Result<String> {
         return runCatching {
-            byId.remove(id) != null
+            byId.remove(id)
+            id
         }
     }
 }

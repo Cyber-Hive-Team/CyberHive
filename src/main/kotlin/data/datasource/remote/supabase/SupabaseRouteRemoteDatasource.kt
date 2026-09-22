@@ -65,12 +65,12 @@ class SupabaseRouteRemoteDatasource(
 
     override suspend fun delete(
         id: String
-    ): Boolean {
+    ): String {
 
         client.delete(
             "$baseUrl/routes?route_id=eq.$id"
         )
 
-        return true
+        return id
     }
 }

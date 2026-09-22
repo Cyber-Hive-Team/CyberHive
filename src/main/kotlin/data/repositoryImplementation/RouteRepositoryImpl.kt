@@ -1,12 +1,12 @@
 package org.example.data.repositoryImplementation
 
 import org.example.data.exception.NullRequiredFieldException
-import org.example.domain.model.exception.RouteNotFoundException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.domain.model.Route
+import org.example.domain.model.exception.RouteNotFoundException
 import org.example.domain.repository.RouteRepository
 
 
@@ -159,16 +159,14 @@ class RouteRepositoryImpl(
 
     override suspend fun delete(
         id: String
-    ): Result<Boolean> {
+    ): Result<String> {
         return runCatching {
-            val deleted = dependencies.remoteDataSource.delete(id)
-            if (deleted) {
-
-                routes.removeIf {
-                    it.id == id
-                }
+            val deletedId = dependencies.remoteDataSource.delete(id)
+            routes.removeIf {
+                it.id == deletedId
             }
-            deleted
+
+            deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
 }

@@ -21,7 +21,7 @@ interface VehicleRepository {
 
     suspend fun delete(
         id: String
-    ): Result<Boolean>
+    ): Result<String>
 }
 
 

@@ -13,9 +13,7 @@ interface PackageRepository {
     suspend fun getAllDeliveryTimes(): Result<List<PackageDeliveryTime>>
     suspend fun getAllPackageRequirements(): Result<List<PackageRequirements>>
     suspend fun getById(packageId: String): Result<Package>
-    suspend fun save(
-        cargoPackage: Package
-    ): Result<Package>
+    suspend fun save(cargoPackage: Package): Result<Package>
 
     suspend fun update(
         id: String,
@@ -27,7 +25,7 @@ interface PackageRepository {
 
     suspend fun delete(
         id: String
-    ): Result<Boolean>
+    ): Result<String>
 }
 
 
