@@ -13,11 +13,10 @@ import org.example.data.repositoryImplementation.dependencies.PackageRepositoryD
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
-import org.example.domain.model.Priority
 import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.repository.PackageRepository
-
+import org.example.domain.model.input.UpdatePackageInput
 
 private const val MIN_WAITING_HOURS = 1L
 private const val MAX_WAITING_HOURS = 73L
@@ -219,36 +218,32 @@ class PackageRepositoryImpl(
 
 
     override suspend fun update(
-        id: String,
-        weight: Double?,
-        priority: Priority?,
-        originHubId: String,
-        destinationHubId: String
+        input: UpdatePackageInput
     ): Result<Package> {
         return runCatching {
             val request =
                 dependencies.remoteMapper
                     .mapToUpdateRequest(
-                        weight = weight,
-                        priority = priority,
-                        originHubId = originHubId,
-                        destinationHubId = destinationHubId
+                        weight = input.weight,
+                        priority = input.priority,
+                        originHubId = input.originWarehouse.id,
+                        destinationHubId = input.destinationWarehouse.id
                     )
             val dto =
                 dependencies.remoteDataSource
                     .update(
-                        id = id,
+                        id = input.id,
                         request = request
                     )
             val updatedPackage =
                 mapPackage(dto)
                     ?: throw NullRequiredFieldException(
-                        "Package '$id' update failed."
+                        "Package '$input.id' update failed."
                     )
 
 
             packages.removeIf {
-                it.id == id
+                it.id == input.id
             }
             packages.add(updatedPackage)
             updatedPackage
