@@ -4,6 +4,7 @@ import kotlin.random.Random
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
+import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.RegionalZone
@@ -11,7 +12,6 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
-import org.example.data.remote.dto.response.WarehouseResponseDto
 
 class WarehouseRepositoryImpl(
     private val dependencies: WarehouseRepositoryDependencies,
@@ -202,17 +202,13 @@ class WarehouseRepositoryImpl(
     }
     override suspend fun delete(
         id: String
-    ): Result<Boolean> {
+    ): Result<String> {
         return runCatching {
-            val deleted =
-                dependencies.remoteDataSource
-                    .delete(id)
-            if (deleted) {
-                warehouses.removeIf {
-                    it.id == id
-                }
+            dependencies.remoteDataSource.delete(id)
+            warehouses.removeIf {
+                it.id == id
             }
-            deleted
+            id
         }.mapFailureToDomain(dataExceptionMapper)
     }
 }
