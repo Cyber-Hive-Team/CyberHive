@@ -13,32 +13,48 @@ class WarehouseRemoteMapper {
         dto: WarehouseResponseDto
     ): Warehouse {
 
+        validateRequiredFields(dto)
+
         return Warehouse(
             id = dto.id,
-
             name = dto.name,
-
-            regionalZone =
-                dto.regionalZone?.takeIf { it.isNotBlank() }?.let { RegionalZone.valueOf(it) }
-                    ?: throw NullRequiredFieldException(
-                        "Warehouse '${dto.id}' has null regionalZone."
-                    ),
-            latitude = dto.latitude
-                ?: throw NullRequiredFieldException(
-                    "Warehouse '${dto.id}' has null latitude."
-                ),
-            longitude = dto.longitude
-                ?: throw NullRequiredFieldException(
-                    "Warehouse '${dto.id}' has null longitude."
-                )
+            regionalZone = RegionalZone.valueOf(dto.regionalZone!!),
+            latitude = dto.latitude!!,
+            longitude = dto.longitude!!
         )
+    }
+
+
+    private fun validateRequiredFields(
+        dto: WarehouseResponseDto
+    ) {
+
+        val missingFields =
+            mutableListOf<String>()
+
+        if (dto.regionalZone.isNullOrBlank()) {
+            missingFields.add("regionalZone")
+        }
+
+        if (dto.latitude == null) {
+            missingFields.add("latitude")
+        }
+
+        if (dto.longitude == null) {
+            missingFields.add("longitude")
+        }
+
+        if (missingFields.isNotEmpty()) {
+            throw NullRequiredFieldException(
+                "Warehouse '${dto.id}' has null fields: ${missingFields.joinToString()}"
+            )
+        }
     }
 
 
     fun mapToCreateRequest(
         warehouse: Warehouse
     ): CreateWarehouseRequestDto {
-
         return CreateWarehouseRequestDto(
             id = warehouse.id,
             name = warehouse.name,
@@ -55,7 +71,6 @@ class WarehouseRemoteMapper {
         latitude: Double? = null,
         longitude: Double? = null
     ): UpdateWarehouseRequestDto {
-
         return UpdateWarehouseRequestDto(
             name = name,
             regionalZone = regionalZone?.name,
