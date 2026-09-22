@@ -1,7 +1,7 @@
 package org.example.data.repositoryImplementation
 
-import org.example.data.exception.DataException
 import org.example.data.exception.NullRequiredFieldException
+import org.example.domain.model.exception.RouteNotFoundException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.RouteResponseDto
@@ -13,10 +13,8 @@ import org.example.domain.repository.RouteRepository
 class RouteRepositoryImpl(
     private val dependencies: RouteRepositoryDependencies,
     private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
-) : RouteRepository {
+) : BaseRepository(), RouteRepository {
 
-    private val warnings =
-        mutableListOf<String>()
     private val routes =
         mutableListOf<Route>()
     private var isLoaded = false
@@ -34,7 +32,7 @@ class RouteRepositoryImpl(
                 dependencies.remoteDataSource
                     .getAll()
                     .mapNotNull {
-                        mapRouteSafely(it)
+                        mapRoute(it)
                     }
 
 
@@ -51,15 +49,25 @@ class RouteRepositoryImpl(
     }
 
 
-    private fun mapRouteSafely(
+    private fun mapRoute(
         dto: RouteResponseDto
     ): Route? {
-        return runCatching {
+
+        return mapSafely(dto.routeId) {
+
             val originWarehouse =
-                findWarehouse(dto.originHubId, dto.routeId, "origin")
+                findWarehouse(
+                    dto.originHubId,
+                    dto.routeId,
+                    "origin"
+                )
+
             val destinationWarehouse =
-                findWarehouse(dto.destinationHubId, dto.routeId, "destination")
-            dependencies.remoteValidator.validate(dto)
+                findWarehouse(
+                    dto.destinationHubId,
+                    dto.routeId,
+                    "destination"
+                )
 
             dependencies.remoteMapper
                 .mapToDomain(
@@ -67,13 +75,6 @@ class RouteRepositoryImpl(
                     originWarehouse = originWarehouse,
                     destinationWarehouse = destinationWarehouse
                 )
-        }.getOrElse { exception ->
-            if (exception is NullRequiredFieldException) {
-                warnings.add("Route '${dto.routeId}': ${exception.message}")
-                null
-            } else {
-                throw exception
-            }
         }
     }
 
@@ -104,8 +105,8 @@ class RouteRepositoryImpl(
         val dto =
             dependencies.remoteDataSource
                 .getById(routeId)
-                ?: throw DataException("Route with id '$routeId' was not found.")
-            val route = mapRouteSafely(dto) ?: throw NullRequiredFieldException("Route '$routeId' mapping failed.")
+                ?: throw RouteNotFoundException()
+            val route = mapRoute(dto) ?: throw NullRequiredFieldException("Route '$routeId' mapping failed.")
             routes.add(route)
             route
         }.mapFailureToDomain(dataExceptionMapper)
@@ -123,7 +124,7 @@ class RouteRepositoryImpl(
                 dependencies.remoteDataSource
                     .save(request)
             val savedRoute =
-                mapRouteSafely(dto)
+                mapRoute(dto)
                     ?: throw NullRequiredFieldException("Route '${route.id}' save mapping failed.")
             routes.add(savedRoute)
             savedRoute
@@ -144,8 +145,8 @@ class RouteRepositoryImpl(
                         id = route.id,
                         request = request
                     )
-            val updatedRoute = mapRouteSafely(dto)
-                ?: throw NullRequiredFieldException("Route '${route.id}' save mapping failed.")
+            val updatedRoute = mapRoute(dto)
+                ?: throw NullRequiredFieldException("Route '${route.id}' update mapping failed.")
 
             routes.removeIf {
                 it.id == route.id

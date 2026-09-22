@@ -6,6 +6,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import org.example.data.exception.NullRequiredFieldException
+import org.example.domain.model.exception.PackageNotFoundException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.PackageResponseDto
@@ -31,11 +32,7 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 class PackageRepositoryImpl(
     private val dependencies: PackageRepositoryDependencies,
     private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
-) : PackageRepository {
-
-
-    private val warnings =
-        mutableListOf<String>()
+) : BaseRepository(), PackageRepository {
 
 
     private val packages =
@@ -53,37 +50,11 @@ class PackageRepositoryImpl(
             }
             val loadedPackages = dependencies.remoteDataSource
                     .getAll()
-                .mapNotNull { mapPackageSafely(it) }
+                .mapNotNull { mapPackage(it) }
             packages.addAll(loadedPackages)
             isLoaded = true
             packages.toList()
         }.mapFailureToDomain(dataExceptionMapper)
-    }
-
-
-    private fun mapPackageSafely(
-        dto: PackageResponseDto
-    ): Package? {
-        return runCatching {
-            val originWarehouse =
-                findWarehouse(dto.originHubId, dto.id, "origin")
-            val destinationWarehouse =
-                findWarehouse(dto.destinationHubId, dto.id, "destination")
-            dependencies.remoteValidator.validate(dto)
-            dependencies.remoteMapper
-                .mapToDomainModel(
-                    dto = dto,
-                    originWarehouse = originWarehouse,
-                    destinationWarehouse = destinationWarehouse
-                )
-        }.getOrElse { exception ->
-            if (exception is NullRequiredFieldException) {
-                warnings.add("Package '${dto.id}': ${exception.message}")
-                null
-            } else {
-                throw exception
-            }
-        }
     }
 
 
@@ -112,8 +83,8 @@ class PackageRepositoryImpl(
         val dto =
             dependencies.remoteDataSource
                 .getById(packageId)
-                ?: error("Package with id '$packageId' was not found.")
-            val packageModel = mapPackageSafely(dto) ?: error("Package mapping failed.")
+                ?: throw PackageNotFoundException()
+            val packageModel = mapPackage(dto) ?: throw PackageNotFoundException("Package '$packageId' mapping failed.")
             packages.add(packageModel)
             packageModel
         }.mapFailureToDomain(dataExceptionMapper)
@@ -128,7 +99,7 @@ class PackageRepositoryImpl(
                 packages.map {
                     createWarehouseStay(it)
                 }
-            }.mapFailureToDomain(dataExceptionMapper)
+            }
     }
 
 
@@ -156,10 +127,9 @@ class PackageRepositoryImpl(
         return getAllPackages()
             .mapCatching { packages ->
                 packages.map {
-                createDeliveryTime(it)
+                    createDeliveryTime(it)
+                }
             }
-            }.mapFailureToDomain(dataExceptionMapper)
-
     }
 
 
@@ -200,7 +170,7 @@ class PackageRepositoryImpl(
                 packages.filter {
                     it.originWarehouse.id == warehouseId
                 }
-            }.mapFailureToDomain(dataExceptionMapper)
+            }
     }
 
 
@@ -238,8 +208,10 @@ class PackageRepositoryImpl(
                 dependencies.remoteDataSource
                     .save(request)
             val packageModel =
-                mapPackageSafely(dto)
-                    ?: cargoPackage
+                mapPackage(dto)
+                    ?: throw NullRequiredFieldException(
+                        "Saved package '${dto.id}' mapping failed."
+                    )
             packages.add(packageModel)
             packageModel
         }.mapFailureToDomain(dataExceptionMapper)
@@ -269,7 +241,7 @@ class PackageRepositoryImpl(
                         request = request
                     )
             val updatedPackage =
-                mapPackageSafely(dto)
+                mapPackage(dto)
                     ?: throw NullRequiredFieldException(
                         "Package '$id' update failed."
                     )
@@ -298,5 +270,34 @@ class PackageRepositoryImpl(
             }
             deleted
         }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+    private fun mapPackage(
+        dto: PackageResponseDto
+    ): Package? {
+
+        return mapSafely(dto.id) {
+
+            val originWarehouse =
+                findWarehouse(
+                    dto.originHubId,
+                    dto.id,
+                    "origin"
+                )
+
+            val destinationWarehouse =
+                findWarehouse(
+                    dto.destinationHubId,
+                    dto.id,
+                    "destination"
+                )
+
+            dependencies.remoteMapper
+                .mapToDomainModel(
+                    dto = dto,
+                    originWarehouse = originWarehouse,
+                    destinationWarehouse = destinationWarehouse
+                )
+        }
     }
 }
