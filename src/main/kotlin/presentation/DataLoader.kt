@@ -32,7 +32,7 @@ import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
-
+import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 
 private const val WAREHOUSE_FILE =
     "src/main/resources/warehouses.csv"
@@ -46,6 +46,8 @@ private const val VEHICLE_FILE =
 private const val ROUTE_FILE =
     "src/main/resources/routes.csv"
 
+private const val WAREHOUSE_STATUS_FILE =
+    "src/main/resources/warehouse-status.csv"
 
 data class LoadedData(
     val warehouses: List<Warehouse>,
@@ -113,12 +115,30 @@ class DataLoader(
 
 
     private fun createWarehouseRepository(): WarehouseRepository {
+
         return WarehouseRepositoryImpl(
             WarehouseRepositoryDependencies(
-                localDataSource = CsvWarehouseLocalDataSource(WAREHOUSE_FILE),
-                remoteDataSource = SupabaseWarehouseRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
-                localMapper = WarehouseMapper(),
-                remoteMapper = WarehouseRemoteMapper()
+                localDataSource =
+                    CsvWarehouseLocalDataSource(
+                        WAREHOUSE_FILE
+                    ),
+
+                remoteDataSource =
+                    SupabaseWarehouseRemoteDatasource(
+                        client,
+                        "${supabaseConfig.url}/rest/v1"
+                    ),
+
+                localMapper =
+                    WarehouseMapper(),
+
+                remoteMapper =
+                    WarehouseRemoteMapper(),
+
+                statusDataSource =
+                    CsvWarehouseStatusDataSource(
+                        WAREHOUSE_STATUS_FILE
+                    )
             )
         )
     }
