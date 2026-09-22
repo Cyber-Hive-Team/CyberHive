@@ -1,8 +1,9 @@
 package org.example.domain.validator.impl
 
 import org.example.domain.model.Package
-import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.model.exception.DomainException
+import org.example.domain.model.input.UpdatePackageInput
+import org.example.domain.validator.FieldError
 import org.example.domain.validator.FieldViolation
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.Validator
@@ -50,7 +51,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         return if (weight <= 0.0) {
             listOf(
                 FieldViolation(
-                    "weight",
+                    FieldError.InvalidWeight,
                     DomainException.INVALID_PACKAGE_WEIGHT
                 )
             )
@@ -67,7 +68,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         return if (rate < 0.0) {
             listOf(
                 FieldViolation(
-                    "baseRate",
+                    FieldError.InvalidBaseRate,
                     DomainException.INVALID_BASE_RATE
                 )
             )
@@ -85,7 +86,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         if (originId.isBlank()) {
             violations.add(
                 FieldViolation(
-                    "originWarehouse",
+                    FieldError.InvalidOriginWarehouse,
                     DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
@@ -94,7 +95,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         if (destinationId.isBlank()) {
             violations.add(
                 FieldViolation(
-                    "destinationWarehouse",
+                    FieldError.InvalidDestinationWarehouse,
                     DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
@@ -103,7 +104,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         if (originId.isNotBlank() && originId == destinationId) {
             violations.add(
                 FieldViolation(
-                    "destinationWarehouse",
+                    FieldError.SameWarehouse,
                     DomainException.SAME_WAREHOUSE
                 )
             )
@@ -118,7 +119,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         return if (hasNoUpdates(input)) {
             listOf(
                 FieldViolation(
-                    "update",
+                    FieldError.NoUpdateFields,
                     DomainException.NO_UPDATE_FIELDS
                 )
             )
@@ -143,7 +144,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         return if (origin.id.isBlank()) {
             listOf(
                 FieldViolation(
-                    "originWarehouse",
+                    FieldError.InvalidOriginWarehouse,
                     DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
@@ -160,7 +161,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
         return if (destination.id.isBlank()) {
             listOf(
                 FieldViolation(
-                    "destinationWarehouse",
+                    FieldError.InvalidDestinationWarehouse,
                     DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
@@ -183,7 +184,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             ) {
                 violations.add(
                     FieldViolation(
-                        "destinationWarehouse",
+                        FieldError.SameWarehouse,
                         DomainException.SAME_WAREHOUSE
                     )
                 )

@@ -1,12 +1,13 @@
 package org.example.domain.validator.impl
 
 import org.example.domain.model.Route
+import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateRouteInput
+import org.example.domain.validator.FieldError
 import org.example.domain.validator.FieldViolation
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.Validator
 import org.example.domain.validator.toResult
-import org.example.domain.model.exception.DomainException
 
 class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
 
@@ -48,7 +49,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         return if (distance <= 0.0) {
             listOf(
                 FieldViolation(
-                    "distanceKm",
+                    FieldError.InvalidDistance,
                     DomainException.INVALID_DISTANCE
                 )
             )
@@ -67,7 +68,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         return if (delay < 0) {
             listOf(
                 FieldViolation(
-                    "typicalDelayMin",
+                    FieldError.InvalidDelay,
                     DomainException.INVALID_DELAY
                 )
             )
@@ -85,7 +86,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         if (originId.isBlank()) {
             violations.add(
                 FieldViolation(
-                    "originWarehouse",
+                    FieldError.InvalidOriginWarehouse,
                     DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
@@ -94,7 +95,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         if (destinationId.isBlank()) {
             violations.add(
                 FieldViolation(
-                    "destinationWarehouse",
+                    FieldError.InvalidDestinationWarehouse,
                     DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )
@@ -109,7 +110,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         return if (hasNoUpdates(input)) {
             listOf(
                 FieldViolation(
-                    "update",
+                    FieldError.NoUpdateFields,
                     DomainException.NO_UPDATE_FIELDS
                 )
             )
@@ -133,7 +134,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         return if (origin.id.isBlank()) {
             listOf(
                 FieldViolation(
-                    "originWarehouse",
+                    FieldError.InvalidOriginWarehouse,
                     DomainException.INVALID_ORIGIN_WAREHOUSE
                 )
             )
@@ -150,7 +151,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
         return if (destination.id.isBlank()) {
             listOf(
                 FieldViolation(
-                    "destinationWarehouse",
+                    FieldError.InvalidDestinationWarehouse,
                     DomainException.INVALID_DESTINATION_WAREHOUSE
                 )
             )

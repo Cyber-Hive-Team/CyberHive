@@ -1,12 +1,13 @@
 package org.example.domain.validator.impl
 
 import org.example.domain.model.Vehicle
+import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateVehicleInput
+import org.example.domain.validator.FieldError
 import org.example.domain.validator.FieldViolation
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.Validator
 import org.example.domain.validator.toResult
-import org.example.domain.model.exception.DomainException
 
 class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
 
@@ -40,7 +41,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
         return if (capacity <= 0.0) {
             listOf(
                 FieldViolation(
-                    "maxCapacityKg",
+                    FieldError.InvalidCapacity,
                     DomainException.INVALID_VEHICLE_CAPACITY
                 )
             )
@@ -59,7 +60,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
         return if (cost < 0.0) {
             listOf(
                 FieldViolation(
-                    "costPerKm",
+                    FieldError.InvalidCostPerKm,
                     DomainException.INVALID_COST_PER_KM
                 )
             )
@@ -74,7 +75,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
         return if (hasNoUpdates(input)) {
             listOf(
                 FieldViolation(
-                    "update",
+                    FieldError.NoUpdateFields,
                     DomainException.NO_UPDATE_FIELDS
                 )
             )
@@ -97,7 +98,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
         return if (hub.id.isBlank()) {
             listOf(
                 FieldViolation(
-                    "currentHub",
+                    FieldError.InvalidCurrentHub,
                     DomainException.INVALID_CURRENT_HUB
                 )
             )

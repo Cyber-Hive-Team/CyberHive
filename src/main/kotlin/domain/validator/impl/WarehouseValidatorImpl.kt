@@ -1,12 +1,13 @@
 package org.example.domain.validator.impl
 
 import org.example.domain.model.Warehouse
+import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateWarehouseInput
+import org.example.domain.validator.FieldError
 import org.example.domain.validator.FieldViolation
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.Validator
 import org.example.domain.validator.toResult
-import org.example.domain.model.exception.DomainException
 
 private const val MIN_LATITUDE = -90.0
 private const val MAX_LATITUDE = 90.0
@@ -46,7 +47,7 @@ class WarehouseValidatorImpl : Validator<Warehouse, UpdateWarehouseInput> {
         return if (name.isBlank()) {
             listOf(
                 FieldViolation(
-                    "name",
+                    FieldError.InvalidWarehouseName,
                     DomainException.INVALID_WAREHOUSE_NAME
                 )
             )
@@ -65,7 +66,7 @@ class WarehouseValidatorImpl : Validator<Warehouse, UpdateWarehouseInput> {
         return if (latitude !in MIN_LATITUDE..MAX_LATITUDE) {
             listOf(
                 FieldViolation(
-                    "latitude",
+                    FieldError.InvalidLatitude,
                     DomainException.INVALID_LATITUDE
                 )
             )
@@ -84,7 +85,7 @@ class WarehouseValidatorImpl : Validator<Warehouse, UpdateWarehouseInput> {
         return if (longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
             listOf(
                 FieldViolation(
-                    "longitude",
+                    FieldError.InvalidLongitude,
                     DomainException.INVALID_LONGITUDE
                 )
             )
@@ -99,7 +100,7 @@ class WarehouseValidatorImpl : Validator<Warehouse, UpdateWarehouseInput> {
         return if (hasNoUpdates(input)) {
             listOf(
                 FieldViolation(
-                    "update",
+                    FieldError.NoUpdateFields,
                     DomainException.NO_UPDATE_FIELDS
                 )
             )
