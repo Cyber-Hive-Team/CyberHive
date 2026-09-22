@@ -4,12 +4,12 @@ import org.example.domain.command.AssignPackageToQueueCommand
 import org.example.domain.command.CommandInvoker
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
-import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
+import org.example.domain.model.input.UpdateWarehouseInput
 
 class InMemoryWarehouseRepository(
     warehouses: List<Warehouse>
@@ -107,28 +107,39 @@ class InMemoryWarehouseRepository(
 
 
     override suspend fun update(
-        id: String,
-        name: String?,
-        regionalZone: RegionalZone?,
-        latitude: Double?,
-        longitude: Double?
+        input: UpdateWarehouseInput
     ): Result<Warehouse> {
+
         return runCatching {
+
             val oldWarehouse =
-                byId[id]
+                byId[input.id]
                     ?: throw WarehouseNotFoundException(
-                        "Warehouse with id '$id' was not found."
+                        "Warehouse with id '${input.id}' was not found."
                     )
 
-            val updatedWarehouse = Warehouse(
-                id = oldWarehouse.id,
-                name = name ?: oldWarehouse.name,
-                regionalZone = regionalZone ?: oldWarehouse.regionalZone,
-                latitude = latitude ?: oldWarehouse.latitude,
-                longitude = longitude ?: oldWarehouse.longitude
-            )
+            val updatedWarehouse =
+                Warehouse(
+                    id = oldWarehouse.id,
 
-            byId[id] = updatedWarehouse
+                    name =
+                        input.name
+                            ?: oldWarehouse.name,
+
+                    regionalZone =
+                        input.regionalZone
+                            ?: oldWarehouse.regionalZone,
+
+                    latitude =
+                        input.latitude
+                            ?: oldWarehouse.latitude,
+
+                    longitude =
+                        input.longitude
+                            ?: oldWarehouse.longitude
+                )
+
+            byId[input.id] = updatedWarehouse
 
             updatedWarehouse
         }

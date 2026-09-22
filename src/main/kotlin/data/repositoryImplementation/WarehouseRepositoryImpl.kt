@@ -7,7 +7,7 @@ import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
-import org.example.domain.model.RegionalZone
+import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
@@ -170,31 +170,27 @@ class WarehouseRepositoryImpl(
 
 
     override suspend fun update(
-        id: String,
-        name: String?,
-        regionalZone: RegionalZone?,
-        latitude: Double?,
-        longitude: Double?
+        input: UpdateWarehouseInput
     ): Result<Warehouse> {
         return runCatching {
             val requestDto =
                 dependencies.remoteMapper
                     .mapToUpdateRequest(
-                        name = name,
-                        regionalZone = regionalZone,
-                        latitude = latitude,
-                        longitude = longitude
+                        name = input.name,
+                        regionalZone = input.regionalZone,
+                        latitude = input.latitude,
+                        longitude = input.longitude
                     )
             val responseDto =
                 dependencies.remoteDataSource
-                    .update(id = id, request = requestDto)
+                    .update(id = input.id, request = requestDto)
             val updatedWarehouse =
                 mapWarehouseSafely(responseDto)
                     ?: throw NullRequiredFieldException(
-                        "Warehouse '$id' update failed."
+                        "Warehouse '$input.id' update failed."
                     )
             warehouses.removeIf {
-                it.id == id
+                it.id == input.id
             }
             warehouses.add(updatedWarehouse)
             updatedWarehouse

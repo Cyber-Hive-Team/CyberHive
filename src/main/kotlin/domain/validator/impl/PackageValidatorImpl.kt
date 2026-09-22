@@ -29,13 +29,12 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
 
         violations.addAll(validateUpdateFields(input))
         violations.addAll(validateWeight(input.weight))
-        violations.addAll(validateBaseRate(input.baseRate))
         violations.addAll(validateOriginWarehouse(input))
         violations.addAll(validateDestinationWarehouse(input))
         violations.addAll(
             validateDifferentWarehouses(
-                input.originWarehouse?.id,
-                input.destinationWarehouse?.id
+                input.originWarehouse.id,
+                input.destinationWarehouse.id
             )
         )
 
@@ -129,16 +128,13 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
 
     private fun hasNoUpdates(input: UpdatePackageInput): Boolean {
         return input.weight == null &&
-                input.priority == null &&
-                input.originWarehouse == null &&
-                input.destinationWarehouse == null &&
-                input.baseRate == null
+                input.priority == null
     }
 
     private fun validateOriginWarehouse(
         input: UpdatePackageInput
     ): List<FieldViolation> {
-        val origin = input.originWarehouse ?: return emptyList()
+        val origin = input.originWarehouse
 
         return if (origin.id.isBlank()) {
             listOf(
@@ -155,7 +151,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
     private fun validateDestinationWarehouse(
         input: UpdatePackageInput
     ): List<FieldViolation> {
-        val destination = input.destinationWarehouse ?: return emptyList()
+        val destination = input.destinationWarehouse
 
         return if (destination.id.isBlank()) {
             listOf(
