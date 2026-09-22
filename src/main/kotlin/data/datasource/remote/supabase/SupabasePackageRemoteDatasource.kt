@@ -1,9 +1,5 @@
 package org.example.data.datasource.remote.supabase
 
-import org.example.data.datasource.remote.PackageRemoteDatasource
-import org.example.data.remote.dto.request.CreatePackageRequestDto
-import org.example.data.remote.dto.request.UpdatePackageRequestDto
-import org.example.data.remote.dto.response.PackageResponseDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -11,6 +7,10 @@ import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import org.example.data.datasource.remote.PackageRemoteDatasource
+import org.example.data.remote.dto.request.CreatePackageRequestDto
+import org.example.data.remote.dto.request.UpdatePackageRequestDto
+import org.example.data.remote.dto.response.PackageResponseDto
 
 class SupabasePackageRemoteDatasource(
     private val client: HttpClient,
@@ -55,8 +55,8 @@ class SupabasePackageRemoteDatasource(
 
     override suspend fun delete(
         id: String
-    ): Boolean {
+    ): String {
         client.delete("$baseUrl/packages?package_id=eq.$id")
-        return true
+        return id
     }
 }

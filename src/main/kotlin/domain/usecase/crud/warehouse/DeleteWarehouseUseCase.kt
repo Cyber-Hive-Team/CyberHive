@@ -8,7 +8,7 @@ class DeleteWarehouseUseCase(
 
     suspend operator fun invoke(
         id: String
-    ): Result<Boolean> {
+    ): Result<String> {
 
         return runCatching {
 

@@ -260,11 +260,11 @@ class PackageRepositoryImpl(
         id: String
     ): Result<String> {
         return runCatching {
-            dependencies.remoteDataSource.delete(id)
+            val deletedId = dependencies.remoteDataSource.delete(id)
             packages.removeIf {
-                it.id == id
+                it.id == deletedId
             }
-            id
+            deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
 

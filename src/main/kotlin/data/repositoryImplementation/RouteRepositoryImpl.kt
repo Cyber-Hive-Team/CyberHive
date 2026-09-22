@@ -161,12 +161,12 @@ class RouteRepositoryImpl(
         id: String
     ): Result<String> {
         return runCatching {
-            dependencies.remoteDataSource.delete(id)
+            val deletedId = dependencies.remoteDataSource.delete(id)
             routes.removeIf {
-                it.id == id
+                it.id == deletedId
             }
 
-            id
+            deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
 }

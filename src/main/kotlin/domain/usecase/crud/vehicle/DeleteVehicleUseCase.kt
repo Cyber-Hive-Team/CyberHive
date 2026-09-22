@@ -5,7 +5,7 @@ import org.example.domain.repository.VehicleRepository
 class DeleteVehicleUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
-    suspend operator fun invoke(vehicleId: String): Result<Boolean> {
+    suspend operator fun invoke(vehicleId: String): Result<String> {
         return runCatching {
             vehicleRepository.getById(vehicleId)
                 .getOrThrow()
