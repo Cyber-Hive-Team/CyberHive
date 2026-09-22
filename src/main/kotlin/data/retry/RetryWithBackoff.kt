@@ -21,7 +21,7 @@ abstract class RetryWithBackoff(
 
     private val exceptionMapper = DataExceptionMapper()
 
-   protected suspend fun <T> retryWithBackoff(block: suspend () -> T): Result<T> {
+   protected suspend fun <T> executeWithRetry(block: suspend () -> T): Result<T> {
         var currentDelay = initialDelayMs
         var outcome: Result<T> = Result.failure(IllegalStateException("retryWithBackoff did not run"))
         var isDone = false
