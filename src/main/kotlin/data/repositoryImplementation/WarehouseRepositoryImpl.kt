@@ -12,6 +12,7 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
+import org.example.domain.model.WarehouseStatus
 
 class WarehouseRepositoryImpl(
     private val dependencies: WarehouseRepositoryDependencies,
@@ -187,7 +188,7 @@ class WarehouseRepositoryImpl(
             val updatedWarehouse =
                 mapWarehouseSafely(responseDto)
                     ?: throw NullRequiredFieldException(
-                        "Warehouse '$input.id' update failed."
+                        "Warehouse '\${input.id}' update failed."
                     )
             warehouses.removeIf {
                 it.id == input.id
@@ -205,6 +206,25 @@ class WarehouseRepositoryImpl(
                 it.id == deletedId
             }
             deletedId
+        }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+    override suspend fun getStatus(
+        warehouseId: String
+    ): Result<WarehouseStatus> {
+
+        return runCatching {
+            dependencies.statusDataSource
+                .getStatus(warehouseId)
+        }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+    override suspend fun updateStatus(
+        warehouseId: String,
+        status: WarehouseStatus
+    ): Result<Boolean> {
+        return runCatching {
+            dependencies.statusDataSource.updateStatus(warehouseId, status)
         }.mapFailureToDomain(dataExceptionMapper)
     }
 }
