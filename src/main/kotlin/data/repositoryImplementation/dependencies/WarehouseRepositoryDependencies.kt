@@ -10,9 +10,6 @@ import org.example.data.validation.WarehouseRemoteValidator
 data class WarehouseRepositoryDependencies(
     val localDataSource: WarehouseDataSource,
     val localMapper: WarehouseMapper,
-    val validator: WarehouseValidator,
     val remoteDataSource: WarehouseRemoteDatasource,
-    val remoteMapper: WarehouseRemoteMapper,
-    val remoteValidator: WarehouseRemoteValidator
-
+    val remoteMapper: WarehouseRemoteMapper
 )

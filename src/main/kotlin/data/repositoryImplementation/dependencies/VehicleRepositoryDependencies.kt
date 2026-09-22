@@ -14,8 +14,5 @@ data class VehicleRepositoryDependencies(
     val remoteDataSource: VehicleRemoteDatasource,
     val localMapper: VehicleMapper,
     val remoteMapper: VehicleDtoMapper,
-    val validator: VehicleValidator,
-    val warehouseMap: Map<String, Warehouse>,
-    val warehouseRepository: WarehouseRepository,
-    val remoteValidator: VehicleRemoteValidator
+    val warehouseMap: Map<String, Warehouse>
 )
