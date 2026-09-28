@@ -25,6 +25,9 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:3.5.2")
     implementation("io.ktor:ktor-client-content-negotiation:3.5.2")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.2")
+    testImplementation("com.google.truth:truth:1.4.5")
+    testImplementation("io.mockk:mockk-jvm:1.14.9")
+    implementation("io.insert-koin:koin-core:4.1.1")
 }
 
 
