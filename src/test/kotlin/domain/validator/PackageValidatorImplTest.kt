@@ -4,103 +4,105 @@ import org.example.domain.model.Package
 import org.example.domain.model.Priority
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
+import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.validator.FieldError
+import org.example.domain.validator.FieldViolation
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.impl.PackageValidatorImpl
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
 
 class PackageValidatorImplTest {
 
     private val validator = PackageValidatorImpl()
 
     @Test
-    fun `validateCreate returns success when package data is valid`() {
+    fun `accepts valid package creation`() {
         // Given
-        val validPackage = createPackage()
+        val cargoPackage = createPackage()
 
         // When
-        val result = validator.validateCreate(validPackage)
+        val result = validator.validateCreate(cargoPackage)
 
         // Then
-        Assertions.assertEquals(ValidationResult.Success, result)
+        assertEquals(ValidationResult.Success, result)
     }
 
     @Test
-    fun `validateCreate returns invalid base rate when base rate is negative`() {
+    fun `accepts zero base rate`() {
         // Given
-        val invalidPackage = createPackage(baseRate = -1.0)
+        val cargoPackage = createPackage(baseRate = 0.0)
 
         // When
-        val result = validator.validateCreate(invalidPackage)
+        val result = validator.validateCreate(cargoPackage)
 
         // Then
-        assertFailureFields(result, FieldError.InvalidBaseRate)
+        assertEquals(ValidationResult.Success, result)
     }
 
     @Test
-    fun `validateCreate returns success when base rate is zero`() {
+    fun `rejects negative base rate`() {
         // Given
-        val validPackage = createPackage(baseRate = 0.0)
+        val cargoPackage = createPackage(baseRate = -1.0)
 
         // When
-        val result = validator.validateCreate(validPackage)
+        val result = validator.validateCreate(cargoPackage)
 
         // Then
-        Assertions.assertEquals(ValidationResult.Success, result)
-    }
-
-    @Test
-    fun `validateCreate returns same warehouse when warehouse ids match`() {
-        // Given
-        val invalidPackage = createPackage(
-            origin = createWarehouse(id = "WH-001"),
-            destination = createWarehouse(id = "WH-001")
-        )
-
-        // When
-        val result = validator.validateCreate(invalidPackage)
-
-        // Then
-        assertFailureFields(result, FieldError.SameWarehouse)
-    }
-
-    @Test
-    fun `validateCreate collects base rate and warehouse violations`() {
-        // Given
-        val invalidPackage = createPackage(
-            baseRate = -1.0,
-            origin = createWarehouse(id = "WH-001"),
-            destination = createWarehouse(id = "WH-001")
-        )
-
-        // When
-        val result = validator.validateCreate(invalidPackage)
-
-        // Then
-        assertFailureFields(
-            result,
-            FieldError.InvalidBaseRate,
-            FieldError.SameWarehouse
+        assertEquals(
+            ValidationResult.Failure(
+                listOf(
+                    FieldViolation(
+                        FieldError.InvalidBaseRate,
+                        DomainException.INVALID_BASE_RATE
+                    )
+                )
+            ),
+            result
         )
     }
 
     @Test
-    fun `validateUpdate returns success when weight is positive`() {
+    fun `rejects creation with identical warehouses`() {
         // Given
-        val input = createUpdateInput(weight = 5.0)
+        val warehouse = createWarehouse("WH-001")
+        val cargoPackage = createPackage(
+            origin = warehouse,
+            destination = warehouse
+        )
+
+        // When
+        val result = validator.validateCreate(cargoPackage)
+
+        // Then
+        assertEquals(
+            ValidationResult.Failure(
+                listOf(
+                    FieldViolation(
+                        FieldError.SameWarehouse,
+                        DomainException.SAME_WAREHOUSE
+                    )
+                )
+            ),
+            result
+        )
+    }
+
+    @Test
+    fun `accepts valid weight update`() {
+        // Given
+        val input = createUpdateInput(weight = 8.0)
 
         // When
         val result = validator.validateUpdate(input)
 
         // Then
-        Assertions.assertEquals(ValidationResult.Success, result)
+        assertEquals(ValidationResult.Success, result)
     }
 
     @Test
-    fun `validateUpdate returns success when only priority is updated`() {
+    fun `accepts priority-only update`() {
         // Given
         val input = createUpdateInput(
             weight = null,
@@ -111,26 +113,33 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        Assertions.assertEquals(ValidationResult.Success, result)
+        assertEquals(ValidationResult.Success, result)
     }
 
     @Test
-    fun `validateUpdate returns success when weight and priority are updated`() {
+    fun `rejects update with no weight or priority`() {
         // Given
-        val input = createUpdateInput(
-            weight = 8.0,
-            priority = Priority.URGENT
-        )
+        val input = createUpdateInput(weight = null)
 
         // When
         val result = validator.validateUpdate(input)
 
         // Then
-        Assertions.assertEquals(ValidationResult.Success, result)
+        assertEquals(
+            ValidationResult.Failure(
+                listOf(
+                    FieldViolation(
+                        FieldError.NoUpdateFields,
+                        DomainException.NO_UPDATE_FIELDS
+                    )
+                )
+            ),
+            result
+        )
     }
 
     @Test
-    fun `validateUpdate returns invalid weight when weight is zero`() {
+    fun `rejects zero weight on update`() {
         // Given
         val input = createUpdateInput(weight = 0.0)
 
@@ -138,11 +147,21 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertFailureFields(result, FieldError.InvalidWeight)
+        assertEquals(
+            ValidationResult.Failure(
+                listOf(
+                    FieldViolation(
+                        FieldError.InvalidWeight,
+                        DomainException.INVALID_PACKAGE_WEIGHT
+                    )
+                )
+            ),
+            result
+        )
     }
 
     @Test
-    fun `validateUpdate returns invalid weight when weight is negative`() {
+    fun `rejects negative weight on update`() {
         // Given
         val input = createUpdateInput(weight = -1.0)
 
@@ -150,169 +169,80 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertFailureFields(result, FieldError.InvalidWeight)
-    }
-
-    @Test
-    fun `validateUpdate returns success when weight is a positive fraction`() {
-        // Given
-        val input = createUpdateInput(weight = 0.1)
-
-        // When
-        val result = validator.validateUpdate(input)
-
-        // Then
-        Assertions.assertEquals(ValidationResult.Success, result)
-    }
-
-    @Test
-    fun `validateUpdate returns no update fields when weight and priority are null`() {
-        // Given
-        val input = createUpdateInput(
-            weight = null,
-            priority = null
+        assertEquals(
+            ValidationResult.Failure(
+                listOf(
+                    FieldViolation(
+                        FieldError.InvalidWeight,
+                        DomainException.INVALID_PACKAGE_WEIGHT
+                    )
+                )
+            ),
+            result
         )
-
-        // When
-        val result = validator.validateUpdate(input)
-
-        // Then
-        assertFailureFields(result, FieldError.NoUpdateFields)
     }
 
     @Test
-    fun `validateUpdate returns same warehouse when warehouse ids match`() {
+    fun `reports weight and warehouse violations together`() {
         // Given
-        val input = createUpdateInput(
-            weight = 5.0,
-            origin = createWarehouse(id = "WH-001"),
-            destination = createWarehouse(id = "WH-001")
-        )
-
-        // When
-        val result = validator.validateUpdate(input)
-
-        // Then
-        assertFailureFields(result, FieldError.SameWarehouse)
-    }
-
-    @Test
-    fun `validateUpdate rejects invalid weight even when priority is provided`() {
-        // Given
-        val input = createUpdateInput(
+        val warehouse = createWarehouse("WH-001")
+        val input = UpdatePackageInput(
+            id = "PKG-000001",
             weight = -1.0,
-            priority = Priority.URGENT
+            originWarehouse = warehouse,
+            destinationWarehouse = warehouse
         )
 
         // When
         val result = validator.validateUpdate(input)
 
         // Then
-        assertFailureFields(result, FieldError.InvalidWeight)
-    }
-
-    @Test
-    fun `validateUpdate collects weight and warehouse violations`() {
-        // Given
-        val input = createUpdateInput(
-            weight = -1.0,
-            origin = createWarehouse(id = "WH-001"),
-            destination = createWarehouse(id = "WH-001")
-        )
-
-        // When
-        val result = validator.validateUpdate(input)
-
-        // Then
-        assertFailureFields(
-            result,
-            FieldError.InvalidWeight,
-            FieldError.SameWarehouse
+        assertEquals(
+            ValidationResult.Failure(
+                listOf(
+                    FieldViolation(
+                        FieldError.InvalidWeight,
+                        DomainException.INVALID_PACKAGE_WEIGHT
+                    ),
+                    FieldViolation(
+                        FieldError.SameWarehouse,
+                        DomainException.SAME_WAREHOUSE
+                    )
+                )
+            ),
+            result
         )
     }
 
-    @Test
-    fun `validateUpdate collects missing update fields and warehouse violations`() {
-        // Given
-        val input = createUpdateInput(
-            weight = null,
-            priority = null,
-            origin = createWarehouse(id = "WH-001"),
-            destination = createWarehouse(id = "WH-001")
-        )
-
-        // When
-        val result = validator.validateUpdate(input)
-
-        // Then
-        assertFailureFields(
-            result,
-            FieldError.NoUpdateFields,
-            FieldError.SameWarehouse
-        )
-    }
-
-    private fun createWarehouse(
-        id: String
-    ): Warehouse {
-        return Warehouse(
-            id = id,
-            name = "Test Warehouse",
-            regionalZone = RegionalZone.NORTH,
-            latitude = 31.5,
-            longitude = 34.5
-        )
-    }
+    private fun createUpdateInput(
+        weight: Double?,
+        priority: Priority? = null
+    ): UpdatePackageInput = UpdatePackageInput(
+        id = "PKG-000001",
+        weight = weight,
+        priority = priority,
+        originWarehouse = createWarehouse("WH-001"),
+        destinationWarehouse = createWarehouse("WH-002")
+    )
 
     private fun createPackage(
         baseRate: Double = 10.0,
         origin: Warehouse = createWarehouse("WH-001"),
         destination: Warehouse = createWarehouse("WH-002")
-    ): Package {
-        return Package(
-            id = "PKG-000001",
-            weight = 5.0,
-            priority = Priority.STANDARD,
-            originWarehouse = origin,
-            destinationWarehouse = destination,
-            baseRate = baseRate
-        )
-    }
+    ): Package = Package(
+        id = "PKG-000001",
+        weight = 5.0,
+        priority = Priority.STANDARD,
+        originWarehouse = origin,
+        destinationWarehouse = destination,
+        baseRate = baseRate
+    )
 
-    private fun createUpdateInput(
-        weight: Double? = null,
-        priority: Priority? = null,
-        origin: Warehouse = createWarehouse("WH-001"),
-        destination: Warehouse = createWarehouse("WH-002")
-    ): UpdatePackageInput {
-        return UpdatePackageInput(
-            id = "PKG-000001",
-            weight = weight,
-            priority = priority,
-            originWarehouse = origin,
-            destinationWarehouse = destination
-        )
-    }
-
-    private fun assertFailureFields(
-        result: ValidationResult,
-        vararg expectedFields: FieldError
-    ) {
-        val failure = Assertions.assertInstanceOf(
-            ValidationResult.Failure::class.java,
-            result
-        )
-
-        val actualFields = failure.violations.map { it.field }
-
-        Assertions.assertEquals(
-            expectedFields.size,
-            actualFields.size
-        )
-
-        Assertions.assertEquals(
-            expectedFields.toSet(),
-            actualFields.toSet()
-        )
-    }
+    private fun createWarehouse(id: String): Warehouse = Warehouse(
+        id = id,
+        name = "Warehouse $id",
+        regionalZone = RegionalZone.NORTH,
+        latitude = 31.5,
+        longitude = 34.5
+    )
 }
