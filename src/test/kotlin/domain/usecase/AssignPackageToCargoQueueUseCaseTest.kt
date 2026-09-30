@@ -19,7 +19,6 @@ class AssignPackageToCargoQueueUseCaseTest {
 
     private val repository = mockk<WarehouseRepository>()
     private val useCase = AssignPackageToCargoQueueUseCase(repository)
-
     private val warehouseId = "WH-001"
 
     private val cargo = Package(
@@ -35,10 +34,7 @@ class AssignPackageToCargoQueueUseCaseTest {
     fun `existing package is not added again`() = runBlocking {
         // Given
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.success(true)
 
         // When
@@ -46,36 +42,19 @@ class AssignPackageToCargoQueueUseCaseTest {
 
         // Then
         assertFalse(result.getOrThrow())
-
-        coVerify(exactly = 0) {
-            repository.addPackageToCargoQueue(
-                any(),
-                any()
-            )
-        }
-
-        coVerify(exactly = 0) {
-            repository.sortCargoQueue(any())
-        }
+        coVerify(exactly = 0) { repository.addPackageToCargoQueue(any(), any()) }
+        coVerify(exactly = 0) { repository.sortCargoQueue(any()) }
     }
 
     @Test
     fun `new package is added then queue is sorted`() = runBlocking {
         // Given
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.success(false)
-
         coEvery {
-            repository.addPackageToCargoQueue(
-                warehouseId,
-                cargo
-            )
+            repository.addPackageToCargoQueue(warehouseId, cargo)
         } returns Result.success(true)
-
         coEvery {
             repository.sortCargoQueue(warehouseId)
         } returns Result.success(true)
@@ -85,18 +64,9 @@ class AssignPackageToCargoQueueUseCaseTest {
 
         // Then
         assertTrue(result.getOrThrow())
-
         coVerifyOrder {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
-
-            repository.addPackageToCargoQueue(
-                warehouseId,
-                cargo
-            )
-
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
+            repository.addPackageToCargoQueue(warehouseId, cargo)
             repository.sortCargoQueue(warehouseId)
         }
     }
@@ -105,17 +75,10 @@ class AssignPackageToCargoQueueUseCaseTest {
     fun `unsuccessful addition prevents sorting`() = runBlocking {
         // Given
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.success(false)
-
         coEvery {
-            repository.addPackageToCargoQueue(
-                warehouseId,
-                cargo
-            )
+            repository.addPackageToCargoQueue(warehouseId, cargo)
         } returns Result.success(false)
 
         // When
@@ -123,95 +86,54 @@ class AssignPackageToCargoQueueUseCaseTest {
 
         // Then
         assertFalse(result.getOrThrow())
-
-        coVerify(exactly = 0) {
-            repository.sortCargoQueue(any())
-        }
+        coVerify(exactly = 0) { repository.sortCargoQueue(any()) }
     }
 
     @Test
     fun `existence check failure prevents addition and sorting`() = runBlocking {
         // Given
         val error = IllegalStateException("Check failed")
-
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.failure(error)
 
         // When
         val result = useCase(warehouseId, cargo)
 
         // Then
-        assertSame(
-            error,
-            result.exceptionOrNull()
-        )
-
-        coVerify(exactly = 0) {
-            repository.addPackageToCargoQueue(
-                any(),
-                any()
-            )
-        }
-
-        coVerify(exactly = 0) {
-            repository.sortCargoQueue(any())
-        }
+        assertSame(error, result.exceptionOrNull())
+        coVerify(exactly = 0) { repository.addPackageToCargoQueue(any(), any()) }
+        coVerify(exactly = 0) { repository.sortCargoQueue(any()) }
     }
 
     @Test
     fun `addition failure is returned without sorting`() = runBlocking {
         // Given
         val error = IllegalStateException("Add failed")
-
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.success(false)
-
         coEvery {
-            repository.addPackageToCargoQueue(
-                warehouseId,
-                cargo
-            )
+            repository.addPackageToCargoQueue(warehouseId, cargo)
         } returns Result.failure(error)
 
         // When
         val result = useCase(warehouseId, cargo)
 
         // Then
-        assertSame(
-            error,
-            result.exceptionOrNull()
-        )
-
-        coVerify(exactly = 0) {
-            repository.sortCargoQueue(any())
-        }
+        assertSame(error, result.exceptionOrNull())
+        coVerify(exactly = 0) { repository.sortCargoQueue(any()) }
     }
 
     @Test
     fun `unsuccessful sorting returns false`() = runBlocking {
         // Given
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.success(false)
-
         coEvery {
-            repository.addPackageToCargoQueue(
-                warehouseId,
-                cargo
-            )
+            repository.addPackageToCargoQueue(warehouseId, cargo)
         } returns Result.success(true)
-
         coEvery {
             repository.sortCargoQueue(warehouseId)
         } returns Result.success(false)
@@ -227,21 +149,12 @@ class AssignPackageToCargoQueueUseCaseTest {
     fun `sorting failure is returned`() = runBlocking {
         // Given
         val error = IllegalStateException("Sort failed")
-
         coEvery {
-            repository.isPackageInCargoQueue(
-                warehouseId,
-                cargo.id
-            )
+            repository.isPackageInCargoQueue(warehouseId, cargo.id)
         } returns Result.success(false)
-
         coEvery {
-            repository.addPackageToCargoQueue(
-                warehouseId,
-                cargo
-            )
+            repository.addPackageToCargoQueue(warehouseId, cargo)
         } returns Result.success(true)
-
         coEvery {
             repository.sortCargoQueue(warehouseId)
         } returns Result.failure(error)
@@ -250,19 +163,15 @@ class AssignPackageToCargoQueueUseCaseTest {
         val result = useCase(warehouseId, cargo)
 
         // Then
-        assertSame(
-            error,
-            result.exceptionOrNull()
-        )
+        assertSame(error, result.exceptionOrNull())
     }
 
-    private fun warehouse(
-        id: String
-    ) = Warehouse(
-        id = id,
-        name = "Warehouse $id",
-        regionalZone = RegionalZone.NORTH,
-        latitude = 31.5,
-        longitude = 34.4
-    )
+    private fun warehouse(id: String) =
+        Warehouse(
+            id,
+            "Warehouse $id",
+            RegionalZone.NORTH,
+            31.5,
+            34.4
+        )
 }
