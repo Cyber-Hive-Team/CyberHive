@@ -31,77 +31,42 @@ class ReroutePackageUseCaseTest {
     private val warehouseRepository = mockk<WarehouseRepository>()
     private val router = mockk<Router>()
     private val pricingEngine = mockk<RoutePricingEngine>()
-
-    private val useCase = ReroutePackageUseCase(
-        packageRepository,
-        warehouseRepository,
-        router,
-        pricingEngine
-    )
-
+    private val useCase = ReroutePackageUseCase(packageRepository, warehouseRepository, router, pricingEngine)
     private val cargoPackage = factory.createPackage()
     private val destination = factory.createWarehouse("WH-003")
-
-    private val input = ReroutePackageInput(
-        packageId = cargoPackage.id,
-        newDestinationWarehouseId = destination.id
-    )
-
-    private val routingResult = RoutingResult(
-        path = listOf(cargoPackage.originWarehouse, destination),
-        distanceKm = 75.0
-    )
+    private val input = ReroutePackageInput(packageId = cargoPackage.id, newDestinationWarehouseId = destination.id)
+    private val routingResult =
+        RoutingResult(path = listOf(cargoPackage.originWarehouse, destination), distanceKm = 75.0)
 
     @Test
     fun `reroutes package and adds updated package to destination queue`() = runBlocking {
         // Given
         prepareExistingPackageAndDestination()
-
         every {
             router.findPath(cargoPackage.originWarehouse, destination)
         } returns routingResult
-
         every {
-            pricingEngine.calculatePrice(
-                cargoPackage,
-                routingResult.distanceKm
-            )
+            pricingEngine.calculatePrice(cargoPackage, routingResult.distanceKm)
         } returns 150.0
-
         val savedPackage = slot<Package>()
-
         coEvery {
-            warehouseRepository.addPackageToCargoQueue(
-                destination.id,
-                capture(savedPackage)
-            )
+            warehouseRepository.addPackageToCargoQueue(destination.id, capture(savedPackage))
         } returns Result.success(true)
-
         coEvery {
             warehouseRepository.sortCargoQueue(destination.id)
         } returns Result.success(true)
-
         // When
         val result = useCase(input)
-
         // Then
         assertEquals(routingResult, result.getOrThrow())
 
         assertEquals(
-            cargoPackage.copy(
-                destinationWarehouse = destination,
-                baseRate = 150.0
-            ),
+            cargoPackage.copy(destinationWarehouse = destination, baseRate = 150.0),
             savedPackage.captured
         )
-
         verify(exactly = 1) {
-            pricingEngine.calculatePrice(
-                cargoPackage,
-                routingResult.distanceKm
-            )
+            pricingEngine.calculatePrice(cargoPackage, routingResult.distanceKm)
         }
-
         coVerify(exactly = 1) {
             warehouseRepository.sortCargoQueue(destination.id)
         }
@@ -113,16 +78,10 @@ class ReroutePackageUseCaseTest {
         coEvery {
             packageRepository.getAllPackages()
         } returns Result.success(emptyList())
-
         // When
         val result = useCase(input)
-
         // Then
-        assertInstanceOf(
-            PackageNotFoundException::class.java,
-            result.exceptionOrNull()
-        )
-
+        assertInstanceOf(PackageNotFoundException::class.java, result.exceptionOrNull())
         coVerify(exactly = 0) {
             warehouseRepository.getById(any())
         }
@@ -132,21 +91,16 @@ class ReroutePackageUseCaseTest {
     fun `preserves destination lookup failure`() = runBlocking {
         // Given
         val error = WarehouseNotFoundException("Destination not found")
-
         coEvery {
             packageRepository.getAllPackages()
         } returns Result.success(listOf(cargoPackage))
-
         coEvery {
             warehouseRepository.getById(destination.id)
         } returns Result.failure(error)
-
         // When
         val result = useCase(input)
-
         // Then
         assertSame(error, result.exceptionOrNull())
-
         verify(exactly = 0) {
             router.findPath(any(), any())
         }
@@ -159,20 +113,11 @@ class ReroutePackageUseCaseTest {
 
         every {
             router.findPath(cargoPackage.originWarehouse, destination)
-        } returns RoutingResult(
-            path = emptyList(),
-            distanceKm = 0.0
-        )
-
+        } returns RoutingResult(path = emptyList(), distanceKm = 0.0)
         // When
         val result = useCase(input)
-
         // Then
-        assertInstanceOf(
-            RouteNotFoundException::class.java,
-            result.exceptionOrNull()
-        )
-
+        assertInstanceOf(RouteNotFoundException::class.java, result.exceptionOrNull())
         coVerify(exactly = 0) {
             warehouseRepository.addPackageToCargoQueue(any(), any())
         }
@@ -182,14 +127,11 @@ class ReroutePackageUseCaseTest {
     fun `preserves package loading failure`() = runBlocking {
         // Given
         val error = IllegalStateException("Packages failed")
-
         coEvery {
             packageRepository.getAllPackages()
         } returns Result.failure(error)
-
         // When
         val result = useCase(input)
-
         // Then
         assertSame(error, result.exceptionOrNull())
     }
@@ -198,30 +140,20 @@ class ReroutePackageUseCaseTest {
     fun `preserves queue insertion failure without sorting`() = runBlocking {
         // Given
         prepareExistingPackageAndDestination()
-
         every {
             router.findPath(cargoPackage.originWarehouse, destination)
         } returns routingResult
-
         every {
             pricingEngine.calculatePrice(cargoPackage, any())
         } returns 150.0
-
         val error = IllegalStateException("Queue insertion failed")
-
         coEvery {
-            warehouseRepository.addPackageToCargoQueue(
-                destination.id,
-                any()
-            )
+            warehouseRepository.addPackageToCargoQueue(destination.id, any())
         } returns Result.failure(error)
-
         // When
         val result = useCase(input)
-
         // Then
         assertSame(error, result.exceptionOrNull())
-
         coVerify(exactly = 0) {
             warehouseRepository.sortCargoQueue(any())
         }
@@ -231,7 +163,6 @@ class ReroutePackageUseCaseTest {
         coEvery {
             packageRepository.getAllPackages()
         } returns Result.success(listOf(cargoPackage))
-
         coEvery {
             warehouseRepository.getById(destination.id)
         } returns Result.success(destination)

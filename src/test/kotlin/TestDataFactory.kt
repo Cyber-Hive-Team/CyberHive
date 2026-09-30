@@ -8,6 +8,7 @@ import org.example.domain.model.Warehouse
 
 class TestDataFactory {
 
+    @Suppress("LongParameterList")
     fun createPackage(
         baseRate: Double = 10.0,
         id: String = "PKG-000001",
