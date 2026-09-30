@@ -5,7 +5,8 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseLevel
 import org.example.domain.model.WarehouseNode
 import org.junit.jupiter.api.Test
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TraceHubLineageUseCaseTest {
 

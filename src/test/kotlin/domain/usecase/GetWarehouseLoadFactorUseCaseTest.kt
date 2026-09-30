@@ -1,6 +1,8 @@
 package org.example.domain.usecase
 
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.example.domain.model.Package
 import org.example.domain.model.RegionalZone
@@ -9,7 +11,8 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.junit.jupiter.api.Test
-import kotlin.test.*
+import kotlin.test.assertEquals
+import kotlin.test.assertSame
 
 class GetWarehouseLoadFactorUseCaseTest {
 
