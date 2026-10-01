@@ -4,13 +4,13 @@ import org.example.data.dataholder.WarehouseRaw
 import org.example.domain.model.Warehouse
 
 
-    fun map(raw: WarehouseRaw): Warehouse {
+fun WarehouseRaw.toDomainModel(): Warehouse {
         return Warehouse(
-            id = raw.id,
-            name = raw.name,
-            regionalZone = raw.regionalZone,
-            latitude = raw.latitude!!,
-            longitude = raw.longitude!!
+            id = id,
+            name = name,
+            regionalZone = regionalZone,
+            latitude = latitude!!,
+            longitude = longitude!!
         )
     }
 
