@@ -1,21 +1,27 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.datasource.remote.VehicleRemoteDatasource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.VehicleResponseDto
-import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.domain.model.Vehicle
+import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.VehicleRepository
+import org.example.data.mapper.remote.toDomainModel
+import org.example.data.mapper.remote.toCreateRequest
+import org.example.data.mapper.remote.toUpdateRequest
+
 
 class VehicleRepositoryImpl(
-    private val dependencies: VehicleRepositoryDependencies,
-    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
+    private val remoteDataSource: VehicleRemoteDatasource,
+    private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), VehicleRepository {
 
-    private val vehicles =
-        mutableListOf<Vehicle>()
+    private val dataExceptionMapper = DataExceptionMapper()
+
+    private val vehicles = mutableListOf<Vehicle>()
 
     private var isLoaded = false
 
@@ -27,20 +33,9 @@ class VehicleRepositoryImpl(
                 return@runCatching vehicles.toList()
             }
 
+            val loadedVehicles = remoteDataSource.getAll().mapNotNull { mapVehicleSafely(it) }
 
-            val loadedVehicles =
-                dependencies.remoteDataSource
-                    .getAll()
-                    .mapNotNull {
-                        mapVehicleSafely(it)
-                    }
-
-
-            vehicles.addAll(
-                loadedVehicles
-            )
-
-
+            vehicles.addAll(loadedVehicles)
             isLoaded = true
 
 
@@ -56,16 +51,14 @@ class VehicleRepositoryImpl(
         return mapSafely(dto.vehicleId) {
 
             val currentHub =
-                dependencies.warehouseMap[dto.currentHubId]
+                warehouseMap[dto.currentHubId]
                     ?: throw NullRequiredFieldException(
                         "Vehicle '${dto.vehicleId}' current hub not found."
                     )
 
-            dependencies.remoteMapper
-                .mapToDomain(
-                    raw = dto,
-                    currentHub = currentHub
-                )
+            dto.toDomainModel(
+                currentHub = currentHub
+            )
         }
     }
 
@@ -97,7 +90,7 @@ class VehicleRepositoryImpl(
 
 
             val targetWarehouse =
-                dependencies.warehouseMap[warehouseId]
+                warehouseMap[warehouseId]
 
             if (
                 index == -1 ||
@@ -144,7 +137,7 @@ class VehicleRepositoryImpl(
         }
         return runCatching {
         val dto =
-            dependencies.remoteDataSource
+            remoteDataSource
                 .getById(vehicleId)
                 ?: throw VehicleNotFoundException()
         val vehicle =
@@ -162,10 +155,9 @@ class VehicleRepositoryImpl(
     ): Result<Vehicle> {
         return runCatching {
             val request =
-                dependencies.remoteMapper
-                    .mapToCreateRequest(vehicle)
+                vehicle.toCreateRequest()
             val dto =
-                dependencies.remoteDataSource
+                remoteDataSource
                     .save(request)
             val savedVehicle =
                 mapVehicleSafely(dto)
@@ -181,10 +173,9 @@ class VehicleRepositoryImpl(
     ): Result<Vehicle> {
         return runCatching {
             val request =
-                dependencies.remoteMapper
-                    .mapToUpdateRequest(vehicle)
+                vehicle.toUpdateRequest()
         val dto =
-            dependencies.remoteDataSource
+            remoteDataSource
                 .update(
                     id = vehicle.id,
                     request = request
@@ -205,7 +196,7 @@ class VehicleRepositoryImpl(
         id: String
     ): Result<String> {
         return runCatching {
-            val deletedId = dependencies.remoteDataSource.delete(id)
+            val deletedId = remoteDataSource.delete(id)
             vehicles.removeIf {
                 it.id == deletedId
             }
