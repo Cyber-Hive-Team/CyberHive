@@ -2,7 +2,6 @@ package org.example.domain.usecase
 
 import org.example.domain.algorithm.search.Router
 import org.example.domain.model.Package
-import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.exception.RouteNotFoundException
@@ -69,14 +68,7 @@ class ReroutePackageUseCase(
         newDestination: Warehouse,
         routingResult: RoutingResult
     ): Package {
-        val newRoute = Route(
-            id = originalPackage.id,
-            originWarehouse = originalPackage.originWarehouse,
-            destinationWarehouse = newDestination,
-            distanceKm = routingResult.distanceKm,
-            typicalDelayMin = 0
-        )
-        val newPrice = pricingEngine.calculatePrice(originalPackage, newRoute)
+        val newPrice = pricingEngine.calculatePrice(originalPackage, routingResult.distanceKm)
 
         return originalPackage.copy(
             destinationWarehouse = newDestination,
