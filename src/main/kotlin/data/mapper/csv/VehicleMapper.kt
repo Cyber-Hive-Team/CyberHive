@@ -4,17 +4,12 @@ import org.example.data.dataholder.VehicleRaw
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 
-class VehicleMapper {
 
-    fun map(
-        raw: VehicleRaw,
-        currentHub: Warehouse
-    ): Vehicle {
+fun VehicleRaw.toDomainModel(currentHub: Warehouse): Vehicle {
         return Vehicle(
-            id = raw.id,
+            id = id,
             currentHub = currentHub,
-            maxCapacityKg = raw.maxCapacityKg,
-            costPerKm = raw.costPerKm
+            maxCapacityKg = maxCapacityKg,
+            costPerKm = costPerKm
         )
     }
-}

@@ -2,20 +2,14 @@ package org.example.presentation
 
 import org.example.data.datasource.local.csv.CsvPackageLocalDataSource
 import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
-import org.example.data.datasource.local.csv.CsvVehicleLocalDataSource
-import org.example.data.datasource.local.csv.CsvWarehouseLocalDataSource
 import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDatasource
 import org.example.data.mapper.csv.PackageMapper
 import org.example.data.mapper.csv.RouteMapper
-import org.example.data.mapper.csv.VehicleMapper
-import org.example.data.mapper.csv.WarehouseMapper
 import org.example.data.mapper.remote.PackageRemoteMapper
 import org.example.data.mapper.remote.RouteDtoMapper
-import org.example.data.mapper.remote.VehicleDtoMapper
-import org.example.data.mapper.remote.WarehouseRemoteMapper
 import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
 import org.example.data.repositoryImplementation.PackageRepositoryImpl
@@ -24,8 +18,6 @@ import org.example.data.repositoryImplementation.VehicleRepositoryImpl
 import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
 import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
-import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
-import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
@@ -34,14 +26,9 @@ import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 
-private const val WAREHOUSE_FILE =
-    "src/main/resources/warehouses.csv"
 
 private const val PACKAGE_FILE =
     "src/main/resources/packages.csv"
-
-private const val VEHICLE_FILE =
-    "src/main/resources/fleet.csv"
 
 private const val ROUTE_FILE =
     "src/main/resources/routes.csv"
@@ -103,13 +90,12 @@ class DataLoader(
     ): VehicleRepository {
 
         return VehicleRepositoryImpl(
-            VehicleRepositoryDependencies(
-                localDataSource = CsvVehicleLocalDataSource(VEHICLE_FILE),
-                remoteDataSource = SupabaseVehicleRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
-                localMapper = VehicleMapper(),
-                remoteMapper = VehicleDtoMapper(),
-                warehouseMap = map
-            )
+
+            remoteDataSource = SupabaseVehicleRemoteDatasource(
+                client,
+                "${supabaseConfig.url}/rest/v1"
+            ),
+            warehouseMap = map
         )
     }
 
@@ -117,28 +103,12 @@ class DataLoader(
     private fun createWarehouseRepository(): WarehouseRepository {
 
         return WarehouseRepositoryImpl(
-            WarehouseRepositoryDependencies(
-                localDataSource =
-                    CsvWarehouseLocalDataSource(
-                        WAREHOUSE_FILE
-                    ),
-
-                remoteDataSource =
-                    SupabaseWarehouseRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                localMapper =
-                    WarehouseMapper(),
-
-                remoteMapper =
-                    WarehouseRemoteMapper(),
-
-                statusDataSource =
-                    CsvWarehouseStatusDataSource(
-                        WAREHOUSE_STATUS_FILE
-                    )
+            remoteDataSource = SupabaseWarehouseRemoteDatasource(
+                client,
+                "${supabaseConfig.url}/rest/v1"
+            ),
+            statusDataSource = CsvWarehouseStatusDataSource(
+                WAREHOUSE_STATUS_FILE
             )
         )
     }
