@@ -31,7 +31,7 @@ class PricingDemoRunner(
         ).forEach { (name, strategy) ->
             engine.setStrategy(strategy)
 
-            println("$name price: $" + engine.calculatePrice(item, route))
+            println("$name price: $" + engine.calculatePrice(item, route.distanceKm))
         }
     }
 }

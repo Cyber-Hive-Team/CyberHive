@@ -29,7 +29,7 @@ class CalculatePricingPackageUseCase(
             pricingEngine.setStrategy(strategy)
         }
 
-        return PricingPackage(pricingEngine.calculatePrice(cargoPackage, route))
+        return PricingPackage(pricingEngine.calculatePrice(cargoPackage, route.distanceKm))
 
     }
 }
