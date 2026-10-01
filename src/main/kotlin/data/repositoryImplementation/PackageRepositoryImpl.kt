@@ -5,18 +5,22 @@ import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import org.example.data.datasource.remote.PackageRemoteDatasource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
+import org.example.data.mapper.remote.toCreateRequest
+import org.example.data.mapper.remote.toDomainModel
+import org.example.data.mapper.remote.toUpdateRequest
 import org.example.data.remote.dto.response.PackageResponseDto
-import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
+import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.input.PackageDeliveryTime
-import org.example.domain.repository.PackageRepository
 import org.example.domain.model.input.UpdatePackageInput
+import org.example.domain.repository.PackageRepository
 
 private const val MIN_WAITING_HOURS = 1L
 private const val MAX_WAITING_HOURS = 73L
@@ -29,13 +33,12 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 
 
 class PackageRepositoryImpl(
-    private val dependencies: PackageRepositoryDependencies,
-    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
+    private val remoteDataSource: PackageRemoteDatasource,
+    private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), PackageRepository {
 
-
-    private val packages =
-        mutableListOf<Package>()
+    private val dataExceptionMapper = DataExceptionMapper()
+    private val packages = mutableListOf<Package>()
 
 
     private var isLoaded = false
@@ -47,7 +50,7 @@ class PackageRepositoryImpl(
             if (isLoaded) {
                 return@runCatching packages.toList()
             }
-            val loadedPackages = dependencies.remoteDataSource
+            val loadedPackages = remoteDataSource
                     .getAll()
                 .mapNotNull { mapPackage(it) }
             packages.addAll(loadedPackages)
@@ -63,7 +66,7 @@ class PackageRepositoryImpl(
         type: String
     ) =
 
-        dependencies.warehouseMap[warehouseId]
+        warehouseMap[warehouseId]
             ?: throw NullRequiredFieldException(
                 "Package '$packageId' $type warehouse not found."
             )
@@ -79,8 +82,7 @@ class PackageRepositoryImpl(
             return Result.success(cachedPackage)
         }
         return runCatching {
-        val dto =
-            dependencies.remoteDataSource
+            val dto = remoteDataSource
                 .getById(packageId)
                 ?: throw PackageNotFoundException()
             val packageModel = mapPackage(dto) ?: throw PackageNotFoundException("Package '$packageId' mapping failed.")
@@ -194,20 +196,9 @@ class PackageRepositoryImpl(
         cargoPackage: Package
     ): Result<Package> {
         return runCatching {
-            val request =
-                dependencies.remoteMapper
-                    .mapToCreateRequest(
-                        id = cargoPackage.id,
-                        weight = cargoPackage.weight,
-                        priority = cargoPackage.priority,
-                        originHubId = cargoPackage.originWarehouse.id,
-                        destinationHubId = cargoPackage.destinationWarehouse.id
-                    )
-            val dto =
-                dependencies.remoteDataSource
-                    .save(request)
-            val packageModel =
-                mapPackage(dto)
+            val request = cargoPackage.toCreateRequest()
+            val dto = remoteDataSource.save(request)
+            val packageModel = mapPackage(dto)
                     ?: throw NullRequiredFieldException(
                         "Saved package '${dto.id}' mapping failed."
                     )
@@ -221,16 +212,8 @@ class PackageRepositoryImpl(
         input: UpdatePackageInput
     ): Result<Package> {
         return runCatching {
-            val request =
-                dependencies.remoteMapper
-                    .mapToUpdateRequest(
-                        weight = input.weight,
-                        priority = input.priority,
-                        originHubId = input.originWarehouse.id,
-                        destinationHubId = input.destinationWarehouse.id
-                    )
-            val dto =
-                dependencies.remoteDataSource
+            val request = input.toUpdateRequest()
+            val dto = remoteDataSource
                     .update(
                         id = input.id,
                         request = request
@@ -255,7 +238,7 @@ class PackageRepositoryImpl(
         id: String
     ): Result<String> {
         return runCatching {
-            val deletedId = dependencies.remoteDataSource.delete(id)
+            val deletedId = remoteDataSource.delete(id)
             packages.removeIf {
                 it.id == deletedId
             }
@@ -283,12 +266,10 @@ class PackageRepositoryImpl(
                     "destination"
                 )
 
-            dependencies.remoteMapper
-                .mapToDomainModel(
-                    dto = dto,
-                    originWarehouse = originWarehouse,
-                    destinationWarehouse = destinationWarehouse
-                )
+            dto.toDomainModel(
+                originWarehouse = originWarehouse,
+                destinationWarehouse = destinationWarehouse
+            )
         }
     }
 }
