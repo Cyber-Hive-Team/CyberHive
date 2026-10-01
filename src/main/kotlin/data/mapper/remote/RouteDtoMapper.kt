@@ -1,51 +1,49 @@
 package org.example.data.mapper.remote
 
-import org.example.data.remote.dto.response.RouteResponseDto
+import org.example.data.exception.NullRequiredFieldException
 import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
+import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
-import org.example.data.exception.NullRequiredFieldException
 
-class RouteDtoMapper {
 
-    fun mapToDomain(
-        raw: RouteResponseDto,
+fun RouteResponseDto.toDomainModel(
         originWarehouse: Warehouse,
         destinationWarehouse: Warehouse
     ): Route {
         return Route(
-            id = raw.routeId,
-            distanceKm = raw.distanceKm
+            id = routeId,
+            distanceKm = distanceKm
                 ?: throw NullRequiredFieldException(
-                    "Route '${raw.routeId}' has null distanceKm."
+                    "Route '${routeId}' has null distanceKm."
                 ),
-            typicalDelayMin = raw.typicalDelayMin
+            typicalDelayMin = typicalDelayMin
                 ?: throw NullRequiredFieldException(
-                    "Route '${raw.routeId}' has null typicalDelayMin."
+                    "Route '${routeId}' has null typicalDelayMin."
                 ),
             originWarehouse = originWarehouse,
             destinationWarehouse = destinationWarehouse
         )
     }
 
-    fun mapToCreateRequest(domain: Route): CreateRouteRequestDto {
+fun Route.toCreateRequest(): CreateRouteRequestDto {
         return CreateRouteRequestDto(
-            routeId = domain.id,
-            originHubId = domain.originWarehouse.id,
-            destinationHubId = domain.destinationWarehouse.id,
-            distanceKm = domain.distanceKm,
-            typicalDelayMin = domain.typicalDelayMin
+            routeId = id,
+            originHubId = originWarehouse.id,
+            destinationHubId = destinationWarehouse.id,
+            distanceKm = distanceKm,
+            typicalDelayMin = typicalDelayMin
         )
     }
 
-    fun mapToUpdateRequest(domain: Route): UpdateRouteRequestDto {
+fun Route.toUpdateRequest(): UpdateRouteRequestDto {
         return UpdateRouteRequestDto(
-            originHubId = domain.originWarehouse.id,
-            destinationHubId = domain.destinationWarehouse.id,
-            distanceKm = domain.distanceKm,
-            typicalDelayMin = domain.typicalDelayMin
+            originHubId = originWarehouse.id,
+            destinationHubId = destinationWarehouse.id,
+            distanceKm = distanceKm,
+            typicalDelayMin = typicalDelayMin
         )
     }
 
-}
+
