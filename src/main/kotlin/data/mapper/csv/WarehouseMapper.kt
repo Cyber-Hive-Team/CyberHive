@@ -3,7 +3,6 @@ package org.example.data.mapper.csv
 import org.example.data.dataholder.WarehouseRaw
 import org.example.domain.model.Warehouse
 
-class WarehouseMapper {
 
     fun map(raw: WarehouseRaw): Warehouse {
         return Warehouse(
@@ -14,4 +13,4 @@ class WarehouseMapper {
             longitude = raw.longitude!!
         )
     }
-}
+

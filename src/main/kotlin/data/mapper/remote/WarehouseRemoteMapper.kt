@@ -6,71 +6,61 @@ import org.example.data.remote.dto.request.UpdateWarehouseRequestDto
 import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
+import org.example.domain.model.input.UpdateWarehouseInput
 
-class WarehouseRemoteMapper {
 
-    fun mapToDomainModel(
-        dto: WarehouseResponseDto
-    ): Warehouse {
+fun WarehouseResponseDto.toDomainModel(): Warehouse {
 
-        validateRequiredFields(dto)
+    validateRequiredFields()
 
         return Warehouse(
-            id = dto.id,
-            name = dto.name,
-            regionalZone = RegionalZone.valueOf(dto.regionalZone!!),
-            latitude = dto.latitude!!,
-            longitude = dto.longitude!!
+            id = id,
+            name = name,
+            regionalZone = RegionalZone.valueOf(regionalZone!!),
+            latitude = latitude!!,
+            longitude = longitude!!
         )
     }
 
-
-    private fun validateRequiredFields(
-        dto: WarehouseResponseDto
-    ) {
+private fun WarehouseResponseDto.validateRequiredFields() {
 
         val missingFields =
             mutableListOf<String>()
 
-        if (dto.regionalZone.isNullOrBlank()) {
+    if (regionalZone.isNullOrBlank()) {
             missingFields.add("regionalZone")
         }
 
-        if (dto.latitude == null) {
+    if (latitude == null) {
             missingFields.add("latitude")
         }
 
-        if (dto.longitude == null) {
+    if (longitude == null) {
             missingFields.add("longitude")
         }
 
         if (missingFields.isNotEmpty()) {
             throw NullRequiredFieldException(
-                "Warehouse '${dto.id}' has null fields: ${missingFields.joinToString()}"
+                "Warehouse '${id}' has null fields: ${missingFields.joinToString()}"
             )
         }
     }
 
 
-    fun mapToCreateRequest(
-        warehouse: Warehouse
-    ): CreateWarehouseRequestDto {
+fun Warehouse.toCreateRequest(): CreateWarehouseRequestDto {
+
         return CreateWarehouseRequestDto(
-            id = warehouse.id,
-            name = warehouse.name,
-            regionalZone = warehouse.regionalZone.name,
-            latitude = warehouse.latitude,
-            longitude = warehouse.longitude
+            id = id,
+            name = name,
+            regionalZone = regionalZone.name,
+            latitude = latitude,
+            longitude = longitude
         )
     }
 
 
-    fun mapToUpdateRequest(
-        name: String? = null,
-        regionalZone: RegionalZone? = null,
-        latitude: Double? = null,
-        longitude: Double? = null
-    ): UpdateWarehouseRequestDto {
+fun UpdateWarehouseInput.toUpdateRequest(): UpdateWarehouseRequestDto {
+
         return UpdateWarehouseRequestDto(
             name = name,
             regionalZone = regionalZone?.name,
@@ -78,4 +68,4 @@ class WarehouseRemoteMapper {
             longitude = longitude
         )
     }
-}
+
