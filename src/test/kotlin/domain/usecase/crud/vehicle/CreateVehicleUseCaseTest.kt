@@ -20,8 +20,6 @@ import org.junit.jupiter.api.Test
 
 class CreateVehicleUseCaseTest {
 
-
-    class CreateVehicleUseCaseTest {
         private val factory = TestDataFactory()
         private val repository = mockk<VehicleRepository>()
         private val validator = mockk<Validator<Vehicle, UpdateVehicleInput>>()
@@ -68,4 +66,3 @@ class CreateVehicleUseCaseTest {
         }
     }
 
-}
