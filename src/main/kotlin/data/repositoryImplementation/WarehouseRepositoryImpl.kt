@@ -1,11 +1,13 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.datasource.WarehouseDataSource
+import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
+import org.example.data.datasource.remote.WarehouseRemoteDatasource
 import kotlin.random.Random
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.remote.dto.response.WarehouseResponseDto
-import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.model.Warehouse
@@ -13,12 +15,17 @@ import org.example.domain.model.WarehouseServices
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.model.WarehouseStatus
+import org.example.data.mapper.remote.toDomainModel
+import org.example.data.mapper.remote.toCreateRequest
+import org.example.data.mapper.remote.toUpdateRequest
 
 class WarehouseRepositoryImpl(
-    private val dependencies: WarehouseRepositoryDependencies,
-    private val dataExceptionMapper: DataExceptionMapper = DataExceptionMapper()
+    private val localDataSource: WarehouseDataSource,
+    private val remoteDataSource: WarehouseRemoteDatasource,
+    private val statusDataSource: CsvWarehouseStatusDataSource
 ) : BaseRepository(), WarehouseRepository {
 
+    private val dataExceptionMapper = DataExceptionMapper()
 
     private val warehouses =
         mutableListOf<Warehouse>()
@@ -34,7 +41,7 @@ class WarehouseRepositoryImpl(
                 return@runCatching warehouses.toList()
             }
             val loadedWarehouses =
-                dependencies.remoteDataSource
+                remoteDataSource
                     .getAll()
                     .mapNotNull {
                         mapWarehouseSafely(it)
@@ -51,12 +58,8 @@ class WarehouseRepositoryImpl(
     private fun mapWarehouseSafely(
         dto: WarehouseResponseDto
     ): Warehouse? {
-
         return mapSafely(dto.id) {
-
-            dependencies.remoteMapper
-                .mapToDomainModel(dto)
-
+            dto.toDomainModel()
         }
     }
 
@@ -136,7 +139,7 @@ class WarehouseRepositoryImpl(
         }
         return runCatching {
         val remoteDto =
-            dependencies.remoteDataSource
+            remoteDataSource
                 .getById(id)
                 ?: throw WarehouseNotFoundException()
             mapWarehouseSafely(remoteDto)
@@ -151,13 +154,9 @@ class WarehouseRepositoryImpl(
         warehouse: Warehouse
     ): Result<Warehouse> {
         return runCatching {
-            val requestDto =
-                dependencies.remoteMapper
-                    .mapToCreateRequest(
-                        warehouse
-                    )
+            val requestDto = warehouse.toCreateRequest()
             val responseDto =
-                dependencies.remoteDataSource
+                remoteDataSource
                     .save(requestDto)
             val savedWarehouse =
                 mapWarehouseSafely(responseDto)
@@ -174,21 +173,14 @@ class WarehouseRepositoryImpl(
         input: UpdateWarehouseInput
     ): Result<Warehouse> {
         return runCatching {
-            val requestDto =
-                dependencies.remoteMapper
-                    .mapToUpdateRequest(
-                        name = input.name,
-                        regionalZone = input.regionalZone,
-                        latitude = input.latitude,
-                        longitude = input.longitude
-                    )
+            val requestDto = input.toUpdateRequest()
             val responseDto =
-                dependencies.remoteDataSource
+                remoteDataSource
                     .update(id = input.id, request = requestDto)
             val updatedWarehouse =
                 mapWarehouseSafely(responseDto)
                     ?: throw NullRequiredFieldException(
-                        "Warehouse '\${input.id}' update failed."
+                        "Warehouse '${input.id}' update failed."
                     )
             warehouses.removeIf {
                 it.id == input.id
@@ -201,7 +193,7 @@ class WarehouseRepositoryImpl(
         id: String
     ): Result<String> {
         return runCatching {
-            val deletedId = dependencies.remoteDataSource.delete(id)
+            val deletedId = remoteDataSource.delete(id)
             warehouses.removeIf {
                 it.id == deletedId
             }
@@ -214,7 +206,7 @@ class WarehouseRepositoryImpl(
     ): Result<WarehouseStatus> {
 
         return runCatching {
-            dependencies.statusDataSource
+            statusDataSource
                 .getStatus(warehouseId)
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -224,7 +216,7 @@ class WarehouseRepositoryImpl(
         status: WarehouseStatus
     ): Result<Boolean> {
         return runCatching {
-            dependencies.statusDataSource.updateStatus(warehouseId, status)
+            statusDataSource.updateStatus(warehouseId, status)
         }.mapFailureToDomain(dataExceptionMapper)
     }
 }
