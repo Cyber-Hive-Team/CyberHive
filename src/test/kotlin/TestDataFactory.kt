@@ -5,6 +5,7 @@ import org.example.domain.model.Priority
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
+import org.example.domain.model.Vehicle
 
 class TestDataFactory {
 
@@ -39,5 +40,19 @@ class TestDataFactory {
         typicalDelayMin = 10,
         originWarehouse = cargoPackage.originWarehouse,
         destinationWarehouse = cargoPackage.destinationWarehouse
+    )
+
+
+
+    fun createVehicle(
+        id: String = "TRK-0001",
+        maxCapacityKg: Double = 100.0,
+        costPerKm: Double = 2.5,
+        currentHub: Warehouse = createWarehouse("WH-001")
+    ): Vehicle = Vehicle(
+        id = id,
+        maxCapacityKg = maxCapacityKg,
+        costPerKm = costPerKm,
+        currentHub = currentHub
     )
 }
