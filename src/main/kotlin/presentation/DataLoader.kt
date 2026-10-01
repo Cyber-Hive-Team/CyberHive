@@ -2,7 +2,6 @@ package org.example.presentation
 
 import org.example.data.datasource.local.csv.CsvPackageLocalDataSource
 import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
-import org.example.data.datasource.local.csv.CsvVehicleLocalDataSource
 import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasource
