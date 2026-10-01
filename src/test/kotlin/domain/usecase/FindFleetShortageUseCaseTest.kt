@@ -26,10 +26,7 @@ class FindFleetShortageUseCaseTest {
         val secondWarehouse = factory.createWarehouse("WH-002")
 
         coEvery { warehouseRepository.getAllWarehouses() } returns Result.success(
-            listOf(
-                firstWarehouse,
-                secondWarehouse
-            )
+            listOf(firstWarehouse, secondWarehouse)
         )
         coEvery { packageRepository.getPackagesByWarehouseId("WH-001") } returns Result.success(
             listOf(factory.createPackage(id = "PKG-000001", weight = 120.0, origin = firstWarehouse))
@@ -50,9 +47,7 @@ class FindFleetShortageUseCaseTest {
             listOf(
                 FleetShortageResult("WH-001", 70.0),
                 FleetShortageResult("WH-002", 70.0)
-            ),
-            result
-        )
+            ), result)
     }
 
     @Test
