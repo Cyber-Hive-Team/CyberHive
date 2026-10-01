@@ -20,7 +20,6 @@ import org.example.data.mapper.remote.toCreateRequest
 import org.example.data.mapper.remote.toUpdateRequest
 
 class WarehouseRepositoryImpl(
-    private val localDataSource: WarehouseDataSource,
     private val remoteDataSource: WarehouseRemoteDatasource,
     private val statusDataSource: CsvWarehouseStatusDataSource
 ) : BaseRepository(), WarehouseRepository {
