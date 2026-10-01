@@ -202,37 +202,17 @@ class RouteValidatorTest {
             typicalDelayMin = -5
         )
 
-        val warnings = validator.validate(
-            raw = raw,
-            origin = null,
-            destination = null
-        )
-
-        assertEquals(5, warnings.size)
+        val warnings = validator.validate(raw, null, null)
 
         assertEquals(
-            "Warning: Route skipped - missing id",
-            warnings[0]
-        )
-
-        assertEquals(
-            "Warning: Route  skipped - origin warehouse not found: WH-999",
-            warnings[1]
-        )
-
-        assertEquals(
-            "Warning: Route  skipped - destination warehouse not found: WH-888",
-            warnings[2]
-        )
-
-        assertEquals(
-            "Warning: Route  skipped - invalid distance",
-            warnings[3]
-        )
-
-        assertEquals(
-            "Warning: Route  skipped - invalid delay",
-            warnings[4]
+            listOf(
+                "Warning: Route skipped - missing id",
+                "Warning: Route  skipped - origin warehouse not found: WH-999",
+                "Warning: Route  skipped - destination warehouse not found: WH-888",
+                "Warning: Route  skipped - invalid distance",
+                "Warning: Route  skipped - invalid delay"
+            ),
+            warnings
         )
     }
 }

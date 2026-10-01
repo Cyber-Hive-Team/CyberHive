@@ -53,19 +53,18 @@ class FindFewestHopsRouteUseCaseTest {
         destinationWarehouseId = "WH-003"
     )
 
+    private val expectedResult = RoutingResult(
+        path = listOf(
+            warehouse1,
+            warehouse2,
+            warehouse3
+        ),
+        distanceKm = 15.0
+    )
+
     @Test
     fun `finds route with fewest hops successfully`() {
         runBlocking {
-
-            val expectedResult = RoutingResult(
-                path = listOf(
-                    warehouse1,
-                    warehouse2,
-                    warehouse3
-                ),
-                distanceKm = 15.0
-            )
-
             coEvery {
                 warehouseRepository.getById("WH-001")
             } returns Result.success(warehouse1)
@@ -84,10 +83,7 @@ class FindFewestHopsRouteUseCaseTest {
             val result = useCase(input)
 
             assertTrue(result.isSuccess)
-            assertEquals(
-                expectedResult,
-                result.getOrThrow()
-            )
+            assertEquals(expectedResult, result.getOrThrow())
         }
     }
 
