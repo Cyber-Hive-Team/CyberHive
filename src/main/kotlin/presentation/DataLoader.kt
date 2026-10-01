@@ -9,10 +9,8 @@ import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasour
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDatasource
 import org.example.data.mapper.csv.PackageMapper
 import org.example.data.mapper.csv.RouteMapper
-import org.example.data.mapper.csv.VehicleMapper
 import org.example.data.mapper.remote.PackageRemoteMapper
 import org.example.data.mapper.remote.RouteDtoMapper
-import org.example.data.mapper.remote.VehicleDtoMapper
 import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
 import org.example.data.repositoryImplementation.PackageRepositoryImpl
