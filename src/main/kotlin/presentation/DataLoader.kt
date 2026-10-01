@@ -30,8 +30,6 @@ import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 
-private const val WAREHOUSE_FILE =
-    "src/main/resources/warehouses.csv"
 
 private const val PACKAGE_FILE =
     "src/main/resources/packages.csv"
