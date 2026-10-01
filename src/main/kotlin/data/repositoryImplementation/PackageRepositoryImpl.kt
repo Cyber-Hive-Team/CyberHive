@@ -5,9 +5,12 @@ import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import org.example.data.dataholder.PackageRaw
+import org.example.data.datasource.PackageDataSource
 import org.example.data.datasource.remote.PackageRemoteDatasource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.csv.toDomainModel
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.mapper.remote.toCreateRequest
 import org.example.data.mapper.remote.toDomainModel
@@ -34,6 +37,7 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 
 class PackageRepositoryImpl(
     private val remoteDataSource: PackageRemoteDatasource,
+    private val localDataSource: PackageDataSource,
     private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), PackageRepository {
 
@@ -50,9 +54,14 @@ class PackageRepositoryImpl(
             if (isLoaded) {
                 return@runCatching packages.toList()
             }
-            val loadedPackages = remoteDataSource
-                    .getAll()
-                .mapNotNull { mapPackage(it) }
+            val loadedPackages =
+                runCatching {
+                    remoteDataSource
+                        .getAll()
+                        .mapNotNull { dto -> mapRemotePackage(dto) }
+                }.getOrElse {
+                    loadLocalPackages()
+                }
             packages.addAll(loadedPackages)
             isLoaded = true
             packages.toList()
@@ -85,7 +94,8 @@ class PackageRepositoryImpl(
             val dto = remoteDataSource
                 .getById(packageId)
                 ?: throw PackageNotFoundException()
-            val packageModel = mapPackage(dto) ?: throw PackageNotFoundException("Package '$packageId' mapping failed.")
+            val packageModel =
+                mapRemotePackage(dto) ?: throw PackageNotFoundException("Package '$packageId' mapping failed.")
             packages.add(packageModel)
             packageModel
         }.mapFailureToDomain(dataExceptionMapper)
@@ -198,7 +208,7 @@ class PackageRepositoryImpl(
         return runCatching {
             val request = cargoPackage.toCreateRequest()
             val dto = remoteDataSource.save(request)
-            val packageModel = mapPackage(dto)
+            val packageModel = mapRemotePackage(dto)
                     ?: throw NullRequiredFieldException(
                         "Saved package '${dto.id}' mapping failed."
                     )
@@ -219,7 +229,7 @@ class PackageRepositoryImpl(
                         request = request
                     )
             val updatedPackage =
-                mapPackage(dto)
+                mapRemotePackage(dto)
                     ?: throw NullRequiredFieldException(
                         "Package '$input.id' update failed."
                     )
@@ -245,8 +255,26 @@ class PackageRepositoryImpl(
             deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
+    private fun loadLocalPackages(): List<Package> {
+        return localDataSource
+            .getPackages()
+            .mapNotNull { result ->
+                result.rawData?.let { raw ->
+                    mapLocalPackage(raw)
+                }
+            }
+    }
 
-    private fun mapPackage(
+    private fun mapLocalPackage(raw: PackageRaw): Package? {
+        return mapSafely(raw.id) {
+            val originWarehouse = findWarehouse(raw.originHubId, raw.id, "origin")
+            val destinationWarehouse = findWarehouse(raw.destinationHubId, raw.id, "destination")
+
+            raw.toDomainModel(originWarehouse = originWarehouse, destinationWarehouse = destinationWarehouse)
+        }
+    }
+
+    private fun mapRemotePackage(
         dto: PackageResponseDto
     ): Package? {
 
