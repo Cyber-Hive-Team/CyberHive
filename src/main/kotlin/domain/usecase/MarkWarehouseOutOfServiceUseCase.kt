@@ -15,7 +15,7 @@ class MarkWarehouseOutOfServiceUseCase(
             warehouseRepository.updateStatus(
                 warehouseId = warehouse.id,
                 status = WarehouseStatus.OUT_OF_SERVICE
-            )
+            ).getOrThrow()
             WarehouseStatusResult(
                 warehouseId = warehouse.id,
                 warehouseName = warehouse.name,
