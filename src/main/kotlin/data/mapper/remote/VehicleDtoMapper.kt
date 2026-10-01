@@ -7,41 +7,38 @@ import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.data.exception.NullRequiredFieldException
 
-class VehicleDtoMapper {
 
-    fun mapToDomain(
-        raw: VehicleResponseDto,
-        currentHub: Warehouse
-    ): Vehicle {
+fun VehicleResponseDto.toDomainModel(
+    currentHub: Warehouse
+): Vehicle {
 
         return Vehicle(
-            id = raw.vehicleId,
-            maxCapacityKg = raw.maxCapacityKg
+            id = vehicleId,
+            maxCapacityKg = maxCapacityKg
                 ?: throw NullRequiredFieldException(
-                    "Vehicle '${raw.vehicleId}' has null maxCapacityKg."
+                    "Vehicle '${vehicleId}' has null maxCapacityKg."
                 ),
-            costPerKm = raw.costPerKm
+            costPerKm = costPerKm
                 ?: throw NullRequiredFieldException(
-                    "Vehicle '${raw.vehicleId}' has null costPerKm."
+                    "Vehicle '${vehicleId}' has null costPerKm."
                 ),
             currentHub = currentHub
         )
     }
 
-    fun mapToCreateRequest(domain: Vehicle): CreateVehicleRequestDto {
+fun Vehicle.toCreateRequest(): CreateVehicleRequestDto {
         return CreateVehicleRequestDto(
-            vehicleId = domain.id,
-            currentHubId = domain.currentHub.id,
-            maxCapacityKg = domain.maxCapacityKg,
-            costPerKm = domain.costPerKm
+            vehicleId = id,
+            currentHubId = currentHub.id,
+            maxCapacityKg = maxCapacityKg,
+            costPerKm = costPerKm
         )
     }
 
-    fun mapToUpdateRequest(domain: Vehicle): UpdateVehicleRequestDto {
+fun Vehicle.toUpdateRequest(): UpdateVehicleRequestDto {
         return UpdateVehicleRequestDto(
-            currentHubId = domain.currentHub.id,
-            maxCapacityKg = domain.maxCapacityKg,
-            costPerKm = domain.costPerKm
+            currentHubId = currentHub.id,
+            maxCapacityKg = maxCapacityKg,
+            costPerKm = costPerKm
         )
     }
-}

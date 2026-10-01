@@ -2,7 +2,6 @@ package org.example.presentation
 
 import org.example.data.datasource.local.csv.CsvPackageLocalDataSource
 import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
-import org.example.data.datasource.local.csv.CsvVehicleLocalDataSource
 import org.example.data.datasource.local.csv.CsvWarehouseLocalDataSource
 import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
@@ -10,11 +9,9 @@ import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasour
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDatasource
 import org.example.data.mapper.csv.PackageMapper
 import org.example.data.mapper.csv.RouteMapper
-import org.example.data.mapper.csv.VehicleMapper
 import org.example.data.mapper.csv.WarehouseMapper
 import org.example.data.mapper.remote.PackageRemoteMapper
 import org.example.data.mapper.remote.RouteDtoMapper
-import org.example.data.mapper.remote.VehicleDtoMapper
 import org.example.data.mapper.remote.WarehouseRemoteMapper
 import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
@@ -24,7 +21,6 @@ import org.example.data.repositoryImplementation.VehicleRepositoryImpl
 import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
 import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
-import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.Route
@@ -39,9 +35,6 @@ private const val WAREHOUSE_FILE =
 
 private const val PACKAGE_FILE =
     "src/main/resources/packages.csv"
-
-private const val VEHICLE_FILE =
-    "src/main/resources/fleet.csv"
 
 private const val ROUTE_FILE =
     "src/main/resources/routes.csv"
@@ -103,13 +96,12 @@ class DataLoader(
     ): VehicleRepository {
 
         return VehicleRepositoryImpl(
-            VehicleRepositoryDependencies(
-                localDataSource = CsvVehicleLocalDataSource(VEHICLE_FILE),
-                remoteDataSource = SupabaseVehicleRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
-                localMapper = VehicleMapper(),
-                remoteMapper = VehicleDtoMapper(),
-                warehouseMap = map
-            )
+
+            remoteDataSource = SupabaseVehicleRemoteDatasource(
+                client,
+                "${supabaseConfig.url}/rest/v1"
+            ),
+            warehouseMap = map
         )
     }
 
