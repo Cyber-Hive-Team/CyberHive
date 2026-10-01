@@ -1,4 +1,4 @@
-package org.example.test.domain.validator
+package org.example.test.domain.validator.impl
 
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
@@ -10,7 +10,7 @@ import org.example.domain.validator.FieldError
 import org.example.domain.validator.FieldViolation
 import org.example.domain.validator.ValidationResult
 import org.example.domain.validator.impl.PackageValidatorImpl
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class PackageValidatorImplTest {
@@ -26,7 +26,7 @@ class PackageValidatorImplTest {
         val result = validator.validateCreate(cargoPackage)
 
         // Then
-        assertEquals(ValidationResult.Success, result)
+        Assertions.assertEquals(ValidationResult.Success, result)
     }
 
     @Test
@@ -38,7 +38,7 @@ class PackageValidatorImplTest {
         val result = validator.validateCreate(cargoPackage)
 
         // Then
-        assertEquals(ValidationResult.Success, result)
+        Assertions.assertEquals(ValidationResult.Success, result)
     }
 
     @Test
@@ -50,7 +50,7 @@ class PackageValidatorImplTest {
         val result = validator.validateCreate(cargoPackage)
 
         // Then
-        assertEquals(
+        Assertions.assertEquals(
             ValidationResult.Failure(
                 listOf(
                     FieldViolation(
@@ -76,7 +76,7 @@ class PackageValidatorImplTest {
         val result = validator.validateCreate(cargoPackage)
 
         // Then
-        assertEquals(
+        Assertions.assertEquals(
             ValidationResult.Failure(
                 listOf(
                     FieldViolation(
@@ -98,7 +98,7 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertEquals(ValidationResult.Success, result)
+        Assertions.assertEquals(ValidationResult.Success, result)
     }
 
     @Test
@@ -113,7 +113,7 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertEquals(ValidationResult.Success, result)
+        Assertions.assertEquals(ValidationResult.Success, result)
     }
 
     @Test
@@ -125,7 +125,7 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertEquals(
+        Assertions.assertEquals(
             ValidationResult.Failure(
                 listOf(
                     FieldViolation(
@@ -147,7 +147,7 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertEquals(
+        Assertions.assertEquals(
             ValidationResult.Failure(
                 listOf(
                     FieldViolation(
@@ -169,7 +169,7 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertEquals(
+        Assertions.assertEquals(
             ValidationResult.Failure(
                 listOf(
                     FieldViolation(
@@ -197,7 +197,7 @@ class PackageValidatorImplTest {
         val result = validator.validateUpdate(input)
 
         // Then
-        assertEquals(
+        Assertions.assertEquals(
             ValidationResult.Failure(
                 listOf(
                     FieldViolation(
