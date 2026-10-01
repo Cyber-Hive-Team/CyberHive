@@ -1,20 +1,16 @@
 package org.example.presentation
 
-import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDatasource
-import org.example.data.mapper.csv.RouteMapper
-import org.example.data.mapper.remote.RouteDtoMapper
 import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
 import org.example.data.repositoryImplementation.PackageRepositoryImpl
 import org.example.data.repositoryImplementation.RouteRepositoryImpl
 import org.example.data.repositoryImplementation.VehicleRepositoryImpl
 import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
-import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
@@ -23,8 +19,6 @@ import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 
 
-private const val ROUTE_FILE =
-    "src/main/resources/routes.csv"
 
 private const val WAREHOUSE_STATUS_FILE =
     "src/main/resources/warehouse-status.csv"
@@ -131,13 +125,11 @@ class DataLoader(
         map: Map<String, Warehouse>
     ): List<Route> {
         return RouteRepositoryImpl(
-            RouteRepositoryDependencies(
-                localDataSource = CsvRouteLocalDataSource(ROUTE_FILE),
-                remoteDataSource = SupabaseRouteRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
-                localMapper = RouteMapper(),
-                remoteMapper = RouteDtoMapper(),
-                warehouseMap = map
-            )
+            remoteDataSource = SupabaseRouteRemoteDatasource(
+                client,
+                "${supabaseConfig.url}/rest/v1"
+            ),
+            warehouseMap = map
         ).getAllRoutes().getOrThrow()
     }
 }
