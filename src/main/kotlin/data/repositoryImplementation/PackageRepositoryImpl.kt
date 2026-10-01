@@ -60,7 +60,9 @@ class PackageRepositoryImpl(
                         .getAll()
                         .mapNotNull { dto -> mapRemotePackage(dto) }
                 }.getOrElse {
-                    loadLocalPackages()
+                    localDataSource
+                        .getPackages()
+                        .mapNotNull { result -> result.rawData?.let { raw -> mapLocalPackage(raw) } }
                 }
             packages.addAll(loadedPackages)
             isLoaded = true
@@ -254,15 +256,6 @@ class PackageRepositoryImpl(
             }
             deletedId
         }.mapFailureToDomain(dataExceptionMapper)
-    }
-    private fun loadLocalPackages(): List<Package> {
-        return localDataSource
-            .getPackages()
-            .mapNotNull { result ->
-                result.rawData?.let { raw ->
-                    mapLocalPackage(raw)
-                }
-            }
     }
 
     private fun mapLocalPackage(raw: PackageRaw): Package? {
