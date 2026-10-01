@@ -25,7 +25,6 @@ import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
 import org.example.data.repositoryImplementation.dependencies.PackageRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.RouteRepositoryDependencies
 import org.example.data.repositoryImplementation.dependencies.VehicleRepositoryDependencies
-import org.example.data.repositoryImplementation.dependencies.WarehouseRepositoryDependencies
 import org.example.domain.model.Package
 import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
@@ -117,28 +116,15 @@ class DataLoader(
     private fun createWarehouseRepository(): WarehouseRepository {
 
         return WarehouseRepositoryImpl(
-            WarehouseRepositoryDependencies(
-                localDataSource =
-                    CsvWarehouseLocalDataSource(
-                        WAREHOUSE_FILE
-                    ),
-
-                remoteDataSource =
-                    SupabaseWarehouseRemoteDatasource(
-                        client,
-                        "${supabaseConfig.url}/rest/v1"
-                    ),
-
-                localMapper =
-                    WarehouseMapper(),
-
-                remoteMapper =
-                    WarehouseRemoteMapper(),
-
-                statusDataSource =
-                    CsvWarehouseStatusDataSource(
-                        WAREHOUSE_STATUS_FILE
-                    )
+            localDataSource = CsvWarehouseLocalDataSource(
+                WAREHOUSE_FILE
+            ),
+            remoteDataSource = SupabaseWarehouseRemoteDatasource(
+                client,
+                "${supabaseConfig.url}/rest/v1"
+            ),
+            statusDataSource = CsvWarehouseStatusDataSource(
+                WAREHOUSE_STATUS_FILE
             )
         )
     }
