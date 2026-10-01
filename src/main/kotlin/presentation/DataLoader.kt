@@ -1,5 +1,9 @@
 package org.example.presentation
 
+import org.example.data.datasource.local.csv.CsvPackageLocalDataSource
+import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
+import org.example.data.datasource.local.csv.CsvVehicleLocalDataSource
+import org.example.data.datasource.local.csv.CsvWarehouseLocalDataSource
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDatasource
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDatasource
@@ -19,9 +23,12 @@ import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 
 
+private const val WAREHOUSE_STATUS_FILE = "src/main/resources/warehouse-status.csv"
+private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
+private const val PACKAGE_FILE = "src/main/resources/packages.csv"
+private const val VEHICLE_FILE = "src/main/resources/fleet.csv"
+private const val ROUTE_FILE = "src/main/resources/routes.csv"
 
-private const val WAREHOUSE_STATUS_FILE =
-    "src/main/resources/warehouse-status.csv"
 
 data class LoadedData(
     val warehouses: List<Warehouse>,
@@ -77,11 +84,8 @@ class DataLoader(
     ): VehicleRepository {
 
         return VehicleRepositoryImpl(
-
-            remoteDataSource = SupabaseVehicleRemoteDatasource(
-                client,
-                "${supabaseConfig.url}/rest/v1"
-            ),
+            remoteDataSource = SupabaseVehicleRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+            localDataSource = CsvVehicleLocalDataSource(VEHICLE_FILE),
             warehouseMap = map
         )
     }
@@ -90,13 +94,9 @@ class DataLoader(
     private fun createWarehouseRepository(): WarehouseRepository {
 
         return WarehouseRepositoryImpl(
-            remoteDataSource = SupabaseWarehouseRemoteDatasource(
-                client,
-                "${supabaseConfig.url}/rest/v1"
-            ),
-            statusDataSource = CsvWarehouseStatusDataSource(
-                WAREHOUSE_STATUS_FILE
-            )
+            remoteDataSource = SupabaseWarehouseRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+            localDataSource = CsvWarehouseLocalDataSource(WAREHOUSE_FILE),
+            statusDataSource = CsvWarehouseStatusDataSource(WAREHOUSE_STATUS_FILE)
         )
     }
 
@@ -116,6 +116,7 @@ class DataLoader(
     ): List<Package> {
         return PackageRepositoryImpl(
             remoteDataSource = SupabasePackageRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
+            localDataSource = CsvPackageLocalDataSource(PACKAGE_FILE),
             warehouseMap = map
         ).getAllPackages().getOrThrow()
     }
@@ -125,10 +126,8 @@ class DataLoader(
         map: Map<String, Warehouse>
     ): List<Route> {
         return RouteRepositoryImpl(
-            remoteDataSource = SupabaseRouteRemoteDatasource(
-                client,
-                "${supabaseConfig.url}/rest/v1"
-            ),
+            localDataSource = CsvRouteLocalDataSource(ROUTE_FILE),
+            remoteDataSource = SupabaseRouteRemoteDatasource(client, "${supabaseConfig.url}/rest/v1"),
             warehouseMap = map
         ).getAllRoutes().getOrThrow()
     }
