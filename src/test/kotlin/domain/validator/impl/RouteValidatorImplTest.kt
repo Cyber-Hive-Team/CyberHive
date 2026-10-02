@@ -5,7 +5,6 @@ import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.validator.result.ValidationResult
-import org.example.domain.validator.result.FieldViolation
 import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.RouteValidator
 import org.junit.jupiter.api.Test
