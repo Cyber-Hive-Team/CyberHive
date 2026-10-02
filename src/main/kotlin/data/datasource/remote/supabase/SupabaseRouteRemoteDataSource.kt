@@ -7,56 +7,70 @@ import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import org.example.data.datasource.remote.PackageRemoteDatasource
-import org.example.data.remote.dto.request.CreatePackageRequestDto
-import org.example.data.remote.dto.request.UpdatePackageRequestDto
-import org.example.data.remote.dto.response.PackageResponseDto
+import org.example.data.datasource.remote.RouteRemoteDataSource
+import org.example.data.remote.dto.request.CreateRouteRequestDto
+import org.example.data.remote.dto.request.UpdateRouteRequestDto
+import org.example.data.remote.dto.response.RouteResponseDto
 
-class SupabasePackageRemoteDatasource(
+
+class SupabaseRouteRemoteDataSource(
     private val client: HttpClient,
     private val baseUrl: String
-) : PackageRemoteDatasource {
+) : RouteRemoteDataSource {
 
-    override suspend fun getAll(): List<PackageResponseDto> {
+
+    override suspend fun getAll(): List<RouteResponseDto> {
+
         return client
-            .get("$baseUrl/packages")
+            .get("$baseUrl/routes")
             .body()
     }
+
 
     override suspend fun getById(
         id: String
-    ): PackageResponseDto? {
+    ): RouteResponseDto? {
+
         return client
-            .get("$baseUrl/packages?package_id=eq.$id")
-            .body<List<PackageResponseDto>>()
+            .get("$baseUrl/routes?route_id=eq.$id")
+            .body<List<RouteResponseDto>>()
             .firstOrNull()
     }
 
+
     override suspend fun save(
-        request: CreatePackageRequestDto
-    ): PackageResponseDto {
+        request: CreateRouteRequestDto
+    ): RouteResponseDto {
+
         return client
-            .post("$baseUrl/packages") {
+            .post("$baseUrl/routes") {
                 setBody(request)
             }
             .body()
     }
 
+
     override suspend fun update(
         id: String,
-        request: UpdatePackageRequestDto
-    ): PackageResponseDto {
+        request: UpdateRouteRequestDto
+    ): RouteResponseDto {
+
         return client
-            .patch("$baseUrl/packages?package_id=eq.$id") {
+            .patch("$baseUrl/routes?route_id=eq.$id") {
                 setBody(request)
             }
             .body()
     }
+
 
     override suspend fun delete(
         id: String
     ): String {
-        client.delete("$baseUrl/packages?package_id=eq.$id")
+
+        client.delete(
+            "$baseUrl/routes?route_id=eq.$id"
+        )
+
         return id
     }
 }

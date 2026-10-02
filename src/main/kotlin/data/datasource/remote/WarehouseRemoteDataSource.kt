@@ -4,7 +4,7 @@ import org.example.data.remote.dto.request.CreateWarehouseRequestDto
 import org.example.data.remote.dto.request.UpdateWarehouseRequestDto
 import org.example.data.remote.dto.response.WarehouseResponseDto
 
-interface WarehouseRemoteDatasource {
+interface WarehouseRemoteDataSource {
 
     suspend fun getAll(): List<WarehouseResponseDto>
 

@@ -4,7 +4,7 @@ import org.example.data.remote.dto.request.CreatePackageRequestDto
 import org.example.data.remote.dto.request.UpdatePackageRequestDto
 import org.example.data.remote.dto.response.PackageResponseDto
 
-interface PackageRemoteDatasource {
+interface PackageRemoteDataSource {
 
     suspend fun getAll(): List<PackageResponseDto>
 

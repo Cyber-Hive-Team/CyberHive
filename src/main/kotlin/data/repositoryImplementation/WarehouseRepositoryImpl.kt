@@ -4,7 +4,7 @@ import kotlin.random.Random
 import org.example.data.dataholder.WarehouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
-import org.example.data.datasource.remote.WarehouseRemoteDatasource
+import org.example.data.datasource.remote.WarehouseRemoteDataSource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.csv.toDomainModel
@@ -22,7 +22,7 @@ import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.repository.WarehouseRepository
 
 class WarehouseRepositoryImpl(
-    private val remoteDataSource: WarehouseRemoteDatasource,
+    private val remoteDataSource: WarehouseRemoteDataSource,
     private val localDataSource: WarehouseDataSource,
     private val statusDataSource: CsvWarehouseStatusDataSource
 ) : BaseRepository(), WarehouseRepository {

@@ -4,7 +4,7 @@ import org.example.domain.model.Route
 import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.ValidationResult
 import org.example.domain.validator.Validator
 
 class UpdateRouteUseCase(

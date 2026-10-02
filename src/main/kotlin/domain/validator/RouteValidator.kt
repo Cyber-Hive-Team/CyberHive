@@ -1,15 +1,14 @@
-package org.example.domain.validator.impl
+package org.example.domain.validator
 
 import org.example.domain.model.Route
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateRouteInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.Validator
-import org.example.domain.validator.toResult
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.toResult
 
-class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
+class RouteValidator : Validator<Route, UpdateRouteInput> {
 
     override fun validateCreate(entity: Route): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
@@ -50,7 +49,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidDistance,
-                    DomainException.INVALID_DISTANCE
+                    DomainException.Companion.INVALID_DISTANCE
                 )
             )
         } else {
@@ -69,7 +68,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidDelay,
-                    DomainException.INVALID_DELAY
+                    DomainException.Companion.INVALID_DELAY
                 )
             )
         } else {
@@ -87,7 +86,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             violations.add(
                 FieldViolation(
                     FieldError.InvalidOriginWarehouse,
-                    DomainException.INVALID_ORIGIN_WAREHOUSE
+                    DomainException.Companion.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         }
@@ -96,7 +95,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             violations.add(
                 FieldViolation(
                     FieldError.InvalidDestinationWarehouse,
-                    DomainException.INVALID_DESTINATION_WAREHOUSE
+                    DomainException.Companion.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         }
@@ -111,7 +110,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     FieldError.NoUpdateFields,
-                    DomainException.NO_UPDATE_FIELDS
+                    DomainException.Companion.NO_UPDATE_FIELDS
                 )
             )
         } else {
@@ -135,7 +134,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidOriginWarehouse,
-                    DomainException.INVALID_ORIGIN_WAREHOUSE
+                    DomainException.Companion.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         } else {
@@ -152,7 +151,7 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidDestinationWarehouse,
-                    DomainException.INVALID_DESTINATION_WAREHOUSE
+                    DomainException.Companion.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         } else {
@@ -161,3 +160,4 @@ class RouteValidatorImpl : Validator<Route, UpdateRouteInput> {
     }
 
 }
+

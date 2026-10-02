@@ -1,4 +1,4 @@
-package org.example.domain.validator
+package org.example.domain.validator.result
 
 sealed interface FieldError {
     data object InvalidWeight : FieldError
@@ -16,3 +16,4 @@ sealed interface FieldError {
     data object InvalidLongitude : FieldError
     data object NoUpdateFields : FieldError
 }
+

@@ -2,7 +2,7 @@ package org.example.data.repositoryImplementation
 
 import org.example.data.dataholder.RouteRaw
 import org.example.data.datasource.RouteDataSource
-import org.example.data.datasource.remote.RouteRemoteDatasource
+import org.example.data.datasource.remote.RouteRemoteDataSource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.csv.toDomainModel
@@ -19,7 +19,7 @@ import org.example.domain.repository.RouteRepository
 
 class RouteRepositoryImpl(
     private val localDataSource: RouteDataSource,
-    private val remoteDataSource: RouteRemoteDatasource,
+    private val remoteDataSource: RouteRemoteDataSource,
     private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), RouteRepository {
     private val dataExceptionMapper = DataExceptionMapper()

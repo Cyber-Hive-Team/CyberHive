@@ -3,8 +3,9 @@ package org.example.domain.validator.impl
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdateWarehouseInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.WarehouseValidator
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.FieldError
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -12,7 +13,7 @@ import kotlin.test.assertTrue
 
 class WarehouseValidatorImplTest {
 
-    private val validator = WarehouseValidatorImpl()
+    private val validator = WarehouseValidator()
 
     @Test
     fun `valid warehouse returns success`() {

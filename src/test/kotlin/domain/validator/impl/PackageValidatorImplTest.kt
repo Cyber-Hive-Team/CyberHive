@@ -6,16 +6,16 @@ import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdatePackageInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.impl.PackageValidatorImpl
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.PackageValidator
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class PackageValidatorImplTest {
 
-    private val validator = PackageValidatorImpl()
+    private val validator = PackageValidator()
 
     @Test
     fun `accepts valid package creation`() {

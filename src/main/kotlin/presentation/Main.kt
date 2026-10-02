@@ -35,6 +35,5 @@ suspend fun main() {
     TraceHubLineageDemoRunner(dataLoader).run("WH-028")
     CommandInvokerDemoRunner(data.warehouses).run()
     GreedyFleetDispatcherRunner(dispatchFleetGreedyUseCase).run()
-
     }
 

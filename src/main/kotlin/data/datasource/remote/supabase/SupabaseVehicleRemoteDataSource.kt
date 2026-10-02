@@ -7,43 +7,43 @@ import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import org.example.data.datasource.remote.RouteRemoteDatasource
-import org.example.data.remote.dto.request.CreateRouteRequestDto
-import org.example.data.remote.dto.request.UpdateRouteRequestDto
-import org.example.data.remote.dto.response.RouteResponseDto
+import org.example.data.datasource.remote.VehicleRemoteDataSource
+import org.example.data.remote.dto.request.CreateVehicleRequestDto
+import org.example.data.remote.dto.request.UpdateVehicleRequestDto
+import org.example.data.remote.dto.response.VehicleResponseDto
 
 
-class SupabaseRouteRemoteDatasource(
+class SupabaseVehicleRemoteDataSource(
     private val client: HttpClient,
     private val baseUrl: String
-) : RouteRemoteDatasource {
+) : VehicleRemoteDataSource {
 
 
-    override suspend fun getAll(): List<RouteResponseDto> {
+    override suspend fun getAll(): List<VehicleResponseDto> {
 
         return client
-            .get("$baseUrl/routes")
+            .get("$baseUrl/vehicles")
             .body()
     }
 
 
     override suspend fun getById(
         id: String
-    ): RouteResponseDto? {
+    ): VehicleResponseDto? {
 
         return client
-            .get("$baseUrl/routes?route_id=eq.$id")
-            .body<List<RouteResponseDto>>()
+            .get("$baseUrl/vehicles?vehicle_id=eq.$id")
+            .body<List<VehicleResponseDto>>()
             .firstOrNull()
     }
 
 
     override suspend fun save(
-        request: CreateRouteRequestDto
-    ): RouteResponseDto {
+        request: CreateVehicleRequestDto
+    ): VehicleResponseDto {
 
         return client
-            .post("$baseUrl/routes") {
+            .post("$baseUrl/vehicles") {
                 setBody(request)
             }
             .body()
@@ -52,11 +52,11 @@ class SupabaseRouteRemoteDatasource(
 
     override suspend fun update(
         id: String,
-        request: UpdateRouteRequestDto
-    ): RouteResponseDto {
+        request: UpdateVehicleRequestDto
+    ): VehicleResponseDto {
 
         return client
-            .patch("$baseUrl/routes?route_id=eq.$id") {
+            .patch("$baseUrl/vehicles?vehicle_id=eq.$id") {
                 setBody(request)
             }
             .body()
@@ -68,7 +68,7 @@ class SupabaseRouteRemoteDatasource(
     ): String {
 
         client.delete(
-            "$baseUrl/routes?route_id=eq.$id"
+            "$baseUrl/vehicles?vehicle_id=eq.$id"
         )
 
         return id

@@ -12,9 +12,9 @@ import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
 import org.example.domain.usecase.crud.route.UpdateRouteUseCase
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.Validator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertIs

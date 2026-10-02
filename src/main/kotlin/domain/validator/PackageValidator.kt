@@ -1,15 +1,14 @@
-package org.example.domain.validator.impl
+package org.example.domain.validator
 
 import org.example.domain.model.Package
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdatePackageInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.Validator
-import org.example.domain.validator.toResult
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.toResult
 
-class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
+class PackageValidator : Validator<Package, UpdatePackageInput> {
 
     override fun validateCreate(entity: Package): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
@@ -51,7 +50,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidWeight,
-                    DomainException.INVALID_PACKAGE_WEIGHT
+                    DomainException.Companion.INVALID_PACKAGE_WEIGHT
                 )
             )
         } else {
@@ -68,7 +67,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidBaseRate,
-                    DomainException.INVALID_BASE_RATE
+                    DomainException.Companion.INVALID_BASE_RATE
                 )
             )
         } else {
@@ -86,7 +85,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             violations.add(
                 FieldViolation(
                     FieldError.InvalidOriginWarehouse,
-                    DomainException.INVALID_ORIGIN_WAREHOUSE
+                    DomainException.Companion.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         }
@@ -95,7 +94,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             violations.add(
                 FieldViolation(
                     FieldError.InvalidDestinationWarehouse,
-                    DomainException.INVALID_DESTINATION_WAREHOUSE
+                    DomainException.Companion.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         }
@@ -104,7 +103,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             violations.add(
                 FieldViolation(
                     FieldError.SameWarehouse,
-                    DomainException.SAME_WAREHOUSE
+                    DomainException.Companion.SAME_WAREHOUSE
                 )
             )
         }
@@ -119,7 +118,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     FieldError.NoUpdateFields,
-                    DomainException.NO_UPDATE_FIELDS
+                    DomainException.Companion.NO_UPDATE_FIELDS
                 )
             )
         } else {
@@ -141,7 +140,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidOriginWarehouse,
-                    DomainException.INVALID_ORIGIN_WAREHOUSE
+                    DomainException.Companion.INVALID_ORIGIN_WAREHOUSE
                 )
             )
         } else {
@@ -158,7 +157,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidDestinationWarehouse,
-                    DomainException.INVALID_DESTINATION_WAREHOUSE
+                    DomainException.Companion.INVALID_DESTINATION_WAREHOUSE
                 )
             )
         } else {
@@ -181,7 +180,7 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
                 violations.add(
                     FieldViolation(
                         FieldError.SameWarehouse,
-                        DomainException.SAME_WAREHOUSE
+                        DomainException.Companion.SAME_WAREHOUSE
                     )
                 )
             }
@@ -191,3 +190,4 @@ class PackageValidatorImpl : Validator<Package, UpdatePackageInput> {
     }
 
 }
+
