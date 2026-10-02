@@ -107,3 +107,4 @@ class VehicleValidator : Validator<Vehicle, UpdateVehicleInput> {
     }
 
 }
+

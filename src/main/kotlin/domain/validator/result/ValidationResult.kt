@@ -1,7 +1,5 @@
 package org.example.domain.validator.result
 
-import org.example.domain.validator.result.FieldError
-
 sealed class ValidationResult {
 
     data object Success : ValidationResult()

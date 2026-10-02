@@ -6,7 +6,9 @@ import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdatePackageInput
-import org.example.domain.validator.result.*
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.PackageValidator
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

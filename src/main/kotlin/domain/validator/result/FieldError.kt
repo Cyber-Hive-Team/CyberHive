@@ -16,3 +16,4 @@ sealed interface FieldError {
     data object InvalidLongitude : FieldError
     data object NoUpdateFields : FieldError
 }
+

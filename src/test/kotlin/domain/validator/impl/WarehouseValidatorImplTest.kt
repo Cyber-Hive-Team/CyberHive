@@ -3,8 +3,11 @@ package org.example.domain.validator.impl
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdateWarehouseInput
-import org.example.domain.validator.*
-import org.example.domain.validator.result.*
+import org.example.domain.validator.WarehouseValidator
+import org.example.domain.validator.Validator
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.FieldError
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
