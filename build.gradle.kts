@@ -22,6 +22,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation("com.lemonappdev:konsist:0.17.3")
 
     implementation(
         "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"

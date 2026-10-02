@@ -4,7 +4,7 @@ import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.data.remote.dto.response.RouteResponseDto
 
-interface RouteRemoteDatasource {
+interface RouteRemoteDataSource {
 
     suspend fun getAll(): List<RouteResponseDto>
 

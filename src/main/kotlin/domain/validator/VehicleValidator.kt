@@ -1,15 +1,14 @@
-package org.example.domain.validator.impl
+package org.example.domain.validator
 
 import org.example.domain.model.Vehicle
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateVehicleInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.Validator
-import org.example.domain.validator.toResult
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.toResult
 
-class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
+class VehicleValidator : Validator<Vehicle, UpdateVehicleInput> {
 
     override fun validateCreate(entity: Vehicle): ValidationResult {
         val violations = mutableListOf<FieldViolation>()
@@ -42,7 +41,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidCapacity,
-                    DomainException.INVALID_VEHICLE_CAPACITY
+                    DomainException.Companion.INVALID_VEHICLE_CAPACITY
                 )
             )
         } else {
@@ -61,7 +60,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidCostPerKm,
-                    DomainException.INVALID_COST_PER_KM
+                    DomainException.Companion.INVALID_COST_PER_KM
                 )
             )
         } else {
@@ -76,7 +75,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     FieldError.NoUpdateFields,
-                    DomainException.NO_UPDATE_FIELDS
+                    DomainException.Companion.NO_UPDATE_FIELDS
                 )
             )
         } else {
@@ -99,7 +98,7 @@ class VehicleValidatorImpl : Validator<Vehicle, UpdateVehicleInput> {
             listOf(
                 FieldViolation(
                     FieldError.InvalidCurrentHub,
-                    DomainException.INVALID_CURRENT_HUB
+                    DomainException.Companion.INVALID_CURRENT_HUB
                 )
             )
         } else {

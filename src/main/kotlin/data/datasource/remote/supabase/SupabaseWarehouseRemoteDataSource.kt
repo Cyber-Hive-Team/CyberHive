@@ -7,15 +7,15 @@ import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import org.example.data.datasource.remote.WarehouseRemoteDatasource
+import org.example.data.datasource.remote.WarehouseRemoteDataSource
 import org.example.data.remote.dto.request.CreateWarehouseRequestDto
 import org.example.data.remote.dto.request.UpdateWarehouseRequestDto
 import org.example.data.remote.dto.response.WarehouseResponseDto
 
-class SupabaseWarehouseRemoteDatasource(
+class SupabaseWarehouseRemoteDataSource(
     private val client: HttpClient,
     private val baseUrl: String
-) : WarehouseRemoteDatasource {
+) : WarehouseRemoteDataSource {
 
     override suspend fun getAll(): List<WarehouseResponseDto> {
         return client

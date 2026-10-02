@@ -1,20 +1,19 @@
-package org.example.domain.validator.impl
+package org.example.domain.validator
 
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateWarehouseInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.Validator
-import org.example.domain.validator.toResult
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.result.toResult
 
 private const val MIN_LATITUDE = -90.0
 private const val MAX_LATITUDE = 90.0
 private const val MIN_LONGITUDE = -180.0
 private const val MAX_LONGITUDE = 180.0
 
-class WarehouseValidatorImpl : Validator<Warehouse, UpdateWarehouseInput> {
+class WarehouseValidator : Validator<Warehouse, UpdateWarehouseInput> {
 
     override fun validateCreate(entity: Warehouse): ValidationResult {
         val violations = mutableListOf<FieldViolation>()

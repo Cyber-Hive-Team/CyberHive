@@ -4,7 +4,7 @@ import org.example.data.remote.dto.request.CreateVehicleRequestDto
 import org.example.data.remote.dto.request.UpdateVehicleRequestDto
 import org.example.data.remote.dto.response.VehicleResponseDto
 
-interface VehicleRemoteDatasource {
+interface VehicleRemoteDataSource {
 
     suspend fun getAll(): List<VehicleResponseDto>
 

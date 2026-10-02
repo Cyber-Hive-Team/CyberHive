@@ -1,4 +1,4 @@
-package org.example.domain.validator
+package org.example.domain.validator.result
 
 sealed interface FieldError {
     data object InvalidWeight : FieldError
