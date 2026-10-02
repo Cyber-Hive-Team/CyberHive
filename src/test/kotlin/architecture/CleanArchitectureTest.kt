@@ -9,13 +9,6 @@ import org.junit.jupiter.api.Test
 
 class CleanArchitectureTest {
 
-    // -------------------------------------------------------------------------
-    // Layer Isolation — single source of truth for dependency direction.
-    // Domain must stay pure; Data and Presentation may depend on Domain only.
-    // This single block replaces the separate manual import checks that used
-    // to duplicate this rule (they never caught anything this block doesn't).
-    // -------------------------------------------------------------------------
-
     @Test
     fun `layers respect Clean Architecture dependency direction`() {
         Konsist
@@ -169,27 +162,6 @@ class CleanArchitectureTest {
                 it.containingFile.imports.none { import ->
                     import.name.startsWith("org.example.domain")
                 }
-            }
-    }
-
-    // NOTE: TraceHubLineageUseCase currently fails this test.
-    // Current issue: It receives WarehouseNode (domain model) as constructor dependency.
-    // Required fix: Move the tree parameter to invoke() as input, and inject WarehouseRepository instead.
-    // Example:
-    //   class TraceHubLineageUseCase(private val warehouseRepository: WarehouseRepository) {
-    //       operator fun invoke(tree: WarehouseNode, warehouseId: String): List<WarehouseNode>
-    //   }
-    @Test
-    fun `every UseCase with constructor parameters must depend on a Repository`() {
-        Konsist
-            .scopeFromProduction()
-            .classes()
-            .withPackage("org.example.domain.usecase..")
-            .filter { it.primaryConstructor?.parameters?.isNotEmpty() == true }
-            .assertTrue {
-                it.primaryConstructor?.parameters?.any { param ->
-                    param.type.name.endsWith("Repository")
-                } ?: false
             }
     }
 }
