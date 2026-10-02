@@ -4,7 +4,7 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.ValidationResult
 import org.example.domain.validator.Validator
 
 class CreateWarehouseUseCase(

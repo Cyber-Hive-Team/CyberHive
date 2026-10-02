@@ -4,7 +4,7 @@ import org.example.domain.model.Vehicle
 import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateVehicleInput
 import org.example.domain.repository.VehicleRepository
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.ValidationResult
 import org.example.domain.validator.Validator
 
 class UpdateVehicleUseCase(

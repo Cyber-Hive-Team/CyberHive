@@ -4,16 +4,15 @@ import org.example.domain.model.RegionalZone
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdateRouteInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.impl.RouteValidatorImpl
+import org.example.domain.validator.result.*
+import org.example.domain.validator.RouteValidator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class RouteValidatorImplTest {
 
-    private val validator = RouteValidatorImpl()
+    private val validator = RouteValidator()
 
     private val warehouse1 = Warehouse(
         id = "WH-001",

@@ -4,7 +4,7 @@ import org.example.domain.model.Package
 import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.repository.PackageRepository
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.ValidationResult
 import org.example.domain.validator.Validator
 
 class UpdatePackageUseCase (

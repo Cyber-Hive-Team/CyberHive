@@ -10,9 +10,7 @@ import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
 import org.example.domain.usecase.crud.route.CreateRouteUseCase
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.*
 import org.example.domain.validator.Validator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf

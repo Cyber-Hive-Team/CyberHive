@@ -10,9 +10,7 @@ import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.repository.PackageRepository
 import org.example.domain.usecase.crud.packages.CreatePackageUseCase
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.*
 import org.example.domain.validator.Validator
 import org.example.test.TestDataFactory
 import org.junit.jupiter.api.Assertions.assertEquals
