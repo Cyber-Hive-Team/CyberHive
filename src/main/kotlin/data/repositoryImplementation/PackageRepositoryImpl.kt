@@ -1,11 +1,11 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.datasource.remote.PackageRemoteDataSource
 import java.time.LocalDateTime
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import org.example.data.datasource.remote.PackageRemoteDatasource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
@@ -33,7 +33,7 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 
 
 class PackageRepositoryImpl(
-    private val remoteDataSource: PackageRemoteDatasource,
+    private val remoteDataSource: PackageRemoteDataSource,
     private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), PackageRepository {
 

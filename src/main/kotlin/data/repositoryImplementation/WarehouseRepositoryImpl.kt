@@ -1,7 +1,7 @@
 package org.example.data.repositoryImplementation
 
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
-import org.example.data.datasource.remote.WarehouseRemoteDatasource
+import org.example.data.datasource.remote.WarehouseRemoteDataSource
 import kotlin.random.Random
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
@@ -19,7 +19,7 @@ import org.example.data.mapper.remote.toCreateRequest
 import org.example.data.mapper.remote.toUpdateRequest
 
 class WarehouseRepositoryImpl(
-    private val remoteDataSource: WarehouseRemoteDatasource,
+    private val remoteDataSource: WarehouseRemoteDataSource,
     private val statusDataSource: CsvWarehouseStatusDataSource
 ) : BaseRepository(), WarehouseRepository {
 

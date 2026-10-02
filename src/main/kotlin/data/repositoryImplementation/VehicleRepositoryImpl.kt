@@ -1,6 +1,6 @@
 package org.example.data.repositoryImplementation
 
-import org.example.data.datasource.remote.VehicleRemoteDatasource
+import org.example.data.datasource.remote.VehicleRemoteDataSource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
 import org.example.data.mapper.mapFailureToDomain
@@ -15,7 +15,7 @@ import org.example.data.mapper.remote.toUpdateRequest
 
 
 class VehicleRepositoryImpl(
-    private val remoteDataSource: VehicleRemoteDatasource,
+    private val remoteDataSource: VehicleRemoteDataSource,
     private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), VehicleRepository {
 
