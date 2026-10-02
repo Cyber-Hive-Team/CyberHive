@@ -1,6 +1,8 @@
 package org.example.domain.model
 
 import org.example.domain.model.exception.InvalidPackageIdException
+import org.example.domain.state.CreatedState
+import org.example.domain.state.PackageState
 
 private const val DEFAULT_BASE_RATE = 10.0
 private const val PACKAGE_ID_PREFIX = "^PKG-\\d{6}$"
@@ -12,7 +14,13 @@ data class Package(
     val originWarehouse: Warehouse,
     val destinationWarehouse: Warehouse,
     val baseRate: Double = DEFAULT_BASE_RATE
-): PackageComponent {
+) : PackageComponent {
+
+    private var currentState: PackageState = CreatedState()
+
+    val state: PackageState
+        get() = currentState
+
     override fun calculateTransitRate(): Double {
         return weight * baseRate
     }
@@ -29,4 +37,21 @@ data class Package(
             throw InvalidPackageIdException()
         }
     }
+
+    fun assignToVehicle() {
+        currentState = currentState.assignToVehicle()
+    }
+
+    fun startTransit() {
+        currentState = currentState.startTransit()
+    }
+
+    fun markDelivered() {
+        currentState = currentState.markDelivered()
+    }
+
+    fun markDeliveryFailed() {
+        currentState = currentState.markDeliveryFailed()
+    }
+
 }
