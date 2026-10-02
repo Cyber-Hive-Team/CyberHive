@@ -1,8 +1,11 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.dataholder.RouteRaw
+import org.example.data.datasource.RouteDataSource
 import org.example.data.datasource.remote.RouteRemoteDataSource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.csv.toDomainModel
 import org.example.data.mapper.mapFailureToDomain
 import org.example.data.mapper.remote.toCreateRequest
 import org.example.data.mapper.remote.toDomainModel
@@ -15,6 +18,7 @@ import org.example.domain.repository.RouteRepository
 
 
 class RouteRepositoryImpl(
+    private val localDataSource: RouteDataSource,
     private val remoteDataSource: RouteRemoteDataSource,
     private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), RouteRepository {
@@ -25,33 +29,27 @@ class RouteRepositoryImpl(
     override suspend fun getAllRoutes(): Result<List<Route>> {
 
         return runCatching {
-
             if (isLoaded) {
                 return@runCatching routes.toList()
             }
-
-
-            val loadedRoutes = remoteDataSource
-                    .getAll()
-                    .mapNotNull {
-                        mapRoute(it)
-                    }
-
-
+            val loadedRoutes =
+                runCatching {
+                    remoteDataSource
+                        .getAll()
+                        .mapNotNull { dto -> mapRemoteRoute(dto) }
+                }.getOrElse {
+                    loadLocalRoutes()
+                }
             routes.addAll(
                 loadedRoutes
             )
-
-
             isLoaded = true
-
-
             routes.toList()
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
-    private fun mapRoute(
+    private fun mapRemoteRoute(
         dto: RouteResponseDto
     ): Route? {
 
@@ -78,6 +76,24 @@ class RouteRepositoryImpl(
         }
     }
 
+    private fun mapLocalRoute(raw: RouteRaw): Route? {
+        return mapSafely(raw.id) {
+            val originWarehouse = findWarehouse(raw.originHubId, raw.id, "origin")
+            val destinationWarehouse = findWarehouse(raw.destinationHubId, raw.id, "destination")
+
+            raw.toDomainModel(originWarehouse = originWarehouse, destinationWarehouse = destinationWarehouse)
+        }
+    }
+
+    private fun loadLocalRoutes(): List<Route> {
+        return localDataSource
+            .getRoutes()
+            .mapNotNull { result ->
+                result.rawData?.let { raw ->
+                    mapLocalRoute(raw)
+                }
+            }
+    }
 
     private fun findWarehouse(
         warehouseId: String,
@@ -105,7 +121,7 @@ class RouteRepositoryImpl(
             val dto = remoteDataSource
                 .getById(routeId)
                 ?: throw RouteNotFoundException()
-            val route = mapRoute(dto) ?: throw NullRequiredFieldException("Route '$routeId' mapping failed.")
+            val route = mapRemoteRoute(dto) ?: throw NullRequiredFieldException("Route '$routeId' mapping failed.")
             routes.add(route)
             route
         }.mapFailureToDomain(dataExceptionMapper)
@@ -118,7 +134,7 @@ class RouteRepositoryImpl(
         return runCatching {
             val request = route.toCreateRequest()
             val dto = remoteDataSource.save(request)
-            val savedRoute = mapRoute(dto)
+            val savedRoute = mapRemoteRoute(dto)
                     ?: throw NullRequiredFieldException("Route '${route.id}' save mapping failed.")
             routes.add(savedRoute)
             savedRoute
@@ -132,7 +148,7 @@ class RouteRepositoryImpl(
         return runCatching {
             val request = route.toUpdateRequest()
             val dto = remoteDataSource.update(id = route.id, request = request)
-            val updatedRoute = mapRoute(dto)
+            val updatedRoute = mapRemoteRoute(dto)
                 ?: throw NullRequiredFieldException("Route '${route.id}' update mapping failed.")
 
             routes.removeIf {

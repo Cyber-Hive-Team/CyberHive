@@ -1,21 +1,25 @@
 package org.example.data.repositoryImplementation
 
+import org.example.data.dataholder.VehicleRaw
+import org.example.data.datasource.VehicleDataSource
 import org.example.data.datasource.remote.VehicleRemoteDataSource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.csv.toDomainModel
 import org.example.data.mapper.mapFailureToDomain
+import org.example.data.mapper.remote.toCreateRequest
+import org.example.data.mapper.remote.toDomainModel
+import org.example.data.mapper.remote.toUpdateRequest
 import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.VehicleRepository
-import org.example.data.mapper.remote.toDomainModel
-import org.example.data.mapper.remote.toCreateRequest
-import org.example.data.mapper.remote.toUpdateRequest
 
 
 class VehicleRepositoryImpl(
     private val remoteDataSource: VehicleRemoteDataSource,
+    private val localDataSource: VehicleDataSource,
     private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), VehicleRepository {
 
@@ -33,8 +37,14 @@ class VehicleRepositoryImpl(
                 return@runCatching vehicles.toList()
             }
 
-            val loadedVehicles = remoteDataSource.getAll().mapNotNull { mapVehicleSafely(it) }
-
+            val loadedVehicles =
+                runCatching {
+                    remoteDataSource
+                        .getAll()
+                        .mapNotNull { dto -> mapRemoteVehicleSafely(dto) }
+                }.getOrElse {
+                    loadLocalVehicles()
+                }
             vehicles.addAll(loadedVehicles)
             isLoaded = true
 
@@ -44,7 +54,7 @@ class VehicleRepositoryImpl(
     }
 
 
-    private fun mapVehicleSafely(
+    private fun mapRemoteVehicleSafely(
         dto: VehicleResponseDto
     ): Vehicle? {
 
@@ -62,6 +72,24 @@ class VehicleRepositoryImpl(
         }
     }
 
+    private fun mapLocalVehicleSafely(raw: VehicleRaw): Vehicle? {
+        return mapSafely(raw.id) {
+
+            val currentHub = warehouseMap[raw.currentHubId]
+                ?: throw NullRequiredFieldException("Vehicle '${raw.id}' current hub not found.")
+            raw.toDomainModel(currentHub = currentHub)
+        }
+    }
+
+    private fun loadLocalVehicles(): List<Vehicle> {
+        return localDataSource
+            .getVehicles()
+            .mapNotNull { result ->
+                result.rawData?.let { raw ->
+                    mapLocalVehicleSafely(raw)
+                }
+            }
+    }
 
     override suspend fun getVehiclesByWarehouseId(
         warehouseId: String
@@ -141,7 +169,7 @@ class VehicleRepositoryImpl(
                 .getById(vehicleId)
                 ?: throw VehicleNotFoundException()
         val vehicle =
-            mapVehicleSafely(dto)
+            mapRemoteVehicleSafely(dto)
                 ?: throw NullRequiredFieldException("Vehicle '$vehicleId' mapping failed.")
             vehicles.add(vehicle)
 
@@ -160,7 +188,7 @@ class VehicleRepositoryImpl(
                 remoteDataSource
                     .save(request)
             val savedVehicle =
-                mapVehicleSafely(dto)
+                mapRemoteVehicleSafely(dto)
                     ?: throw NullRequiredFieldException("Vehicle '${vehicle.id}' save mapping failed.")
             vehicles.add(savedVehicle)
             savedVehicle
@@ -181,7 +209,7 @@ class VehicleRepositoryImpl(
                     request = request
                 )
         val updatedVehicle =
-            mapVehicleSafely(dto)
+            mapRemoteVehicleSafely(dto)
                 ?: throw NullRequiredFieldException("Vehicle '${vehicle.id}' update mapping failed.")
         vehicles.removeIf {
             it.id == vehicle.id
