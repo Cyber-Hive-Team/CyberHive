@@ -1,25 +1,29 @@
 package org.example.data.repositoryImplementation
 
+import kotlin.random.Random
+import org.example.data.dataholder.WarehouseRaw
+import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 import org.example.data.datasource.remote.WarehouseRemoteDatasource
-import kotlin.random.Random
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.csv.toDomainModel
 import org.example.data.mapper.mapFailureToDomain
+import org.example.data.mapper.remote.toCreateRequest
+import org.example.data.mapper.remote.toDomainModel
+import org.example.data.mapper.remote.toUpdateRequest
 import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.example.domain.model.Package
-import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
-import org.example.domain.model.exception.WarehouseNotFoundException
-import org.example.domain.repository.WarehouseRepository
 import org.example.domain.model.WarehouseStatus
-import org.example.data.mapper.remote.toDomainModel
-import org.example.data.mapper.remote.toCreateRequest
-import org.example.data.mapper.remote.toUpdateRequest
+import org.example.domain.model.exception.WarehouseNotFoundException
+import org.example.domain.model.input.UpdateWarehouseInput
+import org.example.domain.repository.WarehouseRepository
 
 class WarehouseRepositoryImpl(
     private val remoteDataSource: WarehouseRemoteDatasource,
+    private val localDataSource: WarehouseDataSource,
     private val statusDataSource: CsvWarehouseStatusDataSource
 ) : BaseRepository(), WarehouseRepository {
 
@@ -39,11 +43,21 @@ class WarehouseRepositoryImpl(
                 return@runCatching warehouses.toList()
             }
             val loadedWarehouses =
+                runCatching {
                 remoteDataSource
                     .getAll()
-                    .mapNotNull {
-                        mapWarehouseSafely(it)
+                    .mapNotNull { dto ->
+                        mapRemoteWarehouseSafely(dto)
                     }
+                }.getOrElse {
+                    localDataSource
+                        .getWarehouses()
+                        .mapNotNull { result ->
+                            result.rawData?.let { raw ->
+                                mapLocalWarehouseSafely(raw)
+                            }
+                        }
+                }
             warehouses.addAll(
                 loadedWarehouses
             )
@@ -53,11 +67,17 @@ class WarehouseRepositoryImpl(
     }
 
 
-    private fun mapWarehouseSafely(
+    private fun mapRemoteWarehouseSafely(
         dto: WarehouseResponseDto
     ): Warehouse? {
         return mapSafely(dto.id) {
             dto.toDomainModel()
+        }
+    }
+
+    private fun mapLocalWarehouseSafely(raw: WarehouseRaw): Warehouse? {
+        return mapSafely(raw.id) {
+            raw.toDomainModel()
         }
     }
 
@@ -140,7 +160,7 @@ class WarehouseRepositoryImpl(
             remoteDataSource
                 .getById(id)
                 ?: throw WarehouseNotFoundException()
-            mapWarehouseSafely(remoteDto)
+            mapRemoteWarehouseSafely(remoteDto)
                 ?: throw NullRequiredFieldException("Warehouse '$id' mapping failed.")
         }.onSuccess { warehouse ->
             warehouses.add(warehouse)
@@ -157,7 +177,7 @@ class WarehouseRepositoryImpl(
                 remoteDataSource
                     .save(requestDto)
             val savedWarehouse =
-                mapWarehouseSafely(responseDto)
+                mapRemoteWarehouseSafely(responseDto)
                     ?: throw NullRequiredFieldException(
                         "Warehouse '${responseDto.id}' mapping failed."
                     )
@@ -176,7 +196,7 @@ class WarehouseRepositoryImpl(
                 remoteDataSource
                     .update(id = input.id, request = requestDto)
             val updatedWarehouse =
-                mapWarehouseSafely(responseDto)
+                mapRemoteWarehouseSafely(responseDto)
                     ?: throw NullRequiredFieldException(
                         "Warehouse '${input.id}' update failed."
                     )
