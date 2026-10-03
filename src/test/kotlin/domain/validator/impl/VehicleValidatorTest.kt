@@ -2,18 +2,18 @@ package org.example.test.domain.validator.impl
 
 import org.example.domain.model.exception.DomainException
 import org.example.domain.model.input.UpdateVehicleInput
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
-import org.example.domain.validator.impl.VehicleValidatorImpl
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
+import org.example.domain.validator.VehicleValidator
 import org.example.test.TestDataFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class VehicleValidatorImplTest {
+class VehicleValidatorTest {
 
     private val factory = TestDataFactory()
-    private val validator = VehicleValidatorImpl()
+    private val validator = VehicleValidator()
 
     @Test
     fun `accepts valid vehicle creation`() {

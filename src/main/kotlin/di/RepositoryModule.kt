@@ -18,22 +18,15 @@ import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.RouteRepository
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
+import org.example.presentation.DataLoader
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-private const val WAREHOUSE_STATUS_FILE =
-    "src/main/resources/warehouse-status.csv"
-
-private const val WAREHOUSE_FILE =
-    "src/main/resources/warehouses.csv"
-
-private const val PACKAGE_FILE =
-    "src/main/resources/packages.csv"
-
-private const val VEHICLE_FILE =
-    "src/main/resources/fleet.csv"
-
-private const val ROUTE_FILE =
-    "src/main/resources/routes.csv"
+private const val WAREHOUSE_STATUS_FILE = "src/main/resources/warehouse-status.csv"
+private const val WAREHOUSE_FILE = "src/main/resources/warehouses.csv"
+private const val PACKAGE_FILE = "src/main/resources/packages.csv"
+private const val VEHICLE_FILE = "src/main/resources/fleet.csv"
+private const val ROUTE_FILE = "src/main/resources/routes.csv"
 
 val repositoryModule = module {
 
@@ -75,39 +68,50 @@ val repositoryModule = module {
         )
     }
 
-    single<PackageRepository> { params ->
+    single<MutableMap<String, Warehouse>>(
+        qualifier = named("warehouseMap")
+    ) {
+        mutableMapOf()
+    }
 
-        val warehouseMap:
-                Map<String, Warehouse> = params.get()
-
+    single<PackageRepository> {
         PackageRepositoryImpl(
             remoteDataSource = get(),
             localDataSource = get(),
-            warehouseMap = warehouseMap
+            warehouseMap = get<MutableMap<String, Warehouse>>(
+                qualifier = named("warehouseMap")
+            )
         )
     }
 
-    single<RouteRepository> { params ->
-
-        val warehouseMap:
-                Map<String, Warehouse> = params.get()
-
+    single<RouteRepository> {
         RouteRepositoryImpl(
             localDataSource = get(),
             remoteDataSource = get(),
-            warehouseMap = warehouseMap
+            warehouseMap = get<MutableMap<String, Warehouse>>(
+                qualifier = named("warehouseMap")
+            )
         )
     }
 
-    single<VehicleRepository> { params ->
-
-        val warehouseMap:
-                Map<String, Warehouse> = params.get()
-
+    single<VehicleRepository> {
         VehicleRepositoryImpl(
             remoteDataSource = get(),
             localDataSource = get(),
-            warehouseMap = warehouseMap
+            warehouseMap = get<MutableMap<String, Warehouse>>(
+                qualifier = named("warehouseMap")
+            )
+        )
+    }
+    single {
+        DataLoader(
+            warehouseRepository = get(),
+            packageRepository = get(),
+            vehicleRepository = get(),
+            routeRepository = get(),
+            warehouseMap = get<MutableMap<String, Warehouse>>(
+                named("warehouseMap")
+            )
         )
     }
 }
