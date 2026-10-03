@@ -13,7 +13,7 @@ import org.example.domain.validator.PackageValidator
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-class PackageValidatorImplTest {
+class PackageValidatorTest {
 
     private val validator = PackageValidator()
 

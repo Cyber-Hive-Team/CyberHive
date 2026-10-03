@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-class WarehouseValidatorImplTest {
+class WarehouseValidatorTest {
 
     private val validator = WarehouseValidator()
 

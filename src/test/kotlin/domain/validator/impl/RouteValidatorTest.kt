@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-class RouteValidatorImplTest {
+class RouteValidatorTest {
 
     private val validator = RouteValidator()
 
