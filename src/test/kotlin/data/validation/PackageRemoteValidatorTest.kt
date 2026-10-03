@@ -3,6 +3,7 @@ package org.example.test.data.validation
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.remote.dto.response.PackageResponseDto
 import org.example.data.validation.PackageRemoteValidator
+import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -47,8 +48,20 @@ class PackageRemoteValidatorTest {
     ): PackageResponseDto = PackageResponseDto(
         id = "PKG-000001",
         weight = weight,
-        originHubId = "WH-001",
-        destinationHubId = "WH-002",
-        priority = "STANDARD"
+        priority = "STANDARD",
+        originHub = WarehouseResponseDto(
+            id = "WH-001",
+            name = "Origin Warehouse",
+            regionalZone = null,
+            latitude = null,
+            longitude = null
+        ),
+        destinationHub = WarehouseResponseDto(
+            id = "WH-002",
+            name = "Destination Warehouse",
+            regionalZone = null,
+            latitude = null,
+            longitude = null
+        )
     )
 }
