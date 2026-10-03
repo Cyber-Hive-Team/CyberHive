@@ -5,6 +5,8 @@ import org.example.data.dataparsing.parseVehicles
 import org.example.data.datasource.VehicleDataSource
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.model.VehicleLocalData
+import org.example.data.dataholder.VehicleRaw
+import org.example.data.dataholder.WarehouseRaw
 
 class CsvVehicleLocalDataSource(
     private val filePath: String,
@@ -12,41 +14,40 @@ class CsvVehicleLocalDataSource(
 ) : VehicleDataSource {
 
     override fun getVehicles(): List<RawResult<VehicleLocalData>> {
-
-        val warehousesById = warehouseDataSource
-            .getWarehouses()
-            .mapNotNull { it.rawData }
-            .associateBy { it.id }
+        val warehousesById = loadWarehousesById()
 
         return parseVehicles(filePath).map { result ->
+            resolveVehicle(result, warehousesById)
+        }
+    }
 
-            val raw = result.rawData
+    private fun loadWarehousesById(): Map<String, WarehouseRaw> {
+        return warehouseDataSource.getWarehouses()
+            .mapNotNull { it.rawData }
+            .associateBy { it.id }
+    }
 
-            if (raw == null) {
-                RawResult(
-                    rawData = null,
-                    errorMessage = result.errorMessage
+    private fun resolveVehicle(
+        result: RawResult<VehicleRaw>,
+        warehousesById: Map<String, WarehouseRaw>
+    ): RawResult<VehicleLocalData> {
+        val raw = result.rawData
+            ?: return RawResult(null, result.errorMessage)
+
+        val currentWarehouse = warehousesById[raw.currentHubId]
+
+        return if (currentWarehouse == null) {
+            RawResult(
+                null,
+                "Vehicle '${raw.id}' warehouse '${raw.currentHubId}' not found."
+            )
+        } else {
+            RawResult(
+                rawData = VehicleLocalData(
+                    vehicleRaw = raw,
+                    currentWarehouse = currentWarehouse
                 )
-            } else {
-
-                val currentWarehouse =
-                    warehousesById[raw.currentHubId]
-
-                if (currentWarehouse == null) {
-                    RawResult(
-                        rawData = null,
-                        errorMessage =
-                            "Vehicle '${raw.id}' warehouse '${raw.currentHubId}' not found."
-                    )
-                } else {
-                    RawResult(
-                        rawData = VehicleLocalData(
-                            vehicleRaw = raw,
-                            currentWarehouse = currentWarehouse
-                        )
-                    )
-                }
-            }
+            )
         }
     }
 }
