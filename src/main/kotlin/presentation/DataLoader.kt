@@ -21,16 +21,11 @@ class DataLoader(
     private val packageRepository: PackageRepository,
     private val vehicleRepository: VehicleRepository,
     private val routeRepository: RouteRepository,
-    private val warehouseMap: MutableMap<String, Warehouse>
 ) {
 
     suspend fun load(): LoadedData {
 
         val warehouses = warehouseRepository.getAllWarehouses().getOrThrow()
-
-        warehouseMap.clear()
-        warehouseMap.putAll(warehouses.associateBy { it.id })
-
         val packages = packageRepository.getAllPackages().getOrThrow()
         val vehicles = vehicleRepository.getVehicles().getOrThrow()
         val routes = routeRepository.getAllRoutes().getOrThrow()
