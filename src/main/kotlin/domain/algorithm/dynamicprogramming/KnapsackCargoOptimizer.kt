@@ -5,10 +5,7 @@ import org.example.domain.model.Vehicle
 
 class KnapsackCargoOptimizer {
 
-    fun selectOptimalPackages(
-        vehicle: Vehicle,
-        packages: List<Package>
-    ): List<Package> {
-        return emptyList()
+    fun selectOptimalPackages(vehicle: Vehicle, packages: List<Package>): List<Package> {
+        return packages.filter { cargoPackage -> cargoPackage.weight <= vehicle.maxCapacityKg }
     }
 }
