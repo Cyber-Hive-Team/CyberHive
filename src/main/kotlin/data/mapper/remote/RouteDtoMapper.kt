@@ -5,13 +5,15 @@ import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.domain.model.Route
-import org.example.domain.model.Warehouse
 
 
-fun RouteResponseDto.toDomainModel(
-        originWarehouse: Warehouse,
-        destinationWarehouse: Warehouse
-    ): Route {
+fun RouteResponseDto.toDomainModel(): Route {
+    val originWarehouse = originHub
+        ?: throw NullRequiredFieldException("Route '$routeId' has null originHub.")
+
+    val destinationWarehouse = destinationHub
+        ?: throw NullRequiredFieldException("Route '$routeId' has null destinationHub.")
+
         return Route(
             id = routeId,
             distanceKm = distanceKm
@@ -22,8 +24,8 @@ fun RouteResponseDto.toDomainModel(
                 ?: throw NullRequiredFieldException(
                     "Route '${routeId}' has null typicalDelayMin."
                 ),
-            originWarehouse = originWarehouse,
-            destinationWarehouse = destinationWarehouse
+            originWarehouse = originWarehouse.toDomainModel(),
+            destinationWarehouse = destinationWarehouse.toDomainModel()
         )
     }
 

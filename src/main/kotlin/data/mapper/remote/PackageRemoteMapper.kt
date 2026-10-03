@@ -10,10 +10,13 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdatePackageInput
 
 
-fun PackageResponseDto.toDomainModel(
-        originWarehouse: Warehouse,
-        destinationWarehouse: Warehouse
-    ): Package {
+fun PackageResponseDto.toDomainModel(): Package {
+
+    val originWarehouse = originHub
+        ?: throw NullRequiredFieldException("Package '$id' has null originHub.")
+
+    val destinationWarehouse = destinationHub
+        ?: throw NullRequiredFieldException("Package '$id' has null destinationHub.")
 
         return Package(
             id = id,
@@ -22,8 +25,8 @@ fun PackageResponseDto.toDomainModel(
                     "Package '${id}' has null weight."
                 ),
             priority = priority?.let { Priority.valueOf(it) } ?: Priority.LOW,
-            originWarehouse = originWarehouse,
-            destinationWarehouse = destinationWarehouse
+            originWarehouse = originWarehouse.toDomainModel(),
+            destinationWarehouse = destinationWarehouse.toDomainModel()
         )
     }
 

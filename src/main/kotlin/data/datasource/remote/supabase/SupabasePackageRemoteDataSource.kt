@@ -17,9 +17,14 @@ class SupabasePackageRemoteDataSource(
     private val baseUrl: String
 ) : PackageRemoteDataSource {
 
+    private val packageSelect =
+        "package_id,weight,origin_hub_id,destination_hub_id,priority," +
+                "origin_hub:warehouses!Packages_originHubId_fkey(*)," +
+                "destination_hub:warehouses!Packages_destinationHubId_fkey(*)"
+
     override suspend fun getAll(): List<PackageResponseDto> {
         return client
-            .get("$baseUrl/packages")
+            .get("$baseUrl/packages?select=$packageSelect")
             .body()
     }
 
@@ -27,7 +32,11 @@ class SupabasePackageRemoteDataSource(
         id: String
     ): PackageResponseDto? {
         return client
-            .get("$baseUrl/packages?package_id=eq.$id")
+            .get(
+                "$baseUrl/packages" +
+                        "?package_id=eq.$id" +
+                        "&select=$packageSelect"
+            )
             .body<List<PackageResponseDto>>()
             .firstOrNull()
     }
@@ -35,22 +44,30 @@ class SupabasePackageRemoteDataSource(
     override suspend fun save(
         request: CreatePackageRequestDto
     ): PackageResponseDto {
-        return client
-            .post("$baseUrl/packages") {
-                setBody(request)
-            }
-            .body()
+
+        client.post("$baseUrl/packages") {
+            setBody(request)
+        }
+
+        return getById(request.id)
+            ?: throw IllegalStateException(
+                "Package '${request.id}' was saved but could not be retrieved."
+            )
     }
 
     override suspend fun update(
         id: String,
         request: UpdatePackageRequestDto
     ): PackageResponseDto {
-        return client
-            .patch("$baseUrl/packages?package_id=eq.$id") {
-                setBody(request)
-            }
-            .body()
+
+        client.patch("$baseUrl/packages?package_id=eq.$id") {
+            setBody(request)
+        }
+
+        return getById(id)
+            ?: throw IllegalStateException(
+                "Package '$id' was updated but could not be retrieved."
+            )
     }
 
     override suspend fun delete(

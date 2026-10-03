@@ -12,65 +12,68 @@ import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.data.remote.dto.response.RouteResponseDto
 
-
 class SupabaseRouteRemoteDataSource(
     private val client: HttpClient,
     private val baseUrl: String
 ) : RouteRemoteDataSource {
 
+    private val routeSelect =
+        "route_id,origin_hub_id,destination_hub_id,distance_km,typical_delay_min," +
+                "origin_hub:warehouses!Routes_originHubId_fkey(*)," +
+                "destination_hub:warehouses!Routes_destinationHubId_fkey(*)"
 
     override suspend fun getAll(): List<RouteResponseDto> {
-
         return client
-            .get("$baseUrl/routes")
+            .get("$baseUrl/routes?select=$routeSelect")
             .body()
     }
-
 
     override suspend fun getById(
         id: String
     ): RouteResponseDto? {
-
         return client
-            .get("$baseUrl/routes?route_id=eq.$id")
+            .get(
+                "$baseUrl/routes" +
+                        "?route_id=eq.$id" +
+                        "&select=$routeSelect"
+            )
             .body<List<RouteResponseDto>>()
             .firstOrNull()
     }
-
 
     override suspend fun save(
         request: CreateRouteRequestDto
     ): RouteResponseDto {
 
-        return client
-            .post("$baseUrl/routes") {
-                setBody(request)
-            }
-            .body()
-    }
+        client.post("$baseUrl/routes") {
+            setBody(request)
+        }
 
+        return getById(request.routeId)
+            ?: throw IllegalStateException(
+                "Route '${request.routeId}' was saved but could not be retrieved."
+            )
+    }
 
     override suspend fun update(
         id: String,
         request: UpdateRouteRequestDto
     ): RouteResponseDto {
 
-        return client
-            .patch("$baseUrl/routes?route_id=eq.$id") {
-                setBody(request)
-            }
-            .body()
-    }
+        client.patch("$baseUrl/routes?route_id=eq.$id") {
+            setBody(request)
+        }
 
+        return getById(id)
+            ?: throw IllegalStateException(
+                "Route '$id' was updated but could not be retrieved."
+            )
+    }
 
     override suspend fun delete(
         id: String
     ): String {
-
-        client.delete(
-            "$baseUrl/routes?route_id=eq.$id"
-        )
-
+        client.delete("$baseUrl/routes?route_id=eq.$id")
         return id
     }
 }

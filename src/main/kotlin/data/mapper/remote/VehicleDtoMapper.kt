@@ -4,13 +4,14 @@ import org.example.data.remote.dto.request.CreateVehicleRequestDto
 import org.example.data.remote.dto.request.UpdateVehicleRequestDto
 import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.domain.model.Vehicle
-import org.example.domain.model.Warehouse
 import org.example.data.exception.NullRequiredFieldException
 
 
-fun VehicleResponseDto.toDomainModel(
-    currentHub: Warehouse
-): Vehicle {
+fun VehicleResponseDto.toDomainModel(): Vehicle {
+    val currentWarehouse = currentHub
+        ?: throw NullRequiredFieldException(
+            "Vehicle '$vehicleId' has null currentHub."
+        )
 
         return Vehicle(
             id = vehicleId,
@@ -22,7 +23,7 @@ fun VehicleResponseDto.toDomainModel(
                 ?: throw NullRequiredFieldException(
                     "Vehicle '${vehicleId}' has null costPerKm."
                 ),
-            currentHub = currentHub
+            currentHub = currentWarehouse.toDomainModel()
         )
     }
 
@@ -35,10 +36,10 @@ fun Vehicle.toCreateRequest(): CreateVehicleRequestDto {
         )
     }
 
-fun Vehicle.toUpdateRequest(): UpdateVehicleRequestDto {
-        return UpdateVehicleRequestDto(
-            currentHubId = currentHub.id,
-            maxCapacityKg = maxCapacityKg,
-            costPerKm = costPerKm
-        )
-    }
+fun Vehicle.toUpdateRequest(currentHubId: String = currentHub.id): UpdateVehicleRequestDto {
+    return UpdateVehicleRequestDto(
+        currentHubId = currentHubId,
+        maxCapacityKg = maxCapacityKg,
+        costPerKm = costPerKm
+    )
+}
