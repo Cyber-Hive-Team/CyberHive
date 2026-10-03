@@ -18,53 +18,88 @@ fun convertCsvRowToWarehouseRawObject(
     row: String,
     rowIndex: Int
 ): RawResult<WarehouseRaw> {
-
     val columns = row.split(",").map { it.trim() }
 
+    validateColumns(columns, rowIndex)
+
+    val warehouseId = parseWarehouseId(columns[ID_INDEX])
+    val zone = convertToZone(columns[ZONE_INDEX])
+
+    return when {
+        warehouseId == null -> invalidWarehouseIdResult(columns, rowIndex)
+        zone == null -> invalidZoneResult(columns, rowIndex)
+        else -> createWarehouseResult(columns, warehouseId, zone, rowIndex)
+    }
+}
+
+private fun validateColumns(
+    columns: List<String>,
+    rowIndex: Int
+) {
     if (!hasRequiredColumns(columns)) {
         throw InvalidColumnCountException(
             "Row ${rowIndex + 1} skipped - missing columns"
         )
     }
+}
 
-    val warehouseId = columns[ID_INDEX].uppercase()
+private fun parseWarehouseId(value: String): String? {
+    val warehouseId = value.uppercase()
 
-    if (!warehouseId.matches(WAREHOUSE_ID_REGEX)) {
-        return RawResult(
-            rawData = null,
-            errorMessage =
-                "Row ${rowIndex + 1} skipped - invalid warehouse id: '$warehouseId'"
-        )
+    return warehouseId.takeIf {
+        it.matches(WAREHOUSE_ID_REGEX)
     }
+}
 
-    val zone = convertToZone(columns[ZONE_INDEX])
+private fun invalidWarehouseIdResult(
+    columns: List<String>,
+    rowIndex: Int
+): RawResult<WarehouseRaw> {
+    return RawResult(
+        rawData = null,
+        errorMessage =
+            "Row ${rowIndex + 1} skipped - invalid warehouse id: '${columns[ID_INDEX]}'"
+    )
+}
 
-    if (zone == null) {
-        return RawResult(
-            rawData = null,
-            errorMessage =
-                "Row ${rowIndex + 1} skipped - invalid zone: ${columns[ZONE_INDEX]}"
-        )
-    }
+private fun invalidZoneResult(
+    columns: List<String>,
+    rowIndex: Int
+): RawResult<WarehouseRaw> {
+    return RawResult(
+        rawData = null,
+        errorMessage =
+            "Row ${rowIndex + 1} skipped - invalid zone: ${columns[ZONE_INDEX]}"
+    )
+}
 
+private fun createWarehouseResult(
+    columns: List<String>,
+    warehouseId: String,
+    zone: RegionalZone,
+    rowIndex: Int
+): RawResult<WarehouseRaw> {
     val warehouseRaw = extractWarehouseRaw(
         columns = columns,
         warehouseId = warehouseId,
         zone = zone
     )
 
-    if (warehouseRaw.latitude == null || warehouseRaw.longitude == null) {
-        return RawResult(
+    return if (
+        warehouseRaw.latitude == null ||
+        warehouseRaw.longitude == null
+    ) {
+        RawResult(
             rawData = null,
             errorMessage =
                 "Row ${rowIndex + 1} skipped - missing or invalid coordinates"
         )
+    } else {
+        RawResult(
+            rawData = warehouseRaw,
+            errorMessage = null
+        )
     }
-
-    return RawResult(
-        rawData = warehouseRaw,
-        errorMessage = null
-    )
 }
 
 private fun hasRequiredColumns(columns: List<String>): Boolean {
