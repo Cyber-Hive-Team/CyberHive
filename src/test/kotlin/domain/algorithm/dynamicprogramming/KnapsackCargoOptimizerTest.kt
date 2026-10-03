@@ -22,4 +22,19 @@ class KnapsackCargoOptimizerTest {
         // Then
         assertEquals(listOf(cargoPackage), result)
     }
+
+
+    @Test
+    fun `selects optimal package combination without exceeding vehicle capacity`() {
+        // Given
+        val warehouse = factory.createWarehouse("WH-001")
+        val vehicle = Vehicle(id = "TRK-0001", maxCapacityKg = 15.0, costPerKm = 1.0, currentHub = warehouse)
+        val packageA = factory.createPackage(id = "PKG-000001", weight = 8.5, priority = Priority.STANDARD)
+        val packageB = factory.createPackage(id = "PKG-000002", weight = 7.0, priority = Priority.LOW)
+        val packageC = factory.createPackage(id = "PKG-000003", weight = 6.5, priority = Priority.URGENT)
+        // When
+        val result = optimizer.selectOptimalPackages(vehicle = vehicle, packages = listOf(packageA, packageB, packageC))
+        // Then
+        assertEquals(listOf(packageA, packageC), result)
+    }
 }
