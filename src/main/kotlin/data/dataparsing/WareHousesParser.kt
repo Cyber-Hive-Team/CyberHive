@@ -12,7 +12,13 @@ private const val ZONE_INDEX = 2
 private const val LAT_INDEX = 3
 private const val LON_INDEX = 4
 
-fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<WarehouseRaw> {
+private val WAREHOUSE_ID_REGEX = Regex("^WH-\\d{3}$")
+
+fun convertCsvRowToWarehouseRawObject(
+    row: String,
+    rowIndex: Int
+): RawResult<WarehouseRaw> {
+
     val columns = row.split(",").map { it.trim() }
 
     if (!hasRequiredColumns(columns)) {
@@ -21,14 +27,39 @@ fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<War
         )
     }
 
+    val warehouseId = columns[ID_INDEX].uppercase()
+
+    if (!warehouseId.matches(WAREHOUSE_ID_REGEX)) {
+        return RawResult(
+            rawData = null,
+            errorMessage =
+                "Row ${rowIndex + 1} skipped - invalid warehouse id: '$warehouseId'"
+        )
+    }
+
     val zone = convertToZone(columns[ZONE_INDEX])
+
     if (zone == null) {
         return RawResult(
             rawData = null,
-            errorMessage = "Row ${rowIndex + 1} skipped - invalid zone: ${columns[ZONE_INDEX]}"
+            errorMessage =
+                "Row ${rowIndex + 1} skipped - invalid zone: ${columns[ZONE_INDEX]}"
         )
     }
-    val warehouseRaw = extractWarehouseRaw(columns, zone)
+
+    val warehouseRaw = extractWarehouseRaw(
+        columns = columns,
+        warehouseId = warehouseId,
+        zone = zone
+    )
+
+    if (warehouseRaw.latitude == null || warehouseRaw.longitude == null) {
+        return RawResult(
+            rawData = null,
+            errorMessage =
+                "Row ${rowIndex + 1} skipped - missing or invalid coordinates"
+        )
+    }
 
     return RawResult(
         rawData = warehouseRaw,
@@ -36,10 +67,8 @@ fun convertCsvRowToWarehouseRawObject(row: String, rowIndex: Int): RawResult<War
     )
 }
 
-
 private fun hasRequiredColumns(columns: List<String>): Boolean {
     return columns.size >= REQUIRED_COLUMNS_COUNT
-
 }
 
 private fun convertToZone(zoneText: String): RegionalZone? {
@@ -48,10 +77,13 @@ private fun convertToZone(zoneText: String): RegionalZone? {
     }
 }
 
-
-private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): WarehouseRaw {
+private fun extractWarehouseRaw(
+    columns: List<String>,
+    warehouseId: String,
+    zone: RegionalZone
+): WarehouseRaw {
     return WarehouseRaw(
-        id = columns[ID_INDEX].uppercase(),
+        id = warehouseId,
         name = columns[NAME_INDEX],
         regionalZone = zone,
         latitude = parseCoordinate(columns[LAT_INDEX]),
@@ -60,8 +92,13 @@ private fun extractWarehouseRaw(columns: List<String>, zone: RegionalZone): Ware
 }
 
 private fun parseCoordinate(value: String): Double? {
-    if (value.isBlank() || value.equals("null", true) || value.equals("N/A", true)) {
+    if (
+        value.isBlank() ||
+        value.equals("null", true) ||
+        value.equals("N/A", true)
+    ) {
         return null
     }
+
     return value.toDoubleOrNull()
 }

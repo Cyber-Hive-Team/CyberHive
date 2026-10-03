@@ -26,19 +26,15 @@ private data class RouteIds(
 )
 
 fun parseRoutes(filePath: String): List<RawResult<RouteRaw>> {
-
     val lines = readRouteLines(filePath)
-    val rawRoutesResultList: List<RawResult<RouteRaw>> =
-        lines
-            .drop(FIRST_DATA_ROW_INDEX)
-            .mapIndexed { index, line ->
-                processRouteLine(
-                    line = line,
-                    rowNumber = index + FIRST_DATA_ROW_INDEX
-                )
-            }
 
-    return rawRoutesResultList
+    return lines
+        .drop(FIRST_DATA_ROW_INDEX)
+        .mapIndexed { index, line ->
+            runCatching { processRouteLine(line = line, rowNumber = index + FIRST_DATA_ROW_INDEX)
+            }.getOrElse { exception -> RawResult<RouteRaw>(rawData = null, errorMessage = exception.message)
+            }
+        }
 }
 
 private fun readRouteLines(

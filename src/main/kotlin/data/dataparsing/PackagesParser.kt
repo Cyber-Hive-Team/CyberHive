@@ -22,17 +22,14 @@ private const val INVALID_WEIGHT = -1.0
 
 fun parsePackages(filePath: String): List<RawResult<PackageRaw>> {
     val lines = readPackageLines(filePath)
-
-    val rawPackagesResultList: List<RawResult<PackageRaw>> =
-        lines
-            .drop(FIRST_DATA_ROW_INDEX)
-            .mapIndexed { index, line ->
-                parsePackageLine(
-                    line = line,
-                    lineNumber = index + FIRST_DATA_ROW_INDEX
-                )
+    return lines
+        .drop(FIRST_DATA_ROW_INDEX)
+        .mapIndexed { index, line ->
+            runCatching {
+                parsePackageLine(line = line, lineNumber = index + FIRST_DATA_ROW_INDEX)
+            }.getOrElse { exception -> RawResult<PackageRaw>(rawData = null, errorMessage = exception.message)
             }
-    return rawPackagesResultList
+        }
 }
 
 private fun readPackageLines(
