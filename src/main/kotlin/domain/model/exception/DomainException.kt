@@ -35,6 +35,7 @@ open class DomainException(message: String, cause: Throwable? = null) : Exceptio
         const val DATA_ACCESS_FAILED = "Failed to access data."
         const val INVALID_DATA = "The received data is invalid."
         const val UNKNOWN_ERROR = "An unexpected error occurred."
+        const val INVALID_PACKAGE_STATE_TRANSITION = "Invalid package state transition."
 
     }
 }
@@ -62,3 +63,5 @@ class DataAccessException(message: String = DATA_ACCESS_FAILED, cause: Throwable
     DomainException(message, cause)
 class InvalidDataException(message: String = INVALID_DATA, cause: Throwable? = null) : DomainException(message, cause)
 class UnknownException(message: String = UNKNOWN_ERROR, cause: Throwable? = null) : DomainException(message, cause)
+class InvalidPackageStateTransitionException(message: String = INVALID_PACKAGE_STATE_TRANSITION) :
+    DomainException(message)
