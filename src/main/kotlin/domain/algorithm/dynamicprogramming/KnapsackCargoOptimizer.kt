@@ -31,15 +31,13 @@ class KnapsackCargoOptimizer {
 
         for (packageIndex in 1..packageCount) {
             val cargoPackage = packages[packageIndex - 1]
-            val packagePriority = getPriorityValue(cargoPackage.priority)
             for (totalPriority in 0..maxPriority) {
                 val withoutPackage = grid[packageIndex - 1][totalPriority]
                 val withPackage = calculateWeightWithPackage(
                     grid = grid,
                     packageIndex = packageIndex,
                     totalPriority = totalPriority,
-                    packagePriority = packagePriority,
-                    packageWeight = cargoPackage.weight
+                    cargoPackage = cargoPackage
                 )
 
                 grid[packageIndex][totalPriority] = minOf(withoutPackage, withPackage)
@@ -49,15 +47,18 @@ class KnapsackCargoOptimizer {
     }
 
     private fun calculateWeightWithPackage(
-        grid: Array<DoubleArray>, packageIndex: Int, totalPriority: Int,
-        packagePriority: Int, packageWeight: Double
+        grid: Array<DoubleArray>,
+        packageIndex: Int,
+        totalPriority: Int,
+        cargoPackage: Package
     ): Double {
+        val packagePriority = getPriorityValue(cargoPackage.priority)
         if (totalPriority < packagePriority) {
             return Double.POSITIVE_INFINITY
         }
         val previousWeight = grid[packageIndex - 1][totalPriority - packagePriority]
         return if (previousWeight.isFinite()) {
-            previousWeight + packageWeight
+            previousWeight + cargoPackage.weight
         } else {
             Double.POSITIVE_INFINITY
         }
