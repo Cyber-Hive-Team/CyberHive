@@ -1,39 +1,48 @@
 package org.example.presentation
 
-import org.example.data.remote.client.SupabaseHttpClient
-import org.example.data.remote.config.SupabaseConfig
-import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
+import org.example.di.networkModule
+import org.example.di.repositoryModule
+import org.example.di.useCaseModule
+import org.example.di.validatorModule
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
-
+import org.example.domain.usecase.TraceHubLineageUseCase
+import org.koin.core.context.startKoin
+import org.koin.core.parameter.parametersOf
 
 suspend fun main() {
+
     println("=== Cyber Hive ===")
-    println(System.getenv("SUPABASE_URL"))
-    println(System.getenv("SUPABASE_PUBLISHABLE_KEY"))
-    val supabaseConfig = SupabaseConfig(
-        url = requireNotNull(System.getenv("SUPABASE_URL")),
-        publishableKey = requireNotNull(
-            System.getenv("SUPABASE_PUBLISHABLE_KEY")
-        )
-    )
-    val httpClient = SupabaseHttpClient(supabaseConfig)
-    val dataLoader = DataLoader(httpClient = httpClient, supabaseConfig = supabaseConfig)
+
+    val koin = startKoin {
+        modules(networkModule, repositoryModule, validatorModule, useCaseModule)
+    }.koin
+
+    val dataLoader = koin.get<DataLoader>()
     val data = dataLoader.load()
+
     if (data.warehouses.isEmpty()) {
         println("ERROR: No warehouses found.")
         return
     }
-    val dispatchFleetGreedyUseCase =
-        DispatchFleetGreedyUseCase(vehicleRepository = data.vehicleRepository, dispatcher = GreedyFleetDispatcher())
+    val dispatchFleetGreedyUseCase = koin.get<DispatchFleetGreedyUseCase>()
+    val analyzeTreePerformanceUseCase = koin.get<AnalyzeTreePerformanceUseCase>()
+
     PricingDemoRunner(data.warehouses).run()
     DecoratorDemoRunner(data.warehouses).run()
     SortingDemoRunner(data.warehouses).run()
     ConsistentHashRoutingRunner(data.warehouses).run()
     RoutingComparisonRunner(data.warehouses, data.routes).run()
-    TreePerformanceDemoRunner(AnalyzeTreePerformanceUseCase()).run()
-    TraceHubLineageDemoRunner(dataLoader).run("WH-028")
+    TreePerformanceDemoRunner(analyzeTreePerformanceUseCase).run()
+
+    TraceHubLineageDemoRunner(
+        warehouses = data.warehouses,
+        routes = data.routes,
+        traceHubLineageUseCaseFactory = { tree ->
+            koin.get<TraceHubLineageUseCase> { parametersOf(tree) }
+        }
+    ).run("WH-028")
+
     CommandInvokerDemoRunner(data.warehouses).run()
     GreedyFleetDispatcherRunner(dispatchFleetGreedyUseCase).run()
-    }
-
+}
