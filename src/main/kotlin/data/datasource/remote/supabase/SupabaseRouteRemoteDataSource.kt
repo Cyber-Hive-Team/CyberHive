@@ -50,7 +50,7 @@ class SupabaseRouteRemoteDataSource(
         }
 
         return getById(request.routeId)
-            ?: throw IllegalStateException(
+            ?: error(
                 "Route '${request.routeId}' was saved but could not be retrieved."
             )
     }
@@ -65,7 +65,7 @@ class SupabaseRouteRemoteDataSource(
         }
 
         return getById(id)
-            ?: throw IllegalStateException(
+            ?: error(
                 "Route '$id' was updated but could not be retrieved."
             )
     }

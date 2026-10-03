@@ -52,7 +52,7 @@ class SupabaseVehicleRemoteDataSource(
         }
 
         return getById(request.vehicleId)
-            ?: throw IllegalStateException(
+            ?: error(
                 "Vehicle '${request.vehicleId}' was saved but could not be retrieved."
             )
     }
@@ -68,7 +68,7 @@ class SupabaseVehicleRemoteDataSource(
         }
 
         return getById(id)
-            ?: throw IllegalStateException(
+            ?: error(
                 "Vehicle '$id' was updated but could not be retrieved."
             )
     }

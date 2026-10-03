@@ -50,7 +50,7 @@ class SupabasePackageRemoteDataSource(
         }
 
         return getById(request.id)
-            ?: throw IllegalStateException(
+            ?: error(
                 "Package '${request.id}' was saved but could not be retrieved."
             )
     }
@@ -65,7 +65,7 @@ class SupabasePackageRemoteDataSource(
         }
 
         return getById(id)
-            ?: throw IllegalStateException(
+            ?: error(
                 "Package '$id' was updated but could not be retrieved."
             )
     }
