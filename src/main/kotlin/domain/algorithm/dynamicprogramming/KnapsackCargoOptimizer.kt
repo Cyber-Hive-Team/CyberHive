@@ -4,7 +4,15 @@ import org.example.domain.model.Package
 import org.example.domain.model.Priority
 import org.example.domain.model.Vehicle
 
+
 class KnapsackCargoOptimizer {
+
+
+    companion object {
+        private const val LOW_PRIORITY_VALUE = 1
+        private const val STANDARD_PRIORITY_VALUE = 2
+        private const val URGENT_PRIORITY_VALUE = 3
+    }
 
     fun selectOptimalPackages(vehicle: Vehicle, packages: List<Package>): List<Package> {
         val maxPriority = calculateMaxPriority(packages)
@@ -107,9 +115,9 @@ class KnapsackCargoOptimizer {
 
     private fun getPriorityValue(priority: Priority): Int {
         return when (priority) {
-            Priority.LOW -> 1
-            Priority.STANDARD -> 2
-            Priority.URGENT -> 3
+            Priority.LOW -> LOW_PRIORITY_VALUE
+            Priority.STANDARD -> STANDARD_PRIORITY_VALUE
+            Priority.URGENT -> URGENT_PRIORITY_VALUE
         }
     }
 }
