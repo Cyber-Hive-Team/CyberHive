@@ -1,9 +1,9 @@
 package org.example.di
 
-import org.example.data.datasource.PackageLocalDataSource
-import org.example.data.datasource.RouteLocalDataSource
-import org.example.data.datasource.VehicleLocalDataSource
-import org.example.data.datasource.WarehouseLocalDataSource
+import org.example.data.datasource.PackageDataSource
+import org.example.data.datasource.RouteDataSource
+import org.example.data.datasource.VehicleDataSource
+import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.csv.CsvPackageLocalDataSource
 import org.example.data.datasource.local.csv.CsvRouteLocalDataSource
 import org.example.data.datasource.local.csv.CsvVehicleLocalDataSource
@@ -37,25 +37,25 @@ private const val ROUTE_FILE =
 
 val repositoryModule = module {
 
-    single<PackageLocalDataSource> {
+    single<PackageDataSource> {
         CsvPackageLocalDataSource(
             filePath = PACKAGE_FILE
         )
     }
 
-    single<RouteLocalDataSource> {
+    single<RouteDataSource> {
         CsvRouteLocalDataSource(
             filePath = ROUTE_FILE
         )
     }
 
-    single<VehicleLocalDataSource> {
+    single<VehicleDataSource> {
         CsvVehicleLocalDataSource(
             filePath = VEHICLE_FILE
         )
     }
 
-    single<WarehouseLocalDataSource> {
+    single<WarehouseDataSource> {
         CsvWarehouseLocalDataSource(
             filePath = WAREHOUSE_FILE
         )
