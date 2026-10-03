@@ -8,26 +8,22 @@ import org.example.domain.model.Route
 
 
 fun RouteResponseDto.toDomainModel(): Route {
-    val originWarehouse = originHub
-        ?: throw NullRequiredFieldException("Route '$routeId' has null originHub.")
-
-    val destinationWarehouse = destinationHub
-        ?: throw NullRequiredFieldException("Route '$routeId' has null destinationHub.")
-
-        return Route(
-            id = routeId,
-            distanceKm = distanceKm
-                ?: throw NullRequiredFieldException(
-                    "Route '${routeId}' has null distanceKm."
-                ),
-            typicalDelayMin = typicalDelayMin
-                ?: throw NullRequiredFieldException(
-                    "Route '${routeId}' has null typicalDelayMin."
-                ),
-            originWarehouse = originWarehouse.toDomainModel(),
-            destinationWarehouse = destinationWarehouse.toDomainModel()
-        )
-    }
+    return Route(
+        id = routeId,
+        distanceKm = distanceKm.requiredField(
+            "Route '$routeId' has null distanceKm."
+        ),
+        typicalDelayMin = typicalDelayMin.requiredField(
+            "Route '$routeId' has null typicalDelayMin."
+        ),
+        originWarehouse = originHub.requiredField(
+            "Route '$routeId' has null originHub."
+        ).toDomainModel(),
+        destinationWarehouse = destinationHub.requiredField(
+            "Route '$routeId' has null destinationHub."
+        ).toDomainModel()
+    )
+}
 
 fun Route.toCreateRequest(): CreateRouteRequestDto {
         return CreateRouteRequestDto(
@@ -48,4 +44,7 @@ fun Route.toUpdateRequest(): UpdateRouteRequestDto {
         )
     }
 
+private fun <T : Any> T?.requiredField(message: String): T {
+    return this ?: throw NullRequiredFieldException(message)
+}
 

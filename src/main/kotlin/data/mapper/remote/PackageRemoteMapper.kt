@@ -6,29 +6,26 @@ import org.example.data.remote.dto.request.UpdatePackageRequestDto
 import org.example.data.remote.dto.response.PackageResponseDto
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
-import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdatePackageInput
 
 
 fun PackageResponseDto.toDomainModel(): Package {
-
-    val originWarehouse = originHub
-        ?: throw NullRequiredFieldException("Package '$id' has null originHub.")
-
-    val destinationWarehouse = destinationHub
-        ?: throw NullRequiredFieldException("Package '$id' has null destinationHub.")
-
-        return Package(
-            id = id,
-            weight = weight
-                ?: throw NullRequiredFieldException(
-                    "Package '${id}' has null weight."
-                ),
-            priority = priority?.let { Priority.valueOf(it) } ?: Priority.LOW,
-            originWarehouse = originWarehouse.toDomainModel(),
-            destinationWarehouse = destinationWarehouse.toDomainModel()
-        )
-    }
+    return Package(
+        id = id,
+        weight = weight.requiredField(
+            "Package '$id' has null weight."
+        ),
+        priority = priority
+            ?.let { Priority.valueOf(it) }
+            ?: Priority.LOW,
+        originWarehouse = originHub.requiredField(
+            "Package '$id' has null originHub."
+        ).toDomainModel(),
+        destinationWarehouse = destinationHub.requiredField(
+            "Package '$id' has null destinationHub."
+        ).toDomainModel()
+    )
+}
 
 fun Package.toCreateRequest(): CreatePackageRequestDto {
         return CreatePackageRequestDto(
@@ -50,5 +47,8 @@ fun UpdatePackageInput.toUpdateRequest(): UpdatePackageRequestDto {
             destinationHubId = destinationWarehouse.id
         )
     }
+private fun <T : Any> T?.requiredField(message: String): T {
+    return this ?: throw NullRequiredFieldException(message)
+}
 
 

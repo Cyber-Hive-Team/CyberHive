@@ -8,24 +8,19 @@ import org.example.data.exception.NullRequiredFieldException
 
 
 fun VehicleResponseDto.toDomainModel(): Vehicle {
-    val currentWarehouse = currentHub
-        ?: throw NullRequiredFieldException(
+    return Vehicle(
+        id = vehicleId,
+        maxCapacityKg = maxCapacityKg.requiredField(
+            "Vehicle '$vehicleId' has null maxCapacityKg."
+        ),
+        costPerKm = costPerKm.requiredField(
+            "Vehicle '$vehicleId' has null costPerKm."
+        ),
+        currentHub = currentHub.requiredField(
             "Vehicle '$vehicleId' has null currentHub."
-        )
-
-        return Vehicle(
-            id = vehicleId,
-            maxCapacityKg = maxCapacityKg
-                ?: throw NullRequiredFieldException(
-                    "Vehicle '${vehicleId}' has null maxCapacityKg."
-                ),
-            costPerKm = costPerKm
-                ?: throw NullRequiredFieldException(
-                    "Vehicle '${vehicleId}' has null costPerKm."
-                ),
-            currentHub = currentWarehouse.toDomainModel()
-        )
-    }
+        ).toDomainModel()
+    )
+}
 
 fun Vehicle.toCreateRequest(): CreateVehicleRequestDto {
         return CreateVehicleRequestDto(
@@ -42,4 +37,8 @@ fun Vehicle.toUpdateRequest(currentHubId: String = currentHub.id): UpdateVehicle
         maxCapacityKg = maxCapacityKg,
         costPerKm = costPerKm
     )
+}
+
+private fun <T : Any> T?.requiredField(message: String): T {
+    return this ?: throw NullRequiredFieldException(message)
 }
