@@ -3,230 +3,73 @@ package org.example.test.domain.usecase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.example.domain.model.Package
-import org.example.domain.model.Priority
-import org.example.domain.model.RegionalZone
-import org.example.domain.model.Vehicle
-import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.usecase.DispatchVehicleUseCase
+import org.example.test.TestDataFactory
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class DispatchVehicleUseCaseTest {
+    class DispatchVehicleUseCaseTest {
+        private val factory = TestDataFactory()
+        private val vehicleRepository = mockk<VehicleRepository>()
+        private val packageRepository = mockk<PackageRepository>()
+        private val useCase = DispatchVehicleUseCase(vehicleRepository, packageRepository)
 
-    private val vehicleRepository = mockk<VehicleRepository>()
-    private val packageRepository = mockk<PackageRepository>()
+        @Test
+        fun `loads packages from vehicle current hub without exceeding capacity`() = runBlocking {
+            val hub = factory.createWarehouse("WH-001")
+            val otherHub = factory.createWarehouse("WH-002")
+            val vehicle = factory.createVehicle(maxCapacityKg = 100.0, currentHub = hub)
+            val first = factory.createPackage(id = "PKG-000001", weight = 40.0, origin = hub)
+            val second = factory.createPackage(id = "PKG-000002", weight = 50.0, origin = hub)
+            val tooHeavy = factory.createPackage(id = "PKG-000003", weight = 30.0, origin = hub)
+            val wrongHub = factory.createPackage(id = "PKG-000004", weight = 10.0, origin = otherHub)
 
-    private val useCase = DispatchVehicleUseCase(
-        vehicleRepository,
-        packageRepository
-    )
-
-    private val warehouse1 = Warehouse(
-        "WH-001",
-        "Warehouse 1",
-        RegionalZone.NORTH,
-        31.5,
-        34.4
-    )
-
-    private val warehouse2 = Warehouse(
-        "WH-002",
-        "Warehouse 2",
-        RegionalZone.SOUTH,
-        31.6,
-        34.5
-    )
-
-    private val vehicle = Vehicle(
-        id = "TRK-0001",
-        maxCapacityKg = 100.0,
-        costPerKm = 2.0,
-        currentHub = warehouse1
-    )
-
-    private val package1 = Package(
-        id = "PKG-000001",
-        weight = 20.0,
-        priority = Priority.STANDARD,
-        originWarehouse = warehouse1,
-        destinationWarehouse = warehouse2
-    )
-
-    private val package2 = Package(
-        id = "PKG-000002",
-        weight = 30.0,
-        priority = Priority.URGENT,
-        originWarehouse = warehouse1,
-        destinationWarehouse = warehouse2
-    )
-
-    private val packageFromAnotherWarehouse = Package(
-        id = "PKG-000003",
-        weight = 10.0,
-        priority = Priority.LOW,
-        originWarehouse = warehouse2,
-        destinationWarehouse = warehouse1
-    )
-
-    @Test
-    fun `loads available packages for vehicle successfully`() {
-        runBlocking {
-
-            coEvery {
-                vehicleRepository.getVehicles()
-            } returns Result.success(listOf(vehicle))
-
-            coEvery {
-                packageRepository.getAllPackages()
-            } returns Result.success(
-                listOf(
-                    package1,
-                    package2,
-                    packageFromAnotherWarehouse
-                )
+            coEvery { vehicleRepository.getVehicles() } returns Result.success(listOf(vehicle))
+            coEvery { packageRepository.getAllPackages() } returns Result.success(
+                listOf(first, second, tooHeavy, wrongHub)
             )
 
-            val result = useCase("TRK-0001")
+            val result = useCase(vehicle.id)
 
-            assertTrue(result.isSuccess)
-
-            assertEquals(
-                listOf(package1, package2),
-                result.getOrThrow()
-            )
+            assertEquals(listOf(first, second), result.getOrThrow())
         }
-    }
 
-    @Test
-    fun `returns failure when vehicle does not exist`() {
-        runBlocking {
-
-            coEvery {
-                vehicleRepository.getVehicles()
-            } returns Result.success(emptyList())
+        @Test
+        fun `fails when vehicle is not found`() = runBlocking {
+            coEvery { vehicleRepository.getVehicles() } returns Result.success(emptyList())
 
             val result = useCase("TRK-9999")
 
-            assertTrue(result.isFailure)
-
-            assertTrue(
-                result.exceptionOrNull() is VehicleNotFoundException
-            )
+            assertInstanceOf(VehicleNotFoundException::class.java, result.exceptionOrNull())
         }
-    }
 
-    @Test
-    fun `returns failure when getting vehicles fails`() {
-        runBlocking {
+        @Test
+        fun `preserves vehicle repository failure`() = runBlocking {
+            val error = IllegalStateException("Vehicles failed")
 
-            val error = IllegalStateException(
-                "Failed to get vehicles"
-            )
-
-            coEvery {
-                vehicleRepository.getVehicles()
-            } returns Result.failure(error)
+            coEvery { vehicleRepository.getVehicles() } returns Result.failure(error)
 
             val result = useCase("TRK-0001")
 
-            assertTrue(result.isFailure)
+            assertSame(error, result.exceptionOrNull())
+        }
 
-            assertEquals(
-                error,
-                result.exceptionOrNull()
-            )
+        @Test
+        fun `preserves package repository failure`() = runBlocking {
+            val vehicle = factory.createVehicle()
+            val error = IllegalStateException("Packages failed")
+
+            coEvery { vehicleRepository.getVehicles() } returns Result.success(listOf(vehicle))
+            coEvery { packageRepository.getAllPackages() } returns Result.failure(error)
+
+            val result = useCase(vehicle.id)
+
+            assertSame(error, result.exceptionOrNull())
         }
     }
 
-    @Test
-    fun `returns failure when getting packages fails`() {
-        runBlocking {
-
-            val error = IllegalStateException(
-                "Failed to get packages"
-            )
-
-            coEvery {
-                vehicleRepository.getVehicles()
-            } returns Result.success(listOf(vehicle))
-
-            coEvery {
-                packageRepository.getAllPackages()
-            } returns Result.failure(error)
-
-            val result = useCase("TRK-0001")
-
-            assertTrue(result.isFailure)
-
-            assertEquals(
-                error,
-                result.exceptionOrNull()
-            )
-        }
-    }
-
-    @Test
-    fun `does not load packages that exceed vehicle capacity`() {
-        runBlocking {
-
-            val smallVehicle = Vehicle(
-                id = "TRK-0002",
-                maxCapacityKg = 40.0,
-                costPerKm = 2.0,
-                currentHub = warehouse1
-            )
-
-            coEvery {
-                vehicleRepository.getVehicles()
-            } returns Result.success(listOf(smallVehicle))
-
-            coEvery {
-                packageRepository.getAllPackages()
-            } returns Result.success(
-                listOf(
-                    package1,
-                    package2
-                )
-            )
-
-            val result = useCase("TRK-0002")
-
-            assertTrue(result.isSuccess)
-
-            assertEquals(
-                listOf(package1),
-                result.getOrThrow()
-            )
-        }
-    }
-
-    @Test
-    fun `returns empty list when no packages are available at vehicle hub`() {
-        runBlocking {
-
-            coEvery {
-                vehicleRepository.getVehicles()
-            } returns Result.success(listOf(vehicle))
-
-            coEvery {
-                packageRepository.getAllPackages()
-            } returns Result.success(
-                listOf(packageFromAnotherWarehouse)
-            )
-
-            val result = useCase("TRK-0001")
-
-            assertTrue(result.isSuccess)
-
-            assertEquals(
-                emptyList(),
-                result.getOrThrow()
-            )
-        }
-    }
-}
