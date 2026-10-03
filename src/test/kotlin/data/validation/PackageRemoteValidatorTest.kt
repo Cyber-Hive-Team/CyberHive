@@ -47,6 +47,8 @@ class PackageRemoteValidatorTest {
         weight: Double?
     ): PackageResponseDto = PackageResponseDto(
         id = "PKG-000001",
+        originHubId = "WH-001",
+        destinationHubId = "WH-002",
         weight = weight,
         priority = "STANDARD",
         originHub = WarehouseResponseDto(

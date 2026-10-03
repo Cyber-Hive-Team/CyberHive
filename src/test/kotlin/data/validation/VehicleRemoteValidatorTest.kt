@@ -67,6 +67,7 @@ class VehicleRemoteValidatorTest {
         costPerKm: Double? = 2.5
     ): VehicleResponseDto = VehicleResponseDto(
         vehicleId = "TRK-0001",
+        currentHubId = "WH-001",
         maxCapacityKg = maxCapacityKg,
         costPerKm = costPerKm,
         currentHub = WarehouseResponseDto(

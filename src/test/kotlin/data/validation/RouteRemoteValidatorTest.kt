@@ -18,6 +18,8 @@ class RouteRemoteValidatorTest {
     ): RouteResponseDto {
         return RouteResponseDto(
             routeId = "RT-00001",
+            originHubId = "WH-001",
+            destinationHubId = "WH-002",
             distanceKm = distanceKm,
             typicalDelayMin = typicalDelayMin,
             originHub = WarehouseResponseDto(
