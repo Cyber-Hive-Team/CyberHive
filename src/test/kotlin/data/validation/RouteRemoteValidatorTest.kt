@@ -3,6 +3,7 @@ package org.example.test.data.validation
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.data.validation.RouteRemoteValidator
+import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -20,7 +21,21 @@ class RouteRemoteValidatorTest {
             originHubId = "WH-001",
             destinationHubId = "WH-002",
             distanceKm = distanceKm,
-            typicalDelayMin = typicalDelayMin
+            typicalDelayMin = typicalDelayMin,
+            originHub = WarehouseResponseDto(
+                id = "WH-001",
+                name = "Origin Warehouse",
+                regionalZone = null,
+                latitude = null,
+                longitude = null
+            ),
+            destinationHub = WarehouseResponseDto(
+                id = "WH-002",
+                name = "Destination Warehouse",
+                regionalZone = null,
+                latitude = null,
+                longitude = null
+            )
         )
     }
 

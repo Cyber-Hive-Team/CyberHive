@@ -2,7 +2,6 @@ package org.example.data.remote.dto.response
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class RouteResponseDto(
     @SerialName("route_id")
@@ -18,5 +17,11 @@ data class RouteResponseDto(
     val distanceKm: Double?,
 
     @SerialName("typical_delay_min")
-    val typicalDelayMin: Int? = null
+    val typicalDelayMin: Int? = null,
+
+    @SerialName("origin_hub")
+    val originHub: WarehouseResponseDto? = null,
+
+    @SerialName("destination_hub")
+    val destinationHub: WarehouseResponseDto? = null
 )

@@ -18,11 +18,14 @@ class SupabaseVehicleRemoteDataSource(
     private val baseUrl: String
 ) : VehicleRemoteDataSource {
 
+    private val vehicleSelect =
+        "vehicle_id,current_hub_id,max_capacity_kg,cost_per_km," +
+                "current_hub:warehouses!Vehicles_currentHubId_fkey(*)"
 
     override suspend fun getAll(): List<VehicleResponseDto> {
 
         return client
-            .get("$baseUrl/vehicles")
+            .get("$baseUrl/vehicles?select=$vehicleSelect")
             .body()
     }
 
@@ -32,8 +35,10 @@ class SupabaseVehicleRemoteDataSource(
     ): VehicleResponseDto? {
 
         return client
-            .get("$baseUrl/vehicles?vehicle_id=eq.$id")
-            .body<List<VehicleResponseDto>>()
+            .get("$baseUrl/vehicles" +
+                        "?vehicle_id=eq.$id" +
+                    "&select=$vehicleSelect"
+            ).body<List<VehicleResponseDto>>()
             .firstOrNull()
     }
 
@@ -42,11 +47,14 @@ class SupabaseVehicleRemoteDataSource(
         request: CreateVehicleRequestDto
     ): VehicleResponseDto {
 
-        return client
-            .post("$baseUrl/vehicles") {
-                setBody(request)
-            }
-            .body()
+        client.post("$baseUrl/vehicles") {
+            setBody(request)
+        }
+
+        return getById(request.vehicleId)
+            ?: error(
+                "Vehicle '${request.vehicleId}' was saved but could not be retrieved."
+            )
     }
 
 
@@ -55,11 +63,14 @@ class SupabaseVehicleRemoteDataSource(
         request: UpdateVehicleRequestDto
     ): VehicleResponseDto {
 
-        return client
-            .patch("$baseUrl/vehicles?vehicle_id=eq.$id") {
-                setBody(request)
-            }
-            .body()
+        client.patch("$baseUrl/vehicles?vehicle_id=eq.$id") {
+            setBody(request)
+        }
+
+        return getById(id)
+            ?: error(
+                "Vehicle '$id' was updated but could not be retrieved."
+            )
     }
 
 

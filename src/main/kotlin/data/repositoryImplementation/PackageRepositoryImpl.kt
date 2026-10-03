@@ -1,7 +1,7 @@
 package org.example.data.repositoryImplementation
 
 import org.example.data.datasource.remote.PackageRemoteDataSource
-import org.example.data.dataholder.PackageRaw
+import org.example.data.datasource.local.model.PackageLocalData
 import org.example.data.datasource.PackageDataSource
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -19,7 +19,6 @@ import org.example.data.remote.dto.response.PackageResponseDto
 import org.example.domain.model.Package
 import org.example.domain.model.PackageRequirements
 import org.example.domain.model.PackageWarehouseStay
-import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.model.input.UpdatePackageInput
@@ -38,7 +37,6 @@ private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
 class PackageRepositoryImpl(
     private val remoteDataSource: PackageRemoteDataSource,
     private val localDataSource: PackageDataSource,
-    private val warehouseMap: Map<String, Warehouse>
 ) : BaseRepository(), PackageRepository {
 
     private val dataExceptionMapper = DataExceptionMapper()
@@ -70,17 +68,6 @@ class PackageRepositoryImpl(
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
-
-    private fun findWarehouse(
-        warehouseId: String,
-        packageId: String,
-        type: String
-    ) =
-
-        warehouseMap[warehouseId]
-            ?: throw NullRequiredFieldException(
-                "Package '$packageId' $type warehouse not found."
-            )
 
 
     override suspend fun getById(
@@ -258,39 +245,17 @@ class PackageRepositoryImpl(
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
-    private fun mapLocalPackage(raw: PackageRaw): Package? {
-        return mapSafely(raw.id) {
-            val originWarehouse = findWarehouse(raw.originHubId, raw.id, "origin")
-            val destinationWarehouse = findWarehouse(raw.destinationHubId, raw.id, "destination")
-
-            raw.toDomainModel(originWarehouse = originWarehouse, destinationWarehouse = destinationWarehouse)
+    private fun mapRemotePackage(dto: PackageResponseDto): Package? {
+        return mapSafely(dto.id) {
+            dto.toDomainModel()
         }
     }
 
-    private fun mapRemotePackage(
-        dto: PackageResponseDto
+    private fun mapLocalPackage(
+        data: PackageLocalData
     ): Package? {
-
-        return mapSafely(dto.id) {
-
-            val originWarehouse =
-                findWarehouse(
-                    dto.originHubId,
-                    dto.id,
-                    "origin"
-                )
-
-            val destinationWarehouse =
-                findWarehouse(
-                    dto.destinationHubId,
-                    dto.id,
-                    "destination"
-                )
-
-            dto.toDomainModel(
-                originWarehouse = originWarehouse,
-                destinationWarehouse = destinationWarehouse
-            )
+        return mapSafely(data.packageRaw.id) {
+            data.toDomainModel()
         }
     }
 }
