@@ -11,9 +11,9 @@ import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.model.input.UpdateVehicleInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.usecase.crud.vehicle.UpdateVehicleUseCase
-import org.example.domain.validator.FieldError
-import org.example.domain.validator.FieldViolation
-import org.example.domain.validator.ValidationResult
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
 import org.example.domain.validator.Validator
 import org.example.test.TestDataFactory
 import org.junit.jupiter.api.Assertions.assertEquals
