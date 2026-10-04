@@ -1,49 +1,43 @@
 package edu.logiroute.logiroute
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import cyberhive.frontend.logiroute.generated.resources.Res
-import cyberhive.frontend.logiroute.generated.resources.compose_multiplatform
-import org.jetbrains.compose.resources.painterResource
-
+import androidx.compose.ui.unit.dp
+import edu.logiroute.logiroute.ui.components.PackagePriorityBadge
+import edu.logiroute.logiroute.ui.components.WarehouseIdentityBadge
+import edu.logiroute.logiroute.ui.components.WarehouseSummaryCard
+import edu.logiroute.logiroute.ui.preview.previewActiveWarehouse
+import edu.logiroute.logiroute.ui.preview.previewDestinationWarehouse
+import edu.logiroute.logiroute.ui.preview.previewEmptyWarehouse
+import edu.logiroute.logiroute.ui.preview.previewLowPackage
+import edu.logiroute.logiroute.ui.preview.previewOriginWarehouse
+import edu.logiroute.logiroute.ui.preview.previewStandardPackage
+import edu.logiroute.logiroute.ui.preview.previewUrgentPackage
+import edu.logiroute.logiroute.ui.theme.InkBlack
 
 @Composable
-@Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxSize()
+                .background(InkBlack)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { "Hello \"DDDDDDDDDDDDDD " }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+            PackagePriorityBadge(pkg = previewUrgentPackage)
+            PackagePriorityBadge(pkg = previewStandardPackage)
+            PackagePriorityBadge(pkg = previewLowPackage)
+            WarehouseIdentityBadge(warehouse = previewOriginWarehouse)
+            WarehouseIdentityBadge(warehouse = previewDestinationWarehouse)
+            WarehouseSummaryCard(warehouse = previewActiveWarehouse)
+            WarehouseSummaryCard(warehouse = previewEmptyWarehouse)
         }
     }
 }
