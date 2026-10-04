@@ -5,7 +5,9 @@ import org.example.domain.model.Vehicle
 import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.state.CreatedState
 
-abstract class BaseDispatchProcessor {
+abstract class BaseDispatchProcessor (
+    private val capacityReservations: VehicleCapacityReservations
+){
 
     fun dispatch(vehicle: Vehicle, cargo: List<Package>) {
         validateCargo(vehicle, cargo)
@@ -55,10 +57,17 @@ abstract class BaseDispatchProcessor {
         }
     }
 
-    protected abstract fun reserveVehicleCapacity(
+    protected fun reserveVehicleCapacity(
         vehicle: Vehicle,
         cargo: List<Package>
-    )
+    ) {
+        val totalWeight = cargo.sumOf { it.weight }
+
+        capacityReservations.reserve(
+            vehicle = vehicle,
+            cargoWeight = totalWeight
+        )
+    }
 
     protected abstract fun updateShipmentState(
         cargo: List<Package>
