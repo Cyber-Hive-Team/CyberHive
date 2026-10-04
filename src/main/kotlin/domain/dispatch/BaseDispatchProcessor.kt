@@ -69,9 +69,14 @@ abstract class BaseDispatchProcessor (
         )
     }
 
-    protected abstract fun updateShipmentState(
+    protected fun updateShipmentState(
         cargo: List<Package>
-    )
+    ){
+        cargo.forEach { cargoPackage ->
+            cargoPackage.assignToVehicle()
+            cargoPackage.startTransit()
+        }
+    }
 
     protected open fun notifyDispatchStatus(
         vehicle: Vehicle,
