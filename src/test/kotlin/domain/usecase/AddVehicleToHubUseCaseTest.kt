@@ -10,9 +10,8 @@ import org.example.domain.model.input.AddVehicleToHubInput
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.AddVehicleToHubUseCase
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class AddVehicleToHubUseCaseTest {
 
@@ -45,75 +44,72 @@ class AddVehicleToHubUseCaseTest {
     )
 
     @Test
-    fun `adds vehicle to warehouse successfully`() {
-        runBlocking {
+    fun `adds vehicle to warehouse successfully`() = runBlocking {
 
-            coEvery {
-                vehicleRepository.getById("TRK-0001")
-            } returns Result.success(vehicle)
+        // Given
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.success(vehicle)
 
-            coEvery {
-                warehouseRepository.getById("WH-001")
-            } returns Result.success(warehouse)
+        coEvery {
+            warehouseRepository.getById("WH-001")
+        } returns Result.success(warehouse)
 
-            val result = useCase(input)
+        // When
+        val result = useCase(input)
 
-            assertTrue(result.isSuccess)
-
-            assertEquals(
-                vehicle,
-                result.getOrThrow()
-            )
-        }
+        // Then
+        assertEquals(
+            vehicle,
+            result.getOrThrow()
+        )
     }
 
     @Test
-    fun `returns failure when vehicle is not found`() {
-        runBlocking {
+    fun `returns failure when vehicle is not found`() = runBlocking {
 
-            val error = IllegalStateException(
-                "Vehicle not found"
-            )
+        // Given
+        val error = IllegalStateException(
+            "Vehicle not found"
+        )
 
-            coEvery {
-                vehicleRepository.getById("TRK-0001")
-            } returns Result.failure(error)
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.failure(error)
 
-            val result = useCase(input)
+        // When
+        val result = useCase(input)
 
-            assertTrue(result.isFailure)
-
-            assertEquals(
-                error,
-                result.exceptionOrNull()
-            )
-        }
+        // Then
+        assertEquals(
+            error,
+            result.exceptionOrNull()
+        )
     }
 
     @Test
-    fun `returns failure when warehouse is not found`() {
-        runBlocking {
+    fun `returns failure when warehouse is not found`() = runBlocking {
 
-            val error = IllegalStateException(
-                "Warehouse not found"
-            )
+        // Given
+        val error = IllegalStateException(
+            "Warehouse not found"
+        )
 
-            coEvery {
-                vehicleRepository.getById("TRK-0001")
-            } returns Result.success(vehicle)
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.success(vehicle)
 
-            coEvery {
-                warehouseRepository.getById("WH-001")
-            } returns Result.failure(error)
+        coEvery {
+            warehouseRepository.getById("WH-001")
+        } returns Result.failure(error)
 
-            val result = useCase(input)
+        // When
+        val result = useCase(input)
 
-            assertTrue(result.isFailure)
-
-            assertEquals(
-                error,
-                result.exceptionOrNull()
-            )
-        }
+        // Then
+        assertEquals(
+            error,
+            result.exceptionOrNull()
+        )
     }
 }

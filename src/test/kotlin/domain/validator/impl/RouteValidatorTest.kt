@@ -4,12 +4,11 @@ import org.example.domain.model.RegionalZone
 import org.example.domain.model.Route
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.UpdateRouteInput
-import org.example.domain.validator.result.ValidationResult
-import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.RouteValidator
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.ValidationResult
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 
 class RouteValidatorTest {
 
@@ -33,6 +32,8 @@ class RouteValidatorTest {
 
     @Test
     fun `valid route should return success`() {
+
+        // Given
         val route = Route(
             id = "RT-00001",
             distanceKm = 100.0,
@@ -41,13 +42,20 @@ class RouteValidatorTest {
             destinationWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateCreate(route)
 
-        assertIs<ValidationResult.Success>(result)
+        // Then
+        assertEquals(
+            ValidationResult.Success,
+            result
+        )
     }
 
     @Test
     fun `route with zero distance should return invalid distance`() {
+
+        // Given
         val route = Route(
             id = "RT-00001",
             distanceKm = 0.0,
@@ -56,9 +64,11 @@ class RouteValidatorTest {
             destinationWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateCreate(route)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
             FieldError.InvalidDistance,
@@ -68,6 +78,8 @@ class RouteValidatorTest {
 
     @Test
     fun `route with negative distance should return invalid distance`() {
+
+        // Given
         val route = Route(
             id = "RT-00001",
             distanceKm = -50.0,
@@ -76,9 +88,11 @@ class RouteValidatorTest {
             destinationWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateCreate(route)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
             FieldError.InvalidDistance,
@@ -88,6 +102,8 @@ class RouteValidatorTest {
 
     @Test
     fun `route with negative delay should return invalid delay`() {
+
+        // Given
         val route = Route(
             id = "RT-00001",
             distanceKm = 100.0,
@@ -96,9 +112,11 @@ class RouteValidatorTest {
             destinationWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateCreate(route)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
             FieldError.InvalidDelay,
@@ -108,6 +126,8 @@ class RouteValidatorTest {
 
     @Test
     fun `route with zero delay should return success`() {
+
+        // Given
         val route = Route(
             id = "RT-00001",
             distanceKm = 100.0,
@@ -116,32 +136,48 @@ class RouteValidatorTest {
             destinationWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateCreate(route)
 
-        assertIs<ValidationResult.Success>(result)
+        // Then
+        assertEquals(
+            ValidationResult.Success,
+            result
+        )
     }
 
     @Test
     fun `valid update should return success`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001",
             distanceKm = 150.0
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        assertIs<ValidationResult.Success>(result)
+        // Then
+        assertEquals(
+            ValidationResult.Success,
+            result
+        )
     }
 
     @Test
     fun `update with no fields should return no update fields`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001"
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
             FieldError.NoUpdateFields,
@@ -151,14 +187,18 @@ class RouteValidatorTest {
 
     @Test
     fun `update with invalid distance should return invalid distance`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001",
             distanceKm = -10.0
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
             FieldError.InvalidDistance,
@@ -168,14 +208,18 @@ class RouteValidatorTest {
 
     @Test
     fun `update with invalid delay should return invalid delay`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001",
             typicalDelayMin = -5
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
             FieldError.InvalidDelay,
@@ -185,53 +229,64 @@ class RouteValidatorTest {
 
     @Test
     fun `update with valid origin warehouse should return success`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001",
             originWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        assertIs<ValidationResult.Success>(result)
+        // Then
+        assertEquals(
+            ValidationResult.Success,
+            result
+        )
     }
 
     @Test
     fun `update with valid destination warehouse should return success`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001",
             destinationWarehouse = warehouse2
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        assertIs<ValidationResult.Success>(result)
+        // Then
+        assertEquals(
+            ValidationResult.Success,
+            result
+        )
     }
 
     @Test
     fun `update with multiple invalid fields should return multiple violations`() {
+
+        // Given
         val input = UpdateRouteInput(
             id = "RT-00001",
             distanceKm = -10.0,
             typicalDelayMin = -5
         )
 
+        // When
         val result = validator.validateUpdate(input)
 
-        val failure = assertIs<ValidationResult.Failure>(result)
+        // Then
+        val failure = result as ValidationResult.Failure
 
         assertEquals(
-            2,
-            failure.violations.size
-        )
-
-        assertEquals(
-            FieldError.InvalidDistance,
-            failure.violations[0].field
-        )
-
-        assertEquals(
-            FieldError.InvalidDelay,
-            failure.violations[1].field
+            listOf(
+                FieldError.InvalidDistance,
+                FieldError.InvalidDelay
+            ),
+            failure.violations.map { it.field }
         )
     }
 }
