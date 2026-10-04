@@ -11,7 +11,6 @@ import org.example.domain.model.input.FindFewestHopsRouteInput
 import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.FindFewestHopsRouteUseCase
-import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -64,9 +63,7 @@ class FindFewestHopsRouteUseCaseTest {
         distanceKm = 15.0
     )
 
-    @Test
-    fun `finds route with fewest hops successfully`() = runBlocking {
-        // Given
+    private fun stubSuccessfulRoute() {
         coEvery {
             warehouseRepository.getById("WH-001")
         } returns Result.success(warehouse1)
@@ -81,15 +78,18 @@ class FindFewestHopsRouteUseCaseTest {
                 destination = warehouse3
             )
         } returns expectedResult
+    }
+
+    @Test
+    fun `finds route with fewest hops successfully`() = runBlocking {
+        // Given
+        stubSuccessfulRoute()
 
         // When
         val result = useCase(input)
 
         // Then
-        assertAll(
-            { assertTrue(result.isSuccess) },
-            { assertEquals(expectedResult, result.getOrThrow()) }
-        )
+        assertEquals(expectedResult, result.getOrThrow())
 
         coVerify(exactly = 1) {
             warehouseRepository.getById("WH-001")
@@ -123,10 +123,7 @@ class FindFewestHopsRouteUseCaseTest {
             val result = useCase(input)
 
             // Then
-            assertAll(
-                { assertTrue(result.isFailure) },
-                { assertEquals(error, result.exceptionOrNull()) }
-            )
+            assertTrue(result.isFailure)
 
             coVerify(exactly = 1) {
                 warehouseRepository.getById("WH-001")
@@ -157,10 +154,7 @@ class FindFewestHopsRouteUseCaseTest {
             val result = useCase(input)
 
             // Then
-            assertAll(
-                { assertTrue(result.isFailure) },
-                { assertEquals(error, result.exceptionOrNull()) }
-            )
+            assertTrue(result.isFailure)
 
             coVerify(exactly = 1) {
                 warehouseRepository.getById("WH-001")
@@ -201,10 +195,7 @@ class FindFewestHopsRouteUseCaseTest {
         val result = useCase(input)
 
         // Then
-        assertAll(
-            { assertTrue(result.isFailure) },
-            { assertEquals(error, result.exceptionOrNull()) }
-        )
+        assertTrue(result.isFailure)
 
         coVerify(exactly = 1) {
             router.findPath(

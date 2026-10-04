@@ -80,17 +80,29 @@ class FindOptimalPathUseCaseTest {
         )
     )
 
-    @Test
-    fun `finds optimal path successfully`() = runBlocking {
-
-        // Given
+    private fun stubWarehouses() {
         coEvery {
             warehouseRepository.getAllWarehouses()
         } returns Result.success(warehouses)
+    }
 
+    private fun stubRoutes() {
         coEvery {
             routeRepository.getAllRoutes()
         } returns Result.success(routes)
+    }
+
+    private fun stubRoutesFailure(error: Throwable) {
+        coEvery {
+            routeRepository.getAllRoutes()
+        } returns Result.failure(error)
+    }
+
+    @Test
+    fun `finds optimal path successfully`() = runBlocking {
+        // Given
+        stubWarehouses()
+        stubRoutes()
 
         // When
         val result = useCase(
@@ -121,178 +133,149 @@ class FindOptimalPathUseCaseTest {
     }
 
     @Test
-    fun `throws exception when start warehouse does not exist`() = runBlocking {
+    fun `throws exception when start warehouse does not exist`() =
+        runBlocking {
+            // Given
+            stubWarehouses()
 
-        // Given
-        coEvery {
-            warehouseRepository.getAllWarehouses()
-        } returns Result.success(warehouses)
+            // When
+            val exception = try {
+                useCase("WH-999", "WH-003")
+                null
+            } catch (e: WarehouseNotFoundException) {
+                e
+            }
 
-        // When
-        val exception = try {
-            useCase(
-                "WH-999",
+            // Then
+            assertEquals(
+                WarehouseNotFoundException::class,
+                exception!!::class
+            )
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getAllWarehouses()
+            }
+
+            coVerify(exactly = 0) {
+                routeRepository.getAllRoutes()
+            }
+        }
+
+    @Test
+    fun `throws exception when destination warehouse does not exist`() =
+        runBlocking {
+            // Given
+            stubWarehouses()
+
+            // When
+            val exception = try {
+                useCase("WH-001", "WH-999")
+                null
+            } catch (e: WarehouseNotFoundException) {
+                e
+            }
+
+            // Then
+            assertEquals(
+                WarehouseNotFoundException::class,
+                exception!!::class
+            )
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getAllWarehouses()
+            }
+
+            coVerify(exactly = 0) {
+                routeRepository.getAllRoutes()
+            }
+        }
+
+    @Test
+    fun `returns failure when getting warehouses fails`() =
+        runBlocking {
+            // Given
+            val error = IllegalStateException(
+                "Failed to get warehouses"
+            )
+
+            coEvery {
+                warehouseRepository.getAllWarehouses()
+            } returns Result.failure(error)
+
+            // When
+            val exception = try {
+                useCase("WH-001", "WH-003")
+                null
+            } catch (e: IllegalStateException) {
+                e
+            }
+
+            // Then
+            assertSame(error, exception)
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getAllWarehouses()
+            }
+
+            coVerify(exactly = 0) {
+                routeRepository.getAllRoutes()
+            }
+        }
+
+    @Test
+    fun `returns failure when getting routes fails`() =
+        runBlocking {
+            // Given
+            val error = IllegalStateException(
+                "Failed to get routes"
+            )
+
+            stubWarehouses()
+            stubRoutesFailure(error)
+
+            // When
+            val exception = try {
+                useCase("WH-001", "WH-003")
+                null
+            } catch (e: IllegalStateException) {
+                e
+            }
+
+            // Then
+            assertSame(error, exception)
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getAllWarehouses()
+            }
+
+            coVerify(exactly = 1) {
+                routeRepository.getAllRoutes()
+            }
+        }
+
+    @Test
+    fun `returns empty path when no route exists between warehouses`() =
+        runBlocking {
+            // Given
+            stubWarehouses()
+
+            coEvery {
+                routeRepository.getAllRoutes()
+            } returns Result.success(emptyList())
+
+            // When
+            val result = useCase(
+                "WH-001",
                 "WH-003"
             )
-            null
-        } catch (e: WarehouseNotFoundException) {
-            e
-        }
 
-        // Then
-        assertEquals(
-            WarehouseNotFoundException::class,
-            exception!!::class
-        )
-
-        coVerify(exactly = 1) {
-            warehouseRepository.getAllWarehouses()
-        }
-
-        coVerify(exactly = 0) {
-            routeRepository.getAllRoutes()
-        }
-    }
-
-    @Test
-    fun `throws exception when destination warehouse does not exist`() = runBlocking {
-
-        // Given
-        coEvery {
-            warehouseRepository.getAllWarehouses()
-        } returns Result.success(warehouses)
-
-        // When
-        val exception = try {
-            useCase(
-                "WH-001",
-                "WH-999"
+            // Then
+            assertEquals(
+                RoutingResult(
+                    path = emptyList(),
+                    distanceKm = Double.POSITIVE_INFINITY
+                ),
+                result
             )
-            null
-        } catch (e: WarehouseNotFoundException) {
-            e
         }
-
-        // Then
-        assertEquals(
-            WarehouseNotFoundException::class,
-            exception!!::class
-        )
-
-        coVerify(exactly = 1) {
-            warehouseRepository.getAllWarehouses()
-        }
-
-        coVerify(exactly = 0) {
-            routeRepository.getAllRoutes()
-        }
-    }
-
-    @Test
-    fun `returns failure when getting warehouses fails`() = runBlocking {
-
-        // Given
-        val error = IllegalStateException(
-            "Failed to get warehouses"
-        )
-
-        coEvery {
-            warehouseRepository.getAllWarehouses()
-        } returns Result.failure(error)
-
-        // When
-        val exception = try {
-            useCase(
-                "WH-001",
-                "WH-003"
-            )
-            null
-        } catch (e: IllegalStateException) {
-            e
-        }
-
-        // Then
-        assertSame(
-            error,
-            exception
-        )
-
-        coVerify(exactly = 1) {
-            warehouseRepository.getAllWarehouses()
-        }
-
-        coVerify(exactly = 0) {
-            routeRepository.getAllRoutes()
-        }
-    }
-
-    @Test
-    fun `returns failure when getting routes fails`() = runBlocking {
-
-        // Given
-        val error = IllegalStateException(
-            "Failed to get routes"
-        )
-
-        coEvery {
-            warehouseRepository.getAllWarehouses()
-        } returns Result.success(warehouses)
-
-        coEvery {
-            routeRepository.getAllRoutes()
-        } returns Result.failure(error)
-
-        // When
-        val exception = try {
-            useCase(
-                "WH-001",
-                "WH-003"
-            )
-            null
-        } catch (e: IllegalStateException) {
-            e
-        }
-
-        // Then
-        assertSame(
-            error,
-            exception
-        )
-
-        coVerify(exactly = 1) {
-            warehouseRepository.getAllWarehouses()
-        }
-
-        coVerify(exactly = 1) {
-            routeRepository.getAllRoutes()
-        }
-    }
-
-    @Test
-    fun `returns empty path when no route exists between warehouses`() = runBlocking {
-
-        // Given
-        coEvery {
-            warehouseRepository.getAllWarehouses()
-        } returns Result.success(warehouses)
-
-        coEvery {
-            routeRepository.getAllRoutes()
-        } returns Result.success(emptyList())
-
-        // When
-        val result = useCase(
-            "WH-001",
-            "WH-003"
-        )
-
-        // Then
-        assertEquals(
-            RoutingResult(
-                path = emptyList(),
-                distanceKm = Double.POSITIVE_INFINITY
-            ),
-            result
-        )
-    }
 }
