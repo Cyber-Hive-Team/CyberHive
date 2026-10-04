@@ -1,20 +1,15 @@
 package org.example.data.mapper.csv
 
-import org.example.data.dataholder.RouteRaw
+import org.example.data.datasource.local.model.RouteLocalData
 import org.example.domain.model.Route
-import org.example.domain.model.Warehouse
 
+fun RouteLocalData.toDomainModel(): Route {
 
-fun RouteRaw.toDomainModel(
-        originWarehouse: Warehouse,
-        destinationWarehouse: Warehouse
-    ): Route {
-        return Route(
-            id = id,
-            distanceKm = distanceKm,
-            typicalDelayMin = typicalDelayMin,
-            originWarehouse = originWarehouse,
-            destinationWarehouse = destinationWarehouse
-        )
-    }
-
+    return Route(
+        id = routeRaw.id,
+        distanceKm = routeRaw.distanceKm,
+        typicalDelayMin = routeRaw.typicalDelayMin,
+        originWarehouse = originWarehouse.toDomainModel(),
+        destinationWarehouse = destinationWarehouse.toDomainModel()
+    )
+}

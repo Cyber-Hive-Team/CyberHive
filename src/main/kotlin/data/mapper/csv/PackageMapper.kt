@@ -1,18 +1,16 @@
 package org.example.data.mapper.csv
 
-import org.example.data.dataholder.PackageRaw
 import org.example.domain.model.Package
-import org.example.domain.model.Warehouse
+import org.example.data.datasource.local.model.PackageLocalData
 
-fun PackageRaw.toDomainModel(
-    originWarehouse: Warehouse,
-    destinationWarehouse: Warehouse
-): Package {
+fun PackageLocalData.toDomainModel(): Package {
+
     return Package(
-        id = id,
-        weight = weight,
-        priority = priority,
-        originWarehouse = originWarehouse,
-        destinationWarehouse = destinationWarehouse
+        id = packageRaw.id,
+        weight = packageRaw.weight,
+        priority = packageRaw.priority,
+        originWarehouse = originWarehouse.toDomainModel(),
+        destinationWarehouse = destinationWarehouse.toDomainModel()
     )
+
 }

@@ -15,29 +15,39 @@ class CsvWarehouseLocalDataSource(
 
     override fun getWarehouses(): List<RawResult<WarehouseRaw>> {
         val rows = readAllLines()
-        val rawWarehousesResultList = mutableListOf<RawResult<WarehouseRaw>>()
+
+        val rawWarehousesResultList =
+            mutableListOf<RawResult<WarehouseRaw>>()
 
         for (index in FIRST_DATA_ROW_INDEX until rows.size) {
-            val rawWarehouseResult = convertCsvRowToWarehouseRawObject(
-                row = rows[index].trim(),
-                rowIndex = index
-            )
+
+            val rawWarehouseResult = runCatching {
+                convertCsvRowToWarehouseRawObject(
+                    row = rows[index].trim(),
+                    rowIndex = index
+                )
+            }.getOrElse { exception ->
+                RawResult<WarehouseRaw>(
+                    rawData = null,
+                    errorMessage = exception.message
+                )
+            }
+
             rawWarehousesResultList.add(rawWarehouseResult)
-
         }
-        return rawWarehousesResultList
 
+        return rawWarehousesResultList
     }
 
-    private fun readAllLines(
-    ): List<String> {
+    private fun readAllLines(): List<String> {
         val file = File(filePath)
 
         if (!file.exists()) {
-            throw FileNotFoundDataException("Package file not found: $filePath")
+            throw FileNotFoundDataException(
+                "Warehouse file not found: $filePath"
+            )
         }
 
         return file.readLines()
     }
-
 }

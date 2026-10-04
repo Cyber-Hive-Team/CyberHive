@@ -5,27 +5,25 @@ import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.data.remote.dto.response.RouteResponseDto
 import org.example.domain.model.Route
-import org.example.domain.model.Warehouse
 
 
-fun RouteResponseDto.toDomainModel(
-        originWarehouse: Warehouse,
-        destinationWarehouse: Warehouse
-    ): Route {
-        return Route(
-            id = routeId,
-            distanceKm = distanceKm
-                ?: throw NullRequiredFieldException(
-                    "Route '${routeId}' has null distanceKm."
-                ),
-            typicalDelayMin = typicalDelayMin
-                ?: throw NullRequiredFieldException(
-                    "Route '${routeId}' has null typicalDelayMin."
-                ),
-            originWarehouse = originWarehouse,
-            destinationWarehouse = destinationWarehouse
-        )
-    }
+fun RouteResponseDto.toDomainModel(): Route {
+    return Route(
+        id = routeId,
+        distanceKm = distanceKm.requiredField(
+            "Route '$routeId' has null distanceKm."
+        ),
+        typicalDelayMin = typicalDelayMin.requiredField(
+            "Route '$routeId' has null typicalDelayMin."
+        ),
+        originWarehouse = originHub.requiredField(
+            "Route '$routeId' has null originHub."
+        ).toDomainModel(),
+        destinationWarehouse = destinationHub.requiredField(
+            "Route '$routeId' has null destinationHub."
+        ).toDomainModel()
+    )
+}
 
 fun Route.toCreateRequest(): CreateRouteRequestDto {
         return CreateRouteRequestDto(
@@ -46,4 +44,7 @@ fun Route.toUpdateRequest(): UpdateRouteRequestDto {
         )
     }
 
+private fun <T : Any> T?.requiredField(message: String): T {
+    return this ?: throw NullRequiredFieldException(message)
+}
 

@@ -3,6 +3,7 @@ package org.example.test.data.validation
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.remote.dto.response.VehicleResponseDto
 import org.example.data.validation.VehicleRemoteValidator
+import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -61,14 +62,21 @@ class VehicleRemoteValidatorTest {
             )
         }
 
-        private fun createDto(
-            maxCapacityKg: Double? = 100.0,
-            costPerKm: Double? = 2.5
-        ): VehicleResponseDto = VehicleResponseDto(
-            vehicleId = "TRK-0001",
-            currentHubId = "WH-001",
-            maxCapacityKg = maxCapacityKg,
-            costPerKm = costPerKm
+    private fun createDto(
+        maxCapacityKg: Double? = 100.0,
+        costPerKm: Double? = 2.5
+    ): VehicleResponseDto = VehicleResponseDto(
+        vehicleId = "TRK-0001",
+        currentHubId = "WH-001",
+        maxCapacityKg = maxCapacityKg,
+        costPerKm = costPerKm,
+        currentHub = WarehouseResponseDto(
+            id = "WH-001",
+            name = "Current Warehouse",
+            regionalZone = null,
+            latitude = null,
+            longitude = null
         )
+    )
     }
 

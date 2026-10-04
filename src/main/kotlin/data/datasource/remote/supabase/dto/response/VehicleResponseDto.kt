@@ -11,6 +11,9 @@ data class VehicleResponseDto(
     @SerialName("current_hub_id")
     val currentHubId: String,
 
+    @SerialName("current_hub")
+    val currentHub: WarehouseResponseDto? = null,
+
     @SerialName("max_capacity_kg")
     val maxCapacityKg: Double? = null,
 

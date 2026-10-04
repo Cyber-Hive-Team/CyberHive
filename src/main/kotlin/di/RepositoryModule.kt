@@ -13,13 +13,11 @@ import org.example.data.repositoryImplementation.PackageRepositoryImpl
 import org.example.data.repositoryImplementation.RouteRepositoryImpl
 import org.example.data.repositoryImplementation.VehicleRepositoryImpl
 import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
-import org.example.domain.model.Warehouse
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.RouteRepository
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
 import org.example.presentation.DataLoader
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 private const val WAREHOUSE_STATUS_FILE = "src/main/resources/warehouse-status.csv"
@@ -30,29 +28,33 @@ private const val ROUTE_FILE = "src/main/resources/routes.csv"
 
 val repositoryModule = module {
 
-    single<PackageDataSource> {
-        CsvPackageLocalDataSource(
-            filePath = PACKAGE_FILE
-        )
-    }
-
-    single<RouteDataSource> {
-        CsvRouteLocalDataSource(
-            filePath = ROUTE_FILE
-        )
-    }
-
-    single<VehicleDataSource> {
-        CsvVehicleLocalDataSource(
-            filePath = VEHICLE_FILE
-        )
-    }
-
     single<WarehouseDataSource> {
         CsvWarehouseLocalDataSource(
             filePath = WAREHOUSE_FILE
         )
     }
+
+    single<PackageDataSource> {
+        CsvPackageLocalDataSource(
+            filePath = PACKAGE_FILE ,
+            warehouseDataSource = get()
+        )
+    }
+
+    single<RouteDataSource> {
+        CsvRouteLocalDataSource(
+            filePath = ROUTE_FILE,
+            warehouseDataSource = get()
+        )
+    }
+
+    single<VehicleDataSource> {
+        CsvVehicleLocalDataSource(
+            filePath = VEHICLE_FILE,
+            warehouseDataSource = get()
+        )
+    }
+
 
     single {
         CsvWarehouseStatusDataSource(
@@ -68,29 +70,18 @@ val repositoryModule = module {
         )
     }
 
-    single<MutableMap<String, Warehouse>>(
-        qualifier = named("warehouseMap")
-    ) {
-        mutableMapOf()
-    }
 
     single<PackageRepository> {
         PackageRepositoryImpl(
             remoteDataSource = get(),
             localDataSource = get(),
-            warehouseMap = get<MutableMap<String, Warehouse>>(
-                qualifier = named("warehouseMap")
             )
-        )
     }
 
     single<RouteRepository> {
         RouteRepositoryImpl(
             localDataSource = get(),
             remoteDataSource = get(),
-            warehouseMap = get<MutableMap<String, Warehouse>>(
-                qualifier = named("warehouseMap")
-            )
         )
     }
 
@@ -98,9 +89,6 @@ val repositoryModule = module {
         VehicleRepositoryImpl(
             remoteDataSource = get(),
             localDataSource = get(),
-            warehouseMap = get<MutableMap<String, Warehouse>>(
-                qualifier = named("warehouseMap")
-            )
         )
     }
     single {
@@ -108,10 +96,7 @@ val repositoryModule = module {
             warehouseRepository = get(),
             packageRepository = get(),
             vehicleRepository = get(),
-            routeRepository = get(),
-            warehouseMap = get<MutableMap<String, Warehouse>>(
-                named("warehouseMap")
+            routeRepository = get()
             )
-        )
     }
 }
