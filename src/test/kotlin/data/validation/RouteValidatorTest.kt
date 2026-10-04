@@ -4,9 +4,9 @@ import org.example.data.dataholder.RouteRaw
 import org.example.data.validation.RouteValidator
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class RouteValidatorTest {
 
@@ -46,154 +46,169 @@ class RouteValidatorTest {
 
     @Test
     fun `valid route should return no warnings`() {
+        // Given
         val raw = createValidRaw()
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = destinationWarehouse
         )
 
+        // Then
         assertTrue(warnings.isEmpty())
     }
 
     @Test
     fun `route with blank id should return missing id warning`() {
-        val raw = createValidRaw(
-            id = ""
-        )
+        // Given
+        val raw = createValidRaw(id = "")
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = destinationWarehouse
         )
 
-        assertEquals(1, warnings.size)
-
+        // Then
         assertEquals(
-            "Warning: Route skipped - missing id",
-            warnings.first()
+            listOf("Warning: Route skipped - missing id"),
+            warnings
         )
     }
 
     @Test
     fun `route with missing origin warehouse should return warning`() {
+        // Given
         val raw = createValidRaw(
             originHubId = "WH-999"
         )
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = null,
             destination = destinationWarehouse
         )
 
-        assertEquals(1, warnings.size)
-
+        // Then
         assertEquals(
-            "Warning: Route RT-00001 skipped - origin warehouse not found: WH-999",
-            warnings.first()
+            listOf(
+                "Warning: Route RT-00001 skipped - " +
+                        "origin warehouse not found: WH-999"
+            ),
+            warnings
         )
     }
 
     @Test
     fun `route with missing destination warehouse should return warning`() {
+        // Given
         val raw = createValidRaw(
             destinationHubId = "WH-999"
         )
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = null
         )
 
-        assertEquals(1, warnings.size)
-
+        // Then
         assertEquals(
-            "Warning: Route RT-00001 skipped - destination warehouse not found: WH-999",
-            warnings.first()
+            listOf(
+                "Warning: Route RT-00001 skipped - " +
+                        "destination warehouse not found: WH-999"
+            ),
+            warnings
         )
     }
 
     @Test
     fun `route with zero distance should return invalid distance warning`() {
-        val raw = createValidRaw(
-            distanceKm = 0.0
-        )
+        // Given
+        val raw = createValidRaw(distanceKm = 0.0)
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = destinationWarehouse
         )
 
-        assertEquals(1, warnings.size)
-
+        // Then
         assertEquals(
-            "Warning: Route RT-00001 skipped - invalid distance",
-            warnings.first()
+            listOf(
+                "Warning: Route RT-00001 skipped - invalid distance"
+            ),
+            warnings
         )
     }
 
     @Test
     fun `route with negative distance should return invalid distance warning`() {
-        val raw = createValidRaw(
-            distanceKm = -10.0
-        )
+        // Given
+        val raw = createValidRaw(distanceKm = -10.0)
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = destinationWarehouse
         )
 
-        assertEquals(1, warnings.size)
-
+        // Then
         assertEquals(
-            "Warning: Route RT-00001 skipped - invalid distance",
-            warnings.first()
+            listOf(
+                "Warning: Route RT-00001 skipped - invalid distance"
+            ),
+            warnings
         )
     }
 
     @Test
     fun `route with negative delay should return invalid delay warning`() {
-        val raw = createValidRaw(
-            typicalDelayMin = -5
-        )
+        // Given
+        val raw = createValidRaw(typicalDelayMin = -5)
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = destinationWarehouse
         )
 
-        assertEquals(1, warnings.size)
-
+        // Then
         assertEquals(
-            "Warning: Route RT-00001 skipped - invalid delay",
-            warnings.first()
+            listOf(
+                "Warning: Route RT-00001 skipped - invalid delay"
+            ),
+            warnings
         )
     }
 
     @Test
     fun `route with zero delay should return no warnings`() {
-        val raw = createValidRaw(
-            typicalDelayMin = 0
-        )
+        // Given
+        val raw = createValidRaw(typicalDelayMin = 0)
 
+        // When
         val warnings = validator.validate(
             raw = raw,
             origin = originWarehouse,
             destination = destinationWarehouse
         )
 
+        // Then
         assertTrue(warnings.isEmpty())
     }
 
     @Test
     fun `route with multiple invalid fields should return multiple warnings`() {
+        // Given
         val raw = createValidRaw(
             id = "",
             originHubId = "WH-999",
@@ -202,8 +217,14 @@ class RouteValidatorTest {
             typicalDelayMin = -5
         )
 
-        val warnings = validator.validate(raw, null, null)
+        // When
+        val warnings = validator.validate(
+            raw,
+            null,
+            null
+        )
 
+        // Then
         assertEquals(
             listOf(
                 "Warning: Route skipped - missing id",

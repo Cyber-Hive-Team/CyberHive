@@ -7,9 +7,8 @@ import kotlinx.coroutines.runBlocking
 import org.example.domain.model.Route
 import org.example.domain.repository.RouteRepository
 import org.example.domain.usecase.crud.route.GetRouteByIdUseCase
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class GetRouteByIdUseCaseTest {
 
@@ -19,48 +18,75 @@ class GetRouteByIdUseCaseTest {
     @Test
     fun `existing id returns route`() = runBlocking {
 
+        // Given
         val route = mockk<Route>()
+        val routeId = "RT-001"
 
         coEvery {
-            repository.getById("RT-001")
+            repository.getById(routeId)
         } returns Result.success(route)
 
-        val result = useCase("RT-001")
+        // When
+        val result = useCase(routeId)
 
-        assertSame(route, result.getOrThrow())
+        // Then
+        assertSame(
+            route,
+            result.getOrThrow()
+        )
 
         coVerify(exactly = 1) {
-            repository.getById("RT-001")
+            repository.getById(routeId)
         }
     }
 
     @Test
     fun `missing route returns failure`() = runBlocking {
 
+        // Given
+        val routeId = "RT-999"
         val error = IllegalStateException("Route not found")
 
         coEvery {
-            repository.getById("RT-999")
+            repository.getById(routeId)
         } returns Result.failure(error)
 
-        val result = useCase("RT-999")
+        // When
+        val result = useCase(routeId)
 
-        assertTrue(result.isFailure)
-        assertSame(error, result.exceptionOrNull())
+        // Then
+        assertSame(
+            error,
+            result.exceptionOrNull()
+        )
+
+        coVerify(exactly = 1) {
+            repository.getById(routeId)
+        }
     }
 
     @Test
     fun `repository exception becomes failure`() = runBlocking {
 
+        // Given
+        val routeId = "RT-001"
         val error = IllegalStateException("Repository failed")
 
         coEvery {
-            repository.getById("RT-001")
+            repository.getById(routeId)
         } throws error
 
-        val result = useCase("RT-001")
+        // When
+        val result = useCase(routeId)
 
-        assertTrue(result.isFailure)
-        assertSame(error, result.exceptionOrNull())
+        // Then
+        assertSame(
+            error,
+            result.exceptionOrNull()
+        )
+
+        coVerify(exactly = 1) {
+            repository.getById(routeId)
+        }
     }
 }

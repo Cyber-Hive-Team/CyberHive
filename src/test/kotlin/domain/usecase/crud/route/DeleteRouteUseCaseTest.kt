@@ -22,6 +22,7 @@ class DeleteRouteUseCaseTest {
     @Test
     fun `deletes route when route exists`() = runBlocking {
 
+        // Given
         val routeId = "RT-001"
         val route = mockk<Route>()
 
@@ -33,9 +34,14 @@ class DeleteRouteUseCaseTest {
             repository.delete(routeId)
         } returns Result.success(routeId)
 
+        // When
         val result = useCase(routeId)
 
-        assertEquals(routeId, result.getOrThrow())
+        // Then
+        assertEquals(
+            routeId,
+            result.getOrThrow()
+        )
 
         coVerify(exactly = 1) {
             repository.getById(routeId)
@@ -49,6 +55,7 @@ class DeleteRouteUseCaseTest {
     @Test
     fun `does not delete route when route does not exist`() = runBlocking {
 
+        // Given
         val routeId = "RT-001"
         val error = IllegalStateException("Route not found")
 
@@ -56,8 +63,10 @@ class DeleteRouteUseCaseTest {
             repository.getById(routeId)
         } returns Result.failure(error)
 
+        // When
         val result = useCase(routeId)
 
+        // Then
         assertSame(
             error,
             result.exceptionOrNull()
@@ -75,6 +84,7 @@ class DeleteRouteUseCaseTest {
     @Test
     fun `returns failure when deleting route fails`() = runBlocking {
 
+        // Given
         val routeId = "RT-001"
         val route = mockk<Route>()
         val error = IllegalStateException("Delete failed")
@@ -87,8 +97,10 @@ class DeleteRouteUseCaseTest {
             repository.delete(routeId)
         } returns Result.failure(error)
 
+        // When
         val result = useCase(routeId)
 
+        // Then
         assertSame(
             error,
             result.exceptionOrNull()
