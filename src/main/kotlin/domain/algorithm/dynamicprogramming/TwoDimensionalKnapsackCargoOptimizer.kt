@@ -13,6 +13,13 @@ class TwoDimensionalKnapsackCargoOptimizer {
         private const val SCALE_FACTOR = 10
     }
 
+    private data class PackageInfo(
+        val weight: Int,
+        val volume: Int,
+        val priority: Int,
+        val index: Int
+    )
+
     fun selectOptimalPackages(
         vehicle: Vehicle,
         packages: List<Package>
@@ -100,20 +107,20 @@ class TwoDimensionalKnapsackCargoOptimizer {
         weightCapacity: Int,
         volumeCapacity: Int
     ) {
-        val packageWeight = scaleCapacity(cargoPackage.weight)
-        val packageVolume = scaleCapacity(cargoPackage.volumeM3)
-        val packagePriority = getPriorityValue(cargoPackage.priority)
+        val packageInfo = PackageInfo(
+            weight = scaleCapacity(cargoPackage.weight),
+            volume = scaleCapacity(cargoPackage.volumeM3),
+            priority = getPriorityValue(cargoPackage.priority),
+            index = packageIndex
+        )
 
-        for (weight in weightCapacity downTo packageWeight) {
-            for (volume in volumeCapacity downTo packageVolume) {
+        for (weight in weightCapacity downTo packageInfo.weight) {
+            for (volume in volumeCapacity downTo packageInfo.volume) {
                 updateCell(
                     dp = dp,
                     weight = weight,
                     volume = volume,
-                    packageWeight = packageWeight,
-                    packageVolume = packageVolume,
-                    packagePriority = packagePriority,
-                    packageIndex = packageIndex
+                    packageInfo = packageInfo
                 )
             }
         }
@@ -123,17 +130,22 @@ class TwoDimensionalKnapsackCargoOptimizer {
         dp: Array<Array<Pair<Int, List<Int>>>>,
         weight: Int,
         volume: Int,
-        packageWeight: Int,
-        packageVolume: Int,
-        packagePriority: Int,
-        packageIndex: Int
+        packageInfo: PackageInfo
     ) {
-        val previous = dp[weight - packageWeight][volume - packageVolume]
-        val newPriority = previous.first + packagePriority
+        val previous = dp[
+            weight - packageInfo.weight
+        ][
+            volume - packageInfo.volume
+        ]
+
+        val newPriority = previous.first + packageInfo.priority
 
         if (newPriority > dp[weight][volume].first) {
             dp[weight][volume] =
-                Pair(newPriority, previous.second + packageIndex)
+                Pair(
+                    newPriority,
+                    previous.second + packageInfo.index
+                )
         }
     }
 
