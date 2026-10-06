@@ -3,6 +3,7 @@ package edu.logiroute.logiroute.ui.preview
 import org.example.domain.model.Package
 import org.example.domain.model.Priority
 import org.example.domain.model.RegionalZone
+import org.example.domain.model.Route
 import org.example.domain.model.Vehicle
 import org.example.domain.model.Warehouse
 
@@ -110,4 +111,63 @@ val previewEmptyWarehouse = Warehouse(
     regionalZone = RegionalZone.SOUTH,
     latitude = 32.5,
     longitude = 36.0
+)
+
+// ── Week 2: Vehicle preview instances ───────────────────────────────────────
+
+val previewVehicleSafeLoad = Vehicle(
+    id = "TRK-0010",
+    maxCapacityKg = 10000.0,
+    costPerKm = 4.50,
+    currentHub = previewOriginWarehouse
+)
+
+val previewVehicleHeavyLoad = Vehicle(
+    id = "TRK-0011",
+    maxCapacityKg = 10000.0,
+    costPerKm = 3.20,
+    currentHub = previewDestinationWarehouse
+)
+
+val previewVehicleOverloaded = Vehicle(
+    id = "TRK-0012",
+    maxCapacityKg = 10000.0,
+    costPerKm = 5.75,
+    currentHub = previewOriginWarehouse
+)
+
+// ── Week 2: Route preview instances ─────────────────────────────────────────
+
+val previewLongNameWarehouseA = Warehouse(
+    id = "WH-007",
+    name = "Northern International Distribution & Logistics Center",
+    regionalZone = RegionalZone.NORTH,
+    latitude = 35.0,
+    longitude = 37.5
+)
+
+val previewLongNameWarehouseB = Warehouse(
+    id = "WH-008",
+    name = "Southern Cross-Country Freight & Cargo Terminal",
+    regionalZone = RegionalZone.SOUTH,
+    latitude = 31.5,
+    longitude = 34.8
+)
+
+// Short local transit — delay < 60 min
+val previewRouteShortTransit = Route(
+    id = "RT-00001",
+    distanceKm = 85.0,
+    typicalDelayMin = 30,
+    originWarehouse = previewOriginWarehouse,
+    destinationWarehouse = previewDestinationWarehouse
+)
+
+// Long cross-country transit — delay > 120 min, long warehouse names
+val previewRouteLongTransit = Route(
+    id = "RT-00002",
+    distanceKm = 920.0,
+    typicalDelayMin = 150,
+    originWarehouse = previewLongNameWarehouseA,
+    destinationWarehouse = previewLongNameWarehouseB
 )
