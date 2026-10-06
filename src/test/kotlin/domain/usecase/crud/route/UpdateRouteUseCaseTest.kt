@@ -12,13 +12,13 @@ import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
 import org.example.domain.usecase.crud.route.UpdateRouteUseCase
-import org.example.domain.validator.result.ValidationResult
-import org.example.domain.validator.result.FieldViolation
-import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.Validator
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
+import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
-import kotlin.test.assertIs
-import kotlin.test.assertSame
 
 class UpdateRouteUseCaseTest {
 
@@ -62,6 +62,7 @@ class UpdateRouteUseCaseTest {
     @Test
     fun `valid update returns updated route`() = runBlocking {
 
+        // Given
         val updated = Route(
             "RT-00001",
             20.0,
@@ -82,9 +83,14 @@ class UpdateRouteUseCaseTest {
             repository.update(updated)
         } returns Result.success(updated)
 
+        // When
         val result = useCase(route, input)
 
-        assertSame(updated, result.getOrThrow())
+        // Then
+        assertSame(
+            updated,
+            result.getOrThrow()
+        )
 
         coVerify(exactly = 1) {
             repository.update(updated)
@@ -94,6 +100,7 @@ class UpdateRouteUseCaseTest {
     @Test
     fun `invalid input prevents update`() = runBlocking {
 
+        // Given
         coEvery {
             repository.getById(input.id)
         } returns Result.success(route)
@@ -109,9 +116,12 @@ class UpdateRouteUseCaseTest {
             )
         )
 
+        // When
         val result = useCase(route, input)
 
-        assertIs<EntityValidationException>(
+        // Then
+        assertInstanceOf(
+            EntityValidationException::class.java,
             result.exceptionOrNull()
         )
 
@@ -123,6 +133,7 @@ class UpdateRouteUseCaseTest {
     @Test
     fun `repository update failure is returned`() = runBlocking {
 
+        // Given
         val error = IllegalStateException("Update failed")
 
         coEvery {
@@ -137,11 +148,17 @@ class UpdateRouteUseCaseTest {
             repository.update(any())
         } returns Result.failure(error)
 
+        // When
         val result = useCase(route, input)
 
+        // Then
         assertSame(
             error,
             result.exceptionOrNull()
         )
+
+        coVerify(exactly = 1) {
+            repository.update(any())
+        }
     }
 }

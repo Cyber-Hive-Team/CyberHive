@@ -10,10 +10,10 @@ import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateRouteInput
 import org.example.domain.repository.RouteRepository
 import org.example.domain.usecase.crud.route.CreateRouteUseCase
-import org.example.domain.validator.result.ValidationResult
-import org.example.domain.validator.result.FieldViolation
-import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.Validator
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertSame
@@ -32,6 +32,7 @@ class CreateRouteUseCaseTest {
     @Test
     fun `returns saved route when validation succeeds`() = runBlocking {
 
+        // Given
         val route = mockk<Route>()
 
         every {
@@ -42,9 +43,14 @@ class CreateRouteUseCaseTest {
             repository.save(route)
         } returns Result.success(route)
 
+        // When
         val result = useCase(route)
 
-        assertEquals(route, result.getOrThrow())
+        // Then
+        assertEquals(
+            route,
+            result.getOrThrow()
+        )
 
         coVerify(exactly = 1) {
             repository.save(route)
@@ -54,6 +60,7 @@ class CreateRouteUseCaseTest {
     @Test
     fun `does not save route when validation fails`() = runBlocking {
 
+        // Given
         val route = mockk<Route>()
 
         every {
@@ -67,8 +74,10 @@ class CreateRouteUseCaseTest {
             )
         )
 
+        // When
         val result = useCase(route)
 
+        // Then
         assertInstanceOf(
             EntityValidationException::class.java,
             result.exceptionOrNull()
@@ -82,6 +91,7 @@ class CreateRouteUseCaseTest {
     @Test
     fun `preserves repository failure`() = runBlocking {
 
+        // Given
         val route = mockk<Route>()
         val error = IllegalStateException("Save failed")
 
@@ -93,8 +103,10 @@ class CreateRouteUseCaseTest {
             repository.save(route)
         } returns Result.failure(error)
 
+        // When
         val result = useCase(route)
 
+        // Then
         assertSame(
             error,
             result.exceptionOrNull()

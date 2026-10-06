@@ -2,11 +2,12 @@ package org.example.test.data.validation
 
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.remote.dto.response.RouteResponseDto
-import org.example.data.validation.RouteRemoteValidator
 import org.example.data.remote.dto.response.WarehouseResponseDto
+import org.example.data.validation.RouteRemoteValidator
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class RouteRemoteValidatorTest {
 
@@ -41,17 +42,23 @@ class RouteRemoteValidatorTest {
 
     @Test
     fun `valid route response should pass validation`() {
+        // Given
         val dto = createValidDto()
 
-        validator.validate(dto)
+        // When / Then
+        assertDoesNotThrow {
+            validator.validate(dto)
+        }
     }
 
     @Test
     fun `route with null distance should throw exception`() {
+        // Given
         val dto = createValidDto(
             distanceKm = null
         )
 
+        // When / Then
         val exception = assertFailsWith<NullRequiredFieldException> {
             validator.validate(dto)
         }
@@ -63,10 +70,12 @@ class RouteRemoteValidatorTest {
 
     @Test
     fun `route with null typical delay should throw exception`() {
+        // Given
         val dto = createValidDto(
             typicalDelayMin = null
         )
 
+        // When / Then
         val exception = assertFailsWith<NullRequiredFieldException> {
             validator.validate(dto)
         }
@@ -78,19 +87,27 @@ class RouteRemoteValidatorTest {
 
     @Test
     fun `route with zero distance should pass validation`() {
+        // Given
         val dto = createValidDto(
             distanceKm = 0.0
         )
 
-        validator.validate(dto)
+        // When / Then
+        assertDoesNotThrow {
+            validator.validate(dto)
+        }
     }
 
     @Test
     fun `route with zero delay should pass validation`() {
+        // Given
         val dto = createValidDto(
             typicalDelayMin = 0
         )
 
-        validator.validate(dto)
+        // When / Then
+        assertDoesNotThrow {
+            validator.validate(dto)
+        }
     }
 }

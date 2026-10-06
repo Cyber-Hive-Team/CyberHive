@@ -1,6 +1,7 @@
 package org.example.test.domain.usecase
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
@@ -10,9 +11,9 @@ import org.example.domain.model.input.FindFewestHopsRouteInput
 import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
 import org.example.domain.usecase.FindFewestHopsRouteUseCase
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class FindFewestHopsRouteUseCaseTest {
 
@@ -62,35 +63,54 @@ class FindFewestHopsRouteUseCaseTest {
         distanceKm = 15.0
     )
 
+    private fun stubSuccessfulRoute() {
+        coEvery {
+            warehouseRepository.getById("WH-001")
+        } returns Result.success(warehouse1)
+
+        coEvery {
+            warehouseRepository.getById("WH-003")
+        } returns Result.success(warehouse3)
+
+        coEvery {
+            router.findPath(
+                start = warehouse1,
+                destination = warehouse3
+            )
+        } returns expectedResult
+    }
+
     @Test
-    fun `finds route with fewest hops successfully`() {
-        runBlocking {
-            coEvery {
-                warehouseRepository.getById("WH-001")
-            } returns Result.success(warehouse1)
+    fun `finds route with fewest hops successfully`() = runBlocking {
+        // Given
+        stubSuccessfulRoute()
 
-            coEvery {
-                warehouseRepository.getById("WH-003")
-            } returns Result.success(warehouse3)
+        // When
+        val result = useCase(input)
 
-            coEvery {
-                router.findPath(
-                    start = warehouse1,
-                    destination = warehouse3
-                )
-            } returns expectedResult
+        // Then
+        assertEquals(expectedResult, result.getOrThrow())
 
-            val result = useCase(input)
+        coVerify(exactly = 1) {
+            warehouseRepository.getById("WH-001")
+        }
 
-            assertTrue(result.isSuccess)
-            assertEquals(expectedResult, result.getOrThrow())
+        coVerify(exactly = 1) {
+            warehouseRepository.getById("WH-003")
+        }
+
+        coVerify(exactly = 1) {
+            router.findPath(
+                start = warehouse1,
+                destination = warehouse3
+            )
         }
     }
 
     @Test
-    fun `returns failure when start warehouse is not found`() {
+    fun `returns failure when start warehouse is not found`() =
         runBlocking {
-
+            // Given
             val error = IllegalStateException(
                 "Start warehouse not found"
             )
@@ -99,20 +119,25 @@ class FindFewestHopsRouteUseCaseTest {
                 warehouseRepository.getById("WH-001")
             } returns Result.failure(error)
 
+            // When
             val result = useCase(input)
 
+            // Then
             assertTrue(result.isFailure)
-            assertEquals(
-                error,
-                result.exceptionOrNull()
-            )
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getById("WH-001")
+            }
+
+            coVerify(exactly = 0) {
+                router.findPath(any(), any())
+            }
         }
-    }
 
     @Test
-    fun `returns failure when destination warehouse is not found`() {
+    fun `returns failure when destination warehouse is not found`() =
         runBlocking {
-
+            // Given
             val error = IllegalStateException(
                 "Destination warehouse not found"
             )
@@ -125,45 +150,57 @@ class FindFewestHopsRouteUseCaseTest {
                 warehouseRepository.getById("WH-003")
             } returns Result.failure(error)
 
+            // When
             val result = useCase(input)
 
+            // Then
             assertTrue(result.isFailure)
-            assertEquals(
-                error,
-                result.exceptionOrNull()
-            )
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getById("WH-001")
+            }
+
+            coVerify(exactly = 1) {
+                warehouseRepository.getById("WH-003")
+            }
+
+            coVerify(exactly = 0) {
+                router.findPath(any(), any())
+            }
         }
-    }
 
     @Test
-    fun `returns failure when router fails`() {
-        runBlocking {
+    fun `returns failure when router fails`() = runBlocking {
+        // Given
+        val error = IllegalStateException(
+            "Unable to find route"
+        )
 
-            val error = IllegalStateException(
-                "Unable to find route"
+        coEvery {
+            warehouseRepository.getById("WH-001")
+        } returns Result.success(warehouse1)
+
+        coEvery {
+            warehouseRepository.getById("WH-003")
+        } returns Result.success(warehouse3)
+
+        coEvery {
+            router.findPath(
+                start = warehouse1,
+                destination = warehouse3
             )
+        } throws error
 
-            coEvery {
-                warehouseRepository.getById("WH-001")
-            } returns Result.success(warehouse1)
+        // When
+        val result = useCase(input)
 
-            coEvery {
-                warehouseRepository.getById("WH-003")
-            } returns Result.success(warehouse3)
+        // Then
+        assertTrue(result.isFailure)
 
-            coEvery {
-                router.findPath(
-                    start = warehouse1,
-                    destination = warehouse3
-                )
-            } throws error
-
-            val result = useCase(input)
-
-            assertTrue(result.isFailure)
-            assertEquals(
-                error,
-                result.exceptionOrNull()
+        coVerify(exactly = 1) {
+            router.findPath(
+                start = warehouse1,
+                destination = warehouse3
             )
         }
     }

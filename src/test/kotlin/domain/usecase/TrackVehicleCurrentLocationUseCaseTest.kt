@@ -1,6 +1,7 @@
 package org.example.test.domain.usecase
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.example.domain.model.RegionalZone
@@ -9,9 +10,10 @@ import org.example.domain.model.Warehouse
 import org.example.domain.model.result.VehicleTrackingResult
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.usecase.TrackVehicleCurrentLocationUseCase
+import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class TrackVehicleCurrentLocationUseCaseTest {
 
@@ -37,32 +39,40 @@ class TrackVehicleCurrentLocationUseCaseTest {
     )
 
     @Test
-    fun `returns vehicle current location successfully`() {
+    fun `returns vehicle current location successfully`() =
         runBlocking {
-
+            // Given
             coEvery {
                 vehicleRepository.getById("TRK-0001")
             } returns Result.success(vehicle)
 
+            // When
             val result = useCase("TRK-0001")
 
-            assertTrue(result.isSuccess)
-
-            assertEquals(
-                VehicleTrackingResult(
-                    vehicleId = "TRK-0001",
-                    currentWarehouseId = "WH-001",
-                    currentWarehouseName = "Main Warehouse"
-                ),
-                result.getOrThrow()
+            // Then
+            assertAll(
+                { assertTrue(result.isSuccess) },
+                {
+                    assertEquals(
+                        VehicleTrackingResult(
+                            vehicleId = "TRK-0001",
+                            currentWarehouseId = "WH-001",
+                            currentWarehouseName = "Main Warehouse"
+                        ),
+                        result.getOrThrow()
+                    )
+                }
             )
+
+            coVerify(exactly = 1) {
+                vehicleRepository.getById("TRK-0001")
+            }
         }
-    }
 
     @Test
-    fun `returns failure when vehicle is not found`() {
+    fun `returns failure when vehicle is not found`() =
         runBlocking {
-
+            // Given
             val error = IllegalStateException(
                 "Vehicle not found"
             )
@@ -71,55 +81,70 @@ class TrackVehicleCurrentLocationUseCaseTest {
                 vehicleRepository.getById("TRK-9999")
             } returns Result.failure(error)
 
+            // When
             val result = useCase("TRK-9999")
 
-            assertTrue(result.isFailure)
-
-            assertEquals(
-                error,
-                result.exceptionOrNull()
+            // Then
+            assertAll(
+                { assertTrue(result.isFailure) },
+                { assertEquals(error, result.exceptionOrNull()) }
             )
+
+            coVerify(exactly = 1) {
+                vehicleRepository.getById("TRK-9999")
+            }
+        }
+
+    @Test
+    fun `returns correct vehicle id`() = runBlocking {
+        // Given
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.success(vehicle)
+
+        // When
+        val result = useCase("TRK-0001")
+
+        // Then
+        assertEquals(
+            "TRK-0001",
+            result.getOrThrow().vehicleId
+        )
+
+        coVerify(exactly = 1) {
+            vehicleRepository.getById("TRK-0001")
         }
     }
 
     @Test
-    fun `returns correct vehicle id`() {
-        runBlocking {
+    fun `returns correct warehouse information`() = runBlocking {
+        // Given
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.success(vehicle)
 
-            coEvery {
-                vehicleRepository.getById("TRK-0001")
-            } returns Result.success(vehicle)
+        // When
+        val result = useCase("TRK-0001")
+        val trackingResult = result.getOrThrow()
 
-            val result = useCase("TRK-0001")
+        // Then
+        assertAll(
+            {
+                assertEquals(
+                    "WH-001",
+                    trackingResult.currentWarehouseId
+                )
+            },
+            {
+                assertEquals(
+                    "Main Warehouse",
+                    trackingResult.currentWarehouseName
+                )
+            }
+        )
 
-            assertEquals(
-                "TRK-0001",
-                result.getOrThrow().vehicleId
-            )
-        }
-    }
-
-    @Test
-    fun `returns correct warehouse information`() {
-        runBlocking {
-
-            coEvery {
-                vehicleRepository.getById("TRK-0001")
-            } returns Result.success(vehicle)
-
-            val result = useCase("TRK-0001")
-
-            val trackingResult = result.getOrThrow()
-
-            assertEquals(
-                "WH-001",
-                trackingResult.currentWarehouseId
-            )
-
-            assertEquals(
-                "Main Warehouse",
-                trackingResult.currentWarehouseName
-            )
+        coVerify(exactly = 1) {
+            vehicleRepository.getById("TRK-0001")
         }
     }
 }
