@@ -4,14 +4,15 @@ import org.example.domain.model.Package
 import org.example.domain.model.Vehicle
 
 class StandardDispatchProcessor(
-    capacityReservations: VehicleCapacityReservations
+    capacityReservations: VehicleCapacityReservations,
+    private val notifier: DispatchNotifier
 ) : BaseDispatchProcessor(capacityReservations)  {
 
     override fun notifyDispatchStatus(
         vehicle: Vehicle,
         cargo: List<Package>
     ) {
-        println(
+        notifier.notify(
             "STANDARD: ${cargo.size} packages dispatched " +
                     "on vehicle ${vehicle.id}"
         )
