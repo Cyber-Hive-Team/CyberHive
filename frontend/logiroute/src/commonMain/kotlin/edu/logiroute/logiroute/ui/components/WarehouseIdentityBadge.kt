@@ -15,9 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import edu.logiroute.logiroute.ui.preview.previewDestinationWarehouse
+import edu.logiroute.logiroute.ui.preview.previewOriginWarehouse
 import edu.logiroute.logiroute.ui.theme.CyberSprout
+import edu.logiroute.logiroute.ui.theme.InkBlack
 import edu.logiroute.logiroute.ui.theme.SapphireSky
 import edu.logiroute.logiroute.ui.theme.TextPrimary
 import edu.logiroute.logiroute.ui.theme.TextSecondary
@@ -77,4 +81,30 @@ private fun RegionalZoneTag(zone: RegionalZone) {
 private fun resolveZoneColor(zone: RegionalZone): Color = when (zone) {
     RegionalZone.CENTRAL -> CyberSprout
     else -> SapphireSky
+}
+
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@Preview
+@Composable
+fun PreviewWarehouseIdentityBadgeNorth() {
+    Column(
+        modifier = Modifier
+            .background(InkBlack)
+            .padding(16.dp)
+    ) {
+        WarehouseIdentityBadge(warehouse = previewOriginWarehouse)
+    }
+}
+
+@Preview
+@Composable
+fun PreviewWarehouseIdentityBadgeCentral() {
+    Column(
+        modifier = Modifier
+            .background(InkBlack)
+            .padding(16.dp)
+    ) {
+        WarehouseIdentityBadge(warehouse = previewDestinationWarehouse)
+    }
 }
