@@ -20,6 +20,13 @@ class TwoDimensionalKnapsackCargoOptimizer {
         val index: Int
     )
 
+    private data class Selection(
+        val priority: Int,
+        val weight: Int,
+        val volume: Int,
+        val packageIndices: List<Int>
+    )
+
     fun selectOptimalPackages(
         vehicle: Vehicle,
         packages: List<Package>
@@ -75,16 +82,21 @@ class TwoDimensionalKnapsackCargoOptimizer {
     private fun createDpTable(
         weightCapacity: Int,
         volumeCapacity: Int
-    ): Array<Array<Pair<Int, List<Int>>>> {
+    ): Array<Array<Selection>> {
         return Array(weightCapacity + 1) {
             Array(volumeCapacity + 1) {
-                Pair(0, emptyList())
+                Selection(
+                    priority = 0,
+                    weight = 0,
+                    volume = 0,
+                    packageIndices = emptyList()
+                )
             }
         }
     }
 
     private fun updateDpTable(
-        dp: Array<Array<Pair<Int, List<Int>>>>,
+        dp: Array<Array<Selection>>,
         packages: List<Package>,
         weightCapacity: Int,
         volumeCapacity: Int
@@ -101,7 +113,7 @@ class TwoDimensionalKnapsackCargoOptimizer {
     }
 
     private fun updatePackage(
-        dp: Array<Array<Pair<Int, List<Int>>>>,
+        dp: Array<Array<Selection>>,
         cargoPackage: Package,
         packageIndex: Int,
         weightCapacity: Int,
@@ -127,7 +139,7 @@ class TwoDimensionalKnapsackCargoOptimizer {
     }
 
     private fun updateCell(
-        dp: Array<Array<Pair<Int, List<Int>>>>,
+        dp: Array<Array<Selection>>,
         weight: Int,
         volume: Int,
         packageInfo: PackageInfo
@@ -138,24 +150,41 @@ class TwoDimensionalKnapsackCargoOptimizer {
             volume - packageInfo.volume
         ]
 
-        val newPriority = previous.first + packageInfo.priority
+        val newSelection = Selection(
+            priority = previous.priority + packageInfo.priority,
+            weight = previous.weight + packageInfo.weight,
+            volume = previous.volume + packageInfo.volume,
+            packageIndices = previous.packageIndices + packageInfo.index
+        )
 
-        if (newPriority > dp[weight][volume].first) {
-            dp[weight][volume] =
-                Pair(
-                    newPriority,
-                    previous.second + packageInfo.index
-                )
+        if (isBetterSelection(newSelection, dp[weight][volume])) {
+            dp[weight][volume] = newSelection
         }
     }
 
+    private fun isBetterSelection(
+        newSelection: Selection,
+        currentSelection: Selection
+    ): Boolean {
+        if (newSelection.priority != currentSelection.priority) {
+            return newSelection.priority > currentSelection.priority
+        }
+
+        if (newSelection.weight != currentSelection.weight) {
+            return newSelection.weight < currentSelection.weight
+        }
+
+        return newSelection.volume < currentSelection.volume
+    }
+
     private fun extractSelectedPackages(
-        dp: Array<Array<Pair<Int, List<Int>>>>,
+        dp: Array<Array<Selection>>,
         packages: List<Package>,
         weightCapacity: Int,
         volumeCapacity: Int
     ): List<Package> {
-        return dp[weightCapacity][volumeCapacity].second
+        return dp[weightCapacity][volumeCapacity]
+            .packageIndices
             .map { packages[it] }
             .sortedBy { packages.indexOf(it) }
     }
