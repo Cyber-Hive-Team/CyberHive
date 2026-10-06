@@ -166,15 +166,21 @@ class TwoDimensionalKnapsackCargoOptimizer {
         newSelection: Selection,
         currentSelection: Selection
     ): Boolean {
-        if (newSelection.priority != currentSelection.priority) {
-            return newSelection.priority > currentSelection.priority
-        }
+        val hasHigherPriority =
+            newSelection.priority > currentSelection.priority
 
-        if (newSelection.weight != currentSelection.weight) {
-            return newSelection.weight < currentSelection.weight
-        }
+        val hasSamePriorityAndLowerWeight =
+            newSelection.priority == currentSelection.priority &&
+                    newSelection.weight < currentSelection.weight
 
-        return newSelection.volume < currentSelection.volume
+        val hasSamePriorityAndWeightAndLowerVolume =
+            newSelection.priority == currentSelection.priority &&
+                    newSelection.weight == currentSelection.weight &&
+                    newSelection.volume < currentSelection.volume
+
+        return hasHigherPriority ||
+                hasSamePriorityAndLowerWeight ||
+                hasSamePriorityAndWeightAndLowerVolume
     }
 
     private fun extractSelectedPackages(
