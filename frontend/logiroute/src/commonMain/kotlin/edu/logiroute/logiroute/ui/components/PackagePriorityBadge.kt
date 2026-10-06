@@ -13,8 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import edu.logiroute.logiroute.ui.preview.previewLowPackage
+import edu.logiroute.logiroute.ui.preview.previewStandardPackage
+import edu.logiroute.logiroute.ui.preview.previewUrgentPackage
 import edu.logiroute.logiroute.ui.theme.CharcoalBlue
 import edu.logiroute.logiroute.ui.theme.ErrorRed
 import edu.logiroute.logiroute.ui.theme.InkBlack
@@ -73,4 +77,42 @@ private fun resolveTextColor(priority: Priority): Color = when (priority) {
     Priority.URGENT -> InkBlack
     Priority.STANDARD -> InkBlack
     Priority.LOW -> TextSecondary
+}
+
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@Preview
+@Composable
+fun PreviewPackagePriorityBadgeUrgent() {
+    Column(
+        modifier = Modifier
+            .background(InkBlack)
+            .padding(16.dp)
+    ) {
+        PackagePriorityBadge(pkg = previewUrgentPackage)
+    }
+}
+
+@Preview
+@Composable
+fun PreviewPackagePriorityBadgeStandard() {
+    Column(
+        modifier = Modifier
+            .background(InkBlack)
+            .padding(16.dp)
+    ) {
+        PackagePriorityBadge(pkg = previewStandardPackage)
+    }
+}
+
+@Preview
+@Composable
+fun PreviewPackagePriorityBadgeLow() {
+    Column(
+        modifier = Modifier
+            .background(InkBlack)
+            .padding(16.dp)
+    ) {
+        PackagePriorityBadge(pkg = previewLowPackage)
+    }
 }
