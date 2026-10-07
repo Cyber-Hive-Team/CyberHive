@@ -13,7 +13,9 @@ data class Package(
     val priority: Priority,
     val originWarehouse: Warehouse,
     val destinationWarehouse: Warehouse,
-    val baseRate: Double = DEFAULT_BASE_RATE
+    val baseRate: Double = DEFAULT_BASE_RATE,
+    val volumeM3: Double = 0.0
+
 ) : PackageComponent {
 
     private var currentState: PackageState = CreatedState()
