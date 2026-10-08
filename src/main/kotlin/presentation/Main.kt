@@ -13,6 +13,8 @@ import org.example.domain.usecase.TraceHubLineageUseCase
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.parameter.parametersOf
+import org.example.di.syncModule
+import org.example.data.sync.SyncCoordinator
 
 suspend fun main() {
     println("=== Cyber Hive ===")
@@ -23,9 +25,22 @@ suspend fun main() {
             repositoryModule,
             validatorModule,
             useCaseModule,
-            dispatchModule
+            dispatchModule,
+            syncModule
+
         )
     }.koin
+
+    val syncCoordinator = koin.get<SyncCoordinator>()
+
+    runCatching {
+        syncCoordinator.syncAll()
+    }.onFailure { exception ->
+        println(
+            "Warning: Sync failed, using local CSV data. " +
+                    "Reason: ${exception.message}"
+        )
+    }
 
     val data = koin.get<DataLoader>().load()
 
