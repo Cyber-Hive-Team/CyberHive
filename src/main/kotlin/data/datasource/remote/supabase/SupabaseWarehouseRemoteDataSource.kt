@@ -11,25 +11,29 @@ import org.example.data.datasource.remote.WarehouseRemoteDataSource
 import org.example.data.remote.dto.request.CreateWarehouseRequestDto
 import org.example.data.remote.dto.request.UpdateWarehouseRequestDto
 import org.example.data.remote.dto.response.WarehouseResponseDto
+import org.example.data.retry.RetryWithBackoff
 
 class SupabaseWarehouseRemoteDataSource(
     private val client: HttpClient,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val retry: RetryWithBackoff
 ) : WarehouseRemoteDataSource {
 
     override suspend fun getAll(): List<WarehouseResponseDto> {
-        return client
-            .get("$baseUrl/warehouses")
-            .body()
+        return retry.executeWithRetry {
+            client.get("$baseUrl/warehouses")
+                .body<List<WarehouseResponseDto>>()
+        }.getOrThrow()
     }
-
     override suspend fun getById(
         id: String
     ): WarehouseResponseDto? {
-        return client
-            .get("$baseUrl/warehouses?warehouse_id=eq.$id")
+        return retry.executeWithRetry {
+            client
+                .get("$baseUrl/warehouses?warehouse_id=eq.$id")
                 .body<List<WarehouseResponseDto>>()
-            .firstOrNull()
+                .firstOrNull()
+        }.getOrThrow()
     }
 
     override suspend fun save(
