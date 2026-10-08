@@ -11,10 +11,14 @@ import org.example.data.datasource.remote.RouteRemoteDataSource
 import org.example.data.remote.dto.request.CreateRouteRequestDto
 import org.example.data.remote.dto.request.UpdateRouteRequestDto
 import org.example.data.remote.dto.response.RouteResponseDto
+import org.example.data.retry.RetryWithBackoff
+
 
 class SupabaseRouteRemoteDataSource(
     private val client: HttpClient,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val retry: RetryWithBackoff
+
 ) : RouteRemoteDataSource {
 
     private val routeSelect =
@@ -23,22 +27,24 @@ class SupabaseRouteRemoteDataSource(
                 "destination_hub:warehouses!Routes_destinationHubId_fkey(*)"
 
     override suspend fun getAll(): List<RouteResponseDto> {
-        return client
-            .get("$baseUrl/routes?select=$routeSelect")
-            .body()
+        return retry.executeWithRetry {
+            client.get("$baseUrl/routes?select=$routeSelect")
+                .body<List<RouteResponseDto>>()
+        }.getOrThrow()
     }
 
     override suspend fun getById(
         id: String
     ): RouteResponseDto? {
-        return client
-            .get(
+        return retry.executeWithRetry {
+            client.get(
                 "$baseUrl/routes" +
                         "?route_id=eq.$id" +
                         "&select=$routeSelect"
             )
-            .body<List<RouteResponseDto>>()
-            .firstOrNull()
+                .body<List<RouteResponseDto>>()
+                .firstOrNull()
+        }.getOrThrow()
     }
 
     override suspend fun save(
