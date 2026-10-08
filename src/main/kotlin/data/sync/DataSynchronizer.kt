@@ -1,4 +1,6 @@
 package org.example.data.sync
 
-class DataSynchronizer {
+interface DataSynchronizer {
+    val order: Int
+    suspend fun sync()
 }
