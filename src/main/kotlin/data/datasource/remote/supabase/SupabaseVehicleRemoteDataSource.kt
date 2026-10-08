@@ -11,11 +11,13 @@ import org.example.data.datasource.remote.VehicleRemoteDataSource
 import org.example.data.remote.dto.request.CreateVehicleRequestDto
 import org.example.data.remote.dto.request.UpdateVehicleRequestDto
 import org.example.data.remote.dto.response.VehicleResponseDto
+import org.example.data.retry.RetryWithBackoff
 
 
 class SupabaseVehicleRemoteDataSource(
     private val client: HttpClient,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val retry: RetryWithBackoff
 ) : VehicleRemoteDataSource {
 
     private val vehicleSelect =
@@ -23,23 +25,25 @@ class SupabaseVehicleRemoteDataSource(
                 "current_hub:warehouses!Vehicles_currentHubId_fkey(*)"
 
     override suspend fun getAll(): List<VehicleResponseDto> {
-
-        return client
-            .get("$baseUrl/vehicles?select=$vehicleSelect")
-            .body()
+        return retry.executeWithRetry {
+            client.get("$baseUrl/vehicles?select=$vehicleSelect")
+                .body<List<VehicleResponseDto>>()
+        }.getOrThrow()
     }
 
 
     override suspend fun getById(
         id: String
     ): VehicleResponseDto? {
-
-        return client
-            .get("$baseUrl/vehicles" +
+        return retry.executeWithRetry {
+            client.get(
+                "$baseUrl/vehicles" +
                         "?vehicle_id=eq.$id" +
-                    "&select=$vehicleSelect"
-            ).body<List<VehicleResponseDto>>()
-            .firstOrNull()
+                        "&select=$vehicleSelect"
+            )
+                .body<List<VehicleResponseDto>>()
+                .firstOrNull()
+        }.getOrThrow()
     }
 
 
