@@ -57,4 +57,31 @@ class CsvRouteLocalDataSource(
             )
         }
     }
+
+    override fun replaceAll(routes: List<RouteRaw>) {
+        val content = buildString {
+            appendLine(
+                "routeId,originHubId,destinationHubId,distanceKm,typicalDelayMin"
+            )
+
+            routes.forEach { route ->
+                appendLine(
+                    listOf(
+                        route.id,
+                        route.originHubId,
+                        route.destinationHubId,
+                        route.distanceKm ?: "",
+                        route.typicalDelayMin
+                    ).joinToString(",")
+                )
+            }
+        }
+
+        replaceCsvFile(
+            filePath = filePath,
+            content = content
+        )
+    }
+
+
 }

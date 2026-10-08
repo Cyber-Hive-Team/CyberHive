@@ -57,4 +57,30 @@ class CsvPackageLocalDataSource(
             )
         }
     }
+
+    override fun replaceAll(packages: List<PackageRaw>) {
+        val content = buildString {
+            appendLine("id,weight,originHubId,destinationHubId,priority")
+
+            packages.forEach { packageRaw ->
+                appendLine(
+                    listOf(
+                        packageRaw.id,
+                        packageRaw.weight ?: "",
+                        packageRaw.originHubId,
+                        packageRaw.destinationHubId,
+                        packageRaw.priority.name
+                    ).joinToString(",")
+                )
+            }
+        }
+
+        replaceCsvFile(
+            filePath = filePath,
+            content = content
+        )
+    }
+
+
+
 }
