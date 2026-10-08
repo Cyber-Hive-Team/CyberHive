@@ -37,60 +37,6 @@ class WarehouseValidatorTest {
         )
     }
 
-    @Test
-    fun `missing latitude returns warning`() {
-        // Given
-        val raw = rawWarehouse(latitude = null)
-
-        // When
-        val warnings = validator.validate(raw)
-
-        // Then
-        assertEquals(
-            listOf(
-                "Warning: Warehouse WH-001 skipped - invalid latitude"
-            ),
-            warnings
-        )
-    }
-
-    @Test
-    fun `missing longitude returns warning`() {
-        // Given
-        val raw = rawWarehouse(longitude = null)
-
-        // When
-        val warnings = validator.validate(raw)
-
-        // Then
-        assertEquals(
-            listOf(
-                "Warning: Warehouse WH-001 skipped - invalid longitude"
-            ),
-            warnings
-        )
-    }
-
-    @Test
-    fun `missing coordinates return both warnings`() {
-        // Given
-        val raw = rawWarehouse(
-            latitude = null,
-            longitude = null
-        )
-
-        // When
-        val warnings = validator.validate(raw)
-
-        // Then
-        assertWarningsExactly(
-            actual = warnings,
-            expected = listOf(
-                "Warning: Warehouse WH-001 skipped - invalid latitude",
-                "Warning: Warehouse WH-001 skipped - invalid longitude"
-            )
-        )
-    }
 
     @Test
     fun `latitude below minimum returns warning`() {
@@ -200,8 +146,8 @@ class WarehouseValidatorTest {
 
     private fun rawWarehouse(
         id: String = "WH-001",
-        latitude: Double? = 31.5,
-        longitude: Double? = 34.4
+        latitude: Double = 31.5,
+        longitude: Double = 34.4
     ) = WarehouseRaw(
         id = id,
         name = "Main warehouse",
