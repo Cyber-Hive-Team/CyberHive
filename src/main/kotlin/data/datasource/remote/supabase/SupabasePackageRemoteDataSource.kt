@@ -11,10 +11,12 @@ import org.example.data.datasource.remote.PackageRemoteDataSource
 import org.example.data.remote.dto.request.CreatePackageRequestDto
 import org.example.data.remote.dto.request.UpdatePackageRequestDto
 import org.example.data.remote.dto.response.PackageResponseDto
+import org.example.data.retry.RetryWithBackoff
 
 class SupabasePackageRemoteDataSource(
     private val client: HttpClient,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val retry: RetryWithBackoff
 ) : PackageRemoteDataSource {
 
     private val packageSelect =
@@ -23,22 +25,24 @@ class SupabasePackageRemoteDataSource(
                 "destination_hub:warehouses!Packages_destinationHubId_fkey(*)"
 
     override suspend fun getAll(): List<PackageResponseDto> {
-        return client
-            .get("$baseUrl/packages?select=$packageSelect")
-            .body()
+        return retry.executeWithRetry {
+            client.get("$baseUrl/packages?select=$packageSelect")
+                .body<List<PackageResponseDto>>()
+        }.getOrThrow()
     }
 
     override suspend fun getById(
         id: String
     ): PackageResponseDto? {
-        return client
-            .get(
+        return retry.executeWithRetry {
+            client.get(
                 "$baseUrl/packages" +
                         "?package_id=eq.$id" +
                         "&select=$packageSelect"
             )
-            .body<List<PackageResponseDto>>()
-            .firstOrNull()
+                .body<List<PackageResponseDto>>()
+                .firstOrNull()
+        }.getOrThrow()
     }
 
     override suspend fun save(
