@@ -3,6 +3,7 @@ package org.example.data.dataparsing
 import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.WarehouseRaw
 import org.example.data.exception.InvalidColumnCountException
+import org.example.data.exception.MissingRequiredFieldException
 import org.example.domain.model.RegionalZone
 
 private const val REQUIRED_COLUMNS_COUNT = 5
@@ -28,7 +29,7 @@ fun convertCsvRowToWarehouseRawObject(
     return when {
         warehouseId == null -> invalidWarehouseIdResult(columns, rowIndex)
         zone == null -> invalidZoneResult(columns, rowIndex)
-        else -> createWarehouseResult(columns, warehouseId, zone, rowIndex)
+        else -> createWarehouseResult(columns, warehouseId, zone)
     }
 }
 
@@ -76,8 +77,7 @@ private fun invalidZoneResult(
 private fun createWarehouseResult(
     columns: List<String>,
     warehouseId: String,
-    zone: RegionalZone,
-    rowIndex: Int
+    zone: RegionalZone
 ): RawResult<WarehouseRaw> {
     val warehouseRaw = extractWarehouseRaw(
         columns = columns,
@@ -85,21 +85,10 @@ private fun createWarehouseResult(
         zone = zone
     )
 
-    return if (
-        warehouseRaw.latitude == null ||
-        warehouseRaw.longitude == null
-    ) {
-        RawResult(
-            rawData = null,
-            errorMessage =
-                "Row ${rowIndex + 1} skipped - missing or invalid coordinates"
-        )
-    } else {
-        RawResult(
-            rawData = warehouseRaw,
-            errorMessage = null
-        )
-    }
+    return RawResult(
+        rawData = warehouseRaw,
+        errorMessage = null
+    )
 }
 
 private fun hasRequiredColumns(columns: List<String>): Boolean {
@@ -121,19 +110,23 @@ private fun extractWarehouseRaw(
         id = warehouseId,
         name = columns[NAME_INDEX],
         regionalZone = zone,
-        latitude = parseCoordinate(columns[LAT_INDEX]),
-        longitude = parseCoordinate(columns[LON_INDEX])
+        latitude = parseCoordinate(
+            value = columns[LAT_INDEX],
+            fieldName = "latitude"
+        ),
+        longitude = parseCoordinate(
+            value = columns[LON_INDEX],
+            fieldName = "longitude"
+        )
     )
 }
 
-private fun parseCoordinate(value: String): Double? {
-    if (
-        value.isBlank() ||
-        value.equals("null", true) ||
-        value.equals("N/A", true)
-    ) {
-        return null
-    }
-
+private fun parseCoordinate(
+    value: String,
+    fieldName: String
+): Double {
     return value.toDoubleOrNull()
+        ?: throw MissingRequiredFieldException(
+            "Warehouse $fieldName is missing or invalid"
+        )
 }
