@@ -5,8 +5,7 @@ import org.example.data.mapper.DataExceptionMapper
 import org.example.domain.model.exception.NetworkException
 
 
-
-abstract class RetryWithBackoff(
+class RetryWithBackoff(
     private val maxRetries: Int = DEFAULT_MAX_RETRIES,
     private val initialDelayMs: Long = DEFAULT_INITIAL_DELAY_MS,
     private val factor: Double = DEFAULT_FACTOR,
@@ -21,15 +20,17 @@ abstract class RetryWithBackoff(
 
     private val exceptionMapper = DataExceptionMapper()
 
-   protected suspend fun <T> executeWithRetry(block: suspend () -> T): Result<T> {
+    suspend fun <T> executeWithRetry(block: suspend () -> T): Result<T> {
         var currentDelay = initialDelayMs
-        var outcome: Result<T> = Result.failure(IllegalStateException("retryWithBackoff did not run"))
-        var isDone = false
-
             repeat(maxRetries + ATTEMPT_DISPLAY_OFFSET) { attempt ->
-                outcome = runCatching { block() }
+                val outcome = runCatching { block() }
 
                 if (!shouldRetry(outcome.exceptionOrNull(), attempt, maxRetries)) {
+                    outcome
+                        .onSuccess { logger.onSucceeded(it) }
+                        .onFailure { logger.onGaveUp(it) }
+                    return outcome
+                }
 
                 outcome.onFailure { error ->
                     logger.onAttemptFailed(
@@ -41,18 +42,10 @@ abstract class RetryWithBackoff(
 
                 delay(currentDelay)
                 currentDelay = (currentDelay * factor).toLong()
-            }else{
-                isDone = true
             }
-        }
 
-       outcome
-           .onSuccess { logger.onSucceeded(it) }
-           .onFailure { logger.onGaveUp(it) }
-
-       return outcome
+        error("Retry loop ended unexpectedly")
     }
-
     private fun shouldRetry(error: Throwable?, attempt: Int, maxRetries: Int): Boolean =
         error != null && isRetryable(error) && attempt < maxRetries
 
