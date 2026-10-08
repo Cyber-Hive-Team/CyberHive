@@ -20,6 +20,7 @@ import org.example.domain.model.WarehouseStatus
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.repository.WarehouseRepository
+import org.example.data.mapper.sync.toRaw
 
 class WarehouseRepositoryImpl(
     private val remoteDataSource: WarehouseRemoteDataSource,
@@ -37,31 +38,22 @@ class WarehouseRepositoryImpl(
 
 
     override suspend fun getAllWarehouses(): Result<List<Warehouse>> {
-
         return runCatching {
             if (isLoaded) {
                 return@runCatching warehouses.toList()
             }
-            val loadedWarehouses =
-                runCatching {
-                remoteDataSource
-                    .getAll()
-                    .mapNotNull { dto ->
-                        mapRemoteWarehouseSafely(dto)
+
+            val loadedWarehouses = localDataSource
+                .getWarehouses()
+                .mapNotNull { result ->
+                    result.rawData?.let { raw ->
+                        mapLocalWarehouseSafely(raw)
                     }
-                }.getOrElse {
-                    localDataSource
-                        .getWarehouses()
-                        .mapNotNull { result ->
-                            result.rawData?.let { raw ->
-                                mapLocalWarehouseSafely(raw)
-                            }
-                        }
                 }
-            warehouses.addAll(
-                loadedWarehouses
-            )
+
+            warehouses.addAll(loadedWarehouses)
             isLoaded = true
+
             warehouses.toList()
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -148,23 +140,13 @@ class WarehouseRepositoryImpl(
     override suspend fun getById(
         id: String
     ): Result<Warehouse> {
-        val cached =
-            warehouses.firstOrNull {
-                it.id == id
+        return getAllWarehouses()
+            .mapCatching { warehouses ->
+                warehouses.firstOrNull {
+                    it.id == id
+                } ?: throw WarehouseNotFoundException()
             }
-        if (cached != null) {
-            return Result.success(cached)
-        }
-        return runCatching {
-        val remoteDto =
-            remoteDataSource
-                .getById(id)
-                ?: throw WarehouseNotFoundException()
-            mapRemoteWarehouseSafely(remoteDto)
-                ?: throw NullRequiredFieldException("Warehouse '$id' mapping failed.")
-        }.onSuccess { warehouse ->
-            warehouses.add(warehouse)
-        }.mapFailureToDomain(dataExceptionMapper)
+            .mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -182,6 +164,7 @@ class WarehouseRepositoryImpl(
                         "Warehouse '${responseDto.id}' mapping failed."
                     )
             warehouses.add(savedWarehouse)
+            refreshLocalSnapshot()
             savedWarehouse
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -204,6 +187,7 @@ class WarehouseRepositoryImpl(
                 it.id == input.id
             }
             warehouses.add(updatedWarehouse)
+            refreshLocalSnapshot()
             updatedWarehouse
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -215,6 +199,7 @@ class WarehouseRepositoryImpl(
             warehouses.removeIf {
                 it.id == deletedId
             }
+            refreshLocalSnapshot()
             deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -236,5 +221,15 @@ class WarehouseRepositoryImpl(
         return runCatching {
             statusDataSource.updateStatus(warehouseId, status)
         }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+    private suspend fun refreshLocalSnapshot() {
+        val rawWarehouses = remoteDataSource
+            .getAll()
+            .map { dto ->
+                dto.toRaw()
+            }
+
+        localDataSource.replaceAll(rawWarehouses)
     }
 }

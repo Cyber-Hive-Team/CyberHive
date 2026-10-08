@@ -14,6 +14,7 @@ import org.example.domain.model.Route
 import org.example.domain.model.exception.RouteNotFoundException
 import org.example.domain.repository.RouteRepository
 import org.example.data.datasource.local.model.RouteLocalData
+import org.example.data.mapper.sync.toRaw
 
 class RouteRepositoryImpl(
     private val localDataSource: RouteDataSource,
@@ -26,23 +27,16 @@ class RouteRepositoryImpl(
 
 
     override suspend fun getAllRoutes(): Result<List<Route>> {
-
         return runCatching {
             if (isLoaded) {
                 return@runCatching routes.toList()
             }
-            val loadedRoutes =
-                runCatching {
-                    remoteDataSource
-                        .getAll()
-                        .mapNotNull { dto -> mapRemoteRoute(dto) }
-                }.getOrElse {
-                    loadLocalRoutes()
-                }
-            routes.addAll(
-                loadedRoutes
-            )
+
+            val loadedRoutes = loadLocalRoutes()
+
+            routes.addAll(loadedRoutes)
             isLoaded = true
+
             routes.toList()
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -62,20 +56,13 @@ class RouteRepositoryImpl(
     override suspend fun getById(
         routeId: String
     ): Result<Route> {
-        val cachedRoute = routes.firstOrNull {
-            it.id == routeId
-        }
-        if (cachedRoute != null) {
-            return Result.success(cachedRoute)
-        }
-        return runCatching {
-            val dto = remoteDataSource
-                .getById(routeId)
-                ?: throw RouteNotFoundException()
-            val route = mapRemoteRoute(dto) ?: throw NullRequiredFieldException("Route '$routeId' mapping failed.")
-            routes.add(route)
-            route
-        }.mapFailureToDomain(dataExceptionMapper)
+        return getAllRoutes()
+            .mapCatching { routes ->
+                routes.firstOrNull {
+                    it.id == routeId
+                } ?: throw RouteNotFoundException()
+            }
+            .mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -88,6 +75,7 @@ class RouteRepositoryImpl(
             val savedRoute = mapRemoteRoute(dto)
                     ?: throw NullRequiredFieldException("Route '${route.id}' save mapping failed.")
             routes.add(savedRoute)
+            refreshLocalSnapshot()
             savedRoute
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -106,6 +94,7 @@ class RouteRepositoryImpl(
                 it.id == route.id
             }
             routes.add(updatedRoute)
+            refreshLocalSnapshot()
             updatedRoute
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -119,7 +108,7 @@ class RouteRepositoryImpl(
             routes.removeIf {
                 it.id == deletedId
             }
-
+            refreshLocalSnapshot()
             deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -137,5 +126,15 @@ class RouteRepositoryImpl(
         return mapSafely(data.routeRaw.id) {
             data.toDomainModel()
         }
+    }
+
+    private suspend fun refreshLocalSnapshot() {
+        val rawRoutes = remoteDataSource
+            .getAll()
+            .map { dto ->
+                dto.toRaw()
+            }
+
+        localDataSource.replaceAll(rawRoutes)
     }
 }
