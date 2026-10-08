@@ -39,7 +39,35 @@ class ReroutePackageUseCaseTest {
         RoutingResult(path = listOf(cargoPackage.originWarehouse, destination), distanceKm = 75.0)
 
     @Test
-    fun `reroutes package and adds updated package to destination queue`() = runBlocking {
+    fun `when reroute succeeds should return routing result`() = runBlocking {
+        // Given
+        prepareExistingPackageAndDestination()
+
+        every {
+            router.findPath(cargoPackage.originWarehouse, destination)
+        } returns routingResult
+
+        every {
+            pricingEngine.calculatePrice(cargoPackage, routingResult.distanceKm)
+        } returns 150.0
+
+        coEvery {
+            warehouseRepository.addPackageToCargoQueue(destination.id, any())
+        } returns Result.success(true)
+
+        coEvery {
+            warehouseRepository.sortCargoQueue(destination.id)
+        } returns Result.success(true)
+
+        // When
+        val result = useCase(input)
+
+        // Then
+        assertEquals(routingResult, result.getOrThrow())
+    }
+
+    @Test
+    fun `when reroute succeeds should add updated package to destination queue`() = runBlocking {
         // Given
         prepareExistingPackageAndDestination()
         every {
@@ -56,14 +84,9 @@ class ReroutePackageUseCaseTest {
             warehouseRepository.sortCargoQueue(destination.id)
         } returns Result.success(true)
         // When
-        val result = useCase(input)
+        useCase(input)
         // Then
-        assertEquals(routingResult, result.getOrThrow())
-
-        assertEquals(
-            cargoPackage.copy(destinationWarehouse = destination, baseRate = 150.0),
-            savedPackage.captured
-        )
+        assertEquals(cargoPackage.copy(destinationWarehouse = destination, baseRate = 150.0), savedPackage.captured)
         verify(exactly = 1) {
             pricingEngine.calculatePrice(cargoPackage, routingResult.distanceKm)
         }
@@ -71,6 +94,7 @@ class ReroutePackageUseCaseTest {
             warehouseRepository.sortCargoQueue(destination.id)
         }
     }
+
 
     @Test
     fun `fails when package is missing`() = runBlocking {

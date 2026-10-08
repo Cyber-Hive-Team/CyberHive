@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test
         }
 
         @Test
-        fun `fails when vehicle is not found`() = runBlocking {
+        fun `fails when vehicle is not found`(): Unit = runBlocking {
             coEvery { vehicleRepository.getVehicles() } returns Result.success(emptyList())
 
             val result = useCase("TRK-9999")

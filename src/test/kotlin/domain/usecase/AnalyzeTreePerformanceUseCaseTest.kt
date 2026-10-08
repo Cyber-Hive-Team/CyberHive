@@ -1,18 +1,18 @@
 package org.example.domain.usecase
 
-import org.example.domain.model.exception.InvalidPackageCountException
-import org.example.domain.model.input.AnalyzeTreePerformanceInput
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import org.example.domain.model.exception.InvalidPackageCountException
+import org.example.domain.model.input.AnalyzeTreePerformanceInput
+import org.junit.jupiter.api.Test
 
 class AnalyzeTreePerformanceUseCaseTest {
 
     private val useCase = AnalyzeTreePerformanceUseCase()
 
     @Test
-    fun `single package requires one search step in both trees`() {
+    fun `when package count is one should return correct tracking id`() {
         // Given
         val input = AnalyzeTreePerformanceInput(
             firstPackageNumber = 1,
@@ -25,8 +25,53 @@ class AnalyzeTreePerformanceUseCaseTest {
 
         // Then
         assertEquals("PKG-000001", result.targetTrackingId)
+    }
+
+    @Test
+    fun `when package count is one should return correct package count`() {
+        // Given
+        val input = AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 1,
+            trackingIdWidth = 6
+        )
+
+        // When
+        val result = useCase(input)
+
+        // Then
         assertEquals(1, result.packageCount)
+    }
+
+    @Test
+    fun `when package count is one should require one unbalanced search step`() {
+        // Given
+        val input = AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 1,
+            trackingIdWidth = 6
+        )
+
+        // When
+        val result = useCase(input)
+
+        // Then
         assertEquals(1, result.unbalancedSearchSteps)
+    }
+
+    @Test
+    fun `when package count is one should require one AVL search step`() {
+        // Given
+        val input = AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 1,
+            trackingIdWidth = 6
+        )
+
+        // When
+        val result = useCase(input)
+
+        // Then
         assertEquals(1, result.avlSearchSteps)
     }
 
@@ -38,7 +83,6 @@ class AnalyzeTreePerformanceUseCaseTest {
             packageCount = 3,
             trackingIdWidth = 6
         )
-
         // When
         val result = useCase(input)
 
@@ -47,7 +91,7 @@ class AnalyzeTreePerformanceUseCaseTest {
     }
 
     @Test
-    fun `sequential insertion requires fewer search steps in AVL tree`() {
+    fun `when packages are inserted sequentially should return seven unbalanced search steps`() {
         // Given
         val input = AnalyzeTreePerformanceInput(
             firstPackageNumber = 1,
@@ -57,14 +101,39 @@ class AnalyzeTreePerformanceUseCaseTest {
 
         // When
         val result = useCase(input)
-
         // Then
         assertEquals(7, result.unbalancedSearchSteps)
-        assertTrue(result.avlSearchSteps > 0)
-        assertTrue(
-            result.avlSearchSteps < result.unbalancedSearchSteps
-        )
     }
+
+    @Test
+    fun `when packages are inserted sequentially should return positive AVL search steps`() {
+        // Given
+        val input = AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 7,
+            trackingIdWidth = 6
+        )
+        // When
+        val result = useCase(input)
+        // Then
+        assertTrue(result.avlSearchSteps > 0)
+    }
+
+    @Test
+    fun `when packages are inserted sequentially should require fewer AVL search steps`() {
+        // Given
+        val input = AnalyzeTreePerformanceInput(
+            firstPackageNumber = 1,
+            packageCount = 7,
+            trackingIdWidth = 6
+        )
+
+        // When
+        val result = useCase(input)
+        // Then
+        assertTrue(result.avlSearchSteps < result.unbalancedSearchSteps)
+    }
+
 
     @Test
     fun `tracking id uses requested width`() {
@@ -74,7 +143,6 @@ class AnalyzeTreePerformanceUseCaseTest {
             packageCount = 1,
             trackingIdWidth = 4
         )
-
         // When
         val result = useCase(input)
 

@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Test
         }
 
         @Test
-        fun `fails when vehicle reassignment returns false`() = runBlocking {
+        fun `fails when vehicle reassignment returns false`(): Unit = runBlocking {
             val surplusHub = factory.createWarehouse("WH-001")
             val vehicle = factory.createVehicle(id = "TRK-0001", maxCapacityKg = 80.0, currentHub = surplusHub)
 

@@ -39,35 +39,44 @@ class TrackVehicleCurrentLocationUseCaseTest {
     )
 
     @Test
-    fun `returns vehicle current location successfully`() =
-        runBlocking {
-            // Given
-            coEvery {
-                vehicleRepository.getById("TRK-0001")
-            } returns Result.success(vehicle)
+    fun `when vehicle exists should return success`() = runBlocking {
+        // Given
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.success(vehicle)
 
-            // When
-            val result = useCase("TRK-0001")
+        // When
+        val result = useCase("TRK-0001")
 
-            // Then
-            assertAll(
-                { assertTrue(result.isSuccess) },
-                {
-                    assertEquals(
-                        VehicleTrackingResult(
-                            vehicleId = "TRK-0001",
-                            currentWarehouseId = "WH-001",
-                            currentWarehouseName = "Main Warehouse"
-                        ),
-                        result.getOrThrow()
-                    )
-                }
-            )
+        // Then
+        assertTrue(result.isSuccess)
+    }
 
-            coVerify(exactly = 1) {
-                vehicleRepository.getById("TRK-0001")
-            }
+    @Test
+    fun `when vehicle exists should return current location`() = runBlocking {
+        // Given
+        coEvery {
+            vehicleRepository.getById("TRK-0001")
+        } returns Result.success(vehicle)
+
+        // When
+        val result = useCase("TRK-0001")
+
+        // Then
+        assertEquals(
+            VehicleTrackingResult(
+                vehicleId = "TRK-0001",
+                currentWarehouseId = "WH-001",
+                currentWarehouseName = "Main Warehouse"
+            ),
+            result.getOrThrow()
+        )
+
+        coVerify(exactly = 1) {
+            vehicleRepository.getById("TRK-0001")
         }
+    }
+
 
     @Test
     fun `returns failure when vehicle is not found`() =
