@@ -15,17 +15,11 @@ class WarehouseValidator {
         if (raw.id.isBlank()) {
             warnings.add("Warning: Warehouse skipped - ID is missing")
         }
-        if (raw.latitude == null ||
-            raw.latitude < MIN_LATITUDE ||
-            raw.latitude > MAX_LATITUDE
-        ) {
+        if (raw.latitude < MIN_LATITUDE || raw.latitude > MAX_LATITUDE) {
             warnings.add("Warning: Warehouse ${raw.id} skipped - invalid latitude")
         }
 
-        if (raw.longitude == null ||
-            raw.longitude < MIN_LONGITUDE ||
-            raw.longitude > MAX_LONGITUDE
-        ) {
+        if (raw.longitude < MIN_LONGITUDE || raw.longitude > MAX_LONGITUDE) {
             warnings.add("Warning: Warehouse ${raw.id} skipped - invalid longitude")
         }
         return warnings

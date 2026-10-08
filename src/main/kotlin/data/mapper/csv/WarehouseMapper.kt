@@ -9,8 +9,8 @@ fun WarehouseRaw.toDomainModel(): Warehouse {
             id = id,
             name = name,
             regionalZone = regionalZone,
-            latitude = latitude!!,
-            longitude = longitude!!
+            latitude = latitude,
+            longitude = longitude
         )
     }
 

@@ -18,8 +18,6 @@ private const val ORIGIN_COLUMN_INDEX = 2
 private const val DESTINATION_COLUMN_INDEX = 3
 private const val PRIORITY_COLUMN_INDEX = 4
 
-private const val INVALID_WEIGHT = -1.0
-
 fun parsePackages(filePath: String): List<RawResult<PackageRaw>> {
     val lines = readPackageLines(filePath)
     return lines
@@ -125,13 +123,13 @@ private fun splitAndCleanColumns(
 
 private fun parseWeight(
     value: String
-): Double {
+): Double? {
     val cleaned = value
         .replace("kg", "", ignoreCase = true)
         .replace(" ", "")
         .trim()
 
-    return cleaned.toDoubleOrNull() ?: INVALID_WEIGHT
+    return cleaned.toDoubleOrNull()
 }
 
 private fun parsePriority(

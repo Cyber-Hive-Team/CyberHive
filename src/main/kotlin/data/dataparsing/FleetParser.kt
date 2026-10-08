@@ -12,7 +12,6 @@ private const val ID_INDEX = 0
 private const val HUB_INDEX = 1
 private const val CAPACITY_INDEX = 2
 private const val COST_INDEX = 3
-private const val INVALID_VALUE = -1.0
 
 private val VEHICLE_ID_REGEX = Regex("^TRK-\\d{4}$")
 
@@ -97,10 +96,17 @@ private fun parseFleetRow(
     return VehicleRaw(
         id = vehicleId,
         currentHubId = currentHubId,
-        maxCapacityKg = parseNumericValue(capacity),
-        costPerKm = parseNumericValue(cost)
+        maxCapacityKg = parseCapacity(capacity),
+        costPerKm = parseCost(cost)
     )
 }
 
-private fun parseNumericValue(value: String): Double =
-    value.toDoubleOrNull() ?: INVALID_VALUE
+private fun parseCapacity(value: String): Double? =
+    value.toDoubleOrNull()
+
+private fun parseCost(value: String): Double =
+    value.toDoubleOrNull()
+        ?: throw MissingRequiredFieldException(
+            "Vehicle costPerKm is missing or invalid"
+        )
+

@@ -8,6 +8,7 @@ import org.example.data.exception.InvalidColumnCountException
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
+import org.example.data.exception.MissingRequiredFieldException
 
 private const val FIRST_DATA_ROW_INDEX = 1
 private const val EXPECTED_COLUMN_COUNT = 5
@@ -16,8 +17,6 @@ private const val ORIGIN_INDEX = 1
 private const val DESTINATION_INDEX = 2
 private const val DISTANCE_INDEX = 3
 private const val DELAY_INDEX = 4
-private const val INVALID_DISTANCE = -1.0
-private const val INVALID_DELAY = -1
 
 private data class RouteIds(
     val id: String,
@@ -118,26 +117,31 @@ private fun cleanId(
     return cleaned
 }
 
-private fun cleanDistance(value: String): Double {
+private fun cleanDistance(value: String): Double? {
     val cleaned = value
         .replace("km", "", ignoreCase = true)
         .trim()
 
     if (isInvalidValue(cleaned)) {
-        return INVALID_DISTANCE
+        return null
     }
 
-    return cleaned.toDoubleOrNull() ?: INVALID_DISTANCE
+    return cleaned.toDoubleOrNull()
 }
 
 private fun cleanDelay(value: String): Int {
     val cleaned = value.trim()
 
     if (isInvalidValue(cleaned)) {
-        return INVALID_DELAY
+        throw MissingRequiredFieldException(
+            "Route typicalDelayMin is missing or invalid"
+        )
     }
 
-    return cleaned.toIntOrNull() ?: INVALID_DELAY
+    return cleaned.toIntOrNull()
+        ?: throw MissingRequiredFieldException(
+            "Route typicalDelayMin is missing or invalid"
+        )
 }
 
 private fun isInvalidValue(value: String): Boolean {

@@ -30,7 +30,7 @@ class RouteValidator {
             )
         }
 
-        if (raw.distanceKm <= 0) {
+        if (raw.distanceKm == null || raw.distanceKm <= 0) {
             warnings.add(
                 "Warning: Route ${raw.id} skipped - invalid distance"
             )

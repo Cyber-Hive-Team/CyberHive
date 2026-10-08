@@ -50,7 +50,8 @@ class VehicleValidator {
         }
 
     private fun validateCapacity(raw: VehicleRaw): String? =
-        if (raw.maxCapacityKg <= MIN_CAPACITY_KG) {
+        if (raw.maxCapacityKg == null ||
+            raw.maxCapacityKg <= MIN_CAPACITY_KG) {
             "Warning: Vehicle ${raw.id} skipped - invalid capacity"
         } else {
             null
