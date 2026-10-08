@@ -136,14 +136,6 @@ class WarehouseValidatorTest {
         assertTrue(upperWarnings.isEmpty())
     }
 
-    private fun assertWarningsExactly(
-        actual: List<String>,
-        expected: List<String>
-    ) {
-        assertEquals(expected.size, actual.size)
-        assertTrue(actual.containsAll(expected))
-    }
-
     private fun rawWarehouse(
         id: String = "WH-001",
         latitude: Double = 31.5,
