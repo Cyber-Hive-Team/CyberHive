@@ -50,4 +50,30 @@ class CsvVehicleLocalDataSource(
             )
         }
     }
+
+    override fun replaceAll(vehicles: List<VehicleRaw>) {
+        val content = buildString {
+            appendLine(
+                "vehicleId,currentHubId,maxCapacityKg,costPerKm"
+            )
+
+            vehicles.forEach { vehicle ->
+                appendLine(
+                    listOf(
+                        vehicle.id,
+                        vehicle.currentHubId,
+                        vehicle.maxCapacityKg ?: "",
+                        vehicle.costPerKm
+                    ).joinToString(",")
+                )
+            }
+        }
+
+        replaceCsvFile(
+            filePath = filePath,
+            content = content
+        )
+    }
+
+
 }

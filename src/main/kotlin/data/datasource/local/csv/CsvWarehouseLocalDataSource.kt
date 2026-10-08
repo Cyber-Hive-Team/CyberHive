@@ -50,4 +50,32 @@ class CsvWarehouseLocalDataSource(
 
         return file.readLines()
     }
+
+    override fun replaceAll(
+        warehouses: List<WarehouseRaw>
+    ) {
+        val content = buildString {
+            appendLine(
+                "id,name,regionalZone,latitude,longitude"
+            )
+
+            warehouses.forEach { warehouse ->
+                appendLine(
+                    listOf(
+                        warehouse.id,
+                        warehouse.name,
+                        warehouse.regionalZone.name,
+                        warehouse.latitude,
+                        warehouse.longitude
+                    ).joinToString(",")
+                )
+            }
+        }
+
+        replaceCsvFile(
+            filePath = filePath,
+            content = content
+        )
+    }
+
 }

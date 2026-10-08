@@ -23,6 +23,7 @@ import org.example.domain.model.exception.PackageNotFoundException
 import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.repository.PackageRepository
+import org.example.data.mapper.sync.toRaw
 
 private const val MIN_WAITING_HOURS = 1L
 private const val MAX_WAITING_HOURS = 73L
@@ -47,23 +48,22 @@ class PackageRepositoryImpl(
 
 
     override suspend fun getAllPackages(): Result<List<Package>> {
-
         return runCatching {
             if (isLoaded) {
                 return@runCatching packages.toList()
             }
-            val loadedPackages =
-                runCatching {
-                    remoteDataSource
-                        .getAll()
-                        .mapNotNull { dto -> mapRemotePackage(dto) }
-                }.getOrElse {
-                    localDataSource
-                        .getPackages()
-                        .mapNotNull { result -> result.rawData?.let { raw -> mapLocalPackage(raw) } }
+
+            val loadedPackages = localDataSource
+                .getPackages()
+                .mapNotNull { result ->
+                    result.rawData?.let { data ->
+                        mapLocalPackage(data)
+                    }
                 }
+
             packages.addAll(loadedPackages)
             isLoaded = true
+
             packages.toList()
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -73,21 +73,13 @@ class PackageRepositoryImpl(
     override suspend fun getById(
         packageId: String
     ): Result<Package> {
-        val cachedPackage = packages.firstOrNull {
-            it.id == packageId
-        }
-        if (cachedPackage != null) {
-            return Result.success(cachedPackage)
-        }
-        return runCatching {
-            val dto = remoteDataSource
-                .getById(packageId)
-                ?: throw PackageNotFoundException()
-            val packageModel =
-                mapRemotePackage(dto) ?: throw PackageNotFoundException("Package '$packageId' mapping failed.")
-            packages.add(packageModel)
-            packageModel
-        }.mapFailureToDomain(dataExceptionMapper)
+        return getAllPackages()
+            .mapCatching { packages ->
+                packages.firstOrNull {
+                    it.id == packageId
+                } ?: throw PackageNotFoundException()
+            }
+            .mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -202,6 +194,7 @@ class PackageRepositoryImpl(
                         "Saved package '${dto.id}' mapping failed."
                     )
             packages.add(packageModel)
+            refreshLocalSnapshot()
             packageModel
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -228,6 +221,7 @@ class PackageRepositoryImpl(
                 it.id == input.id
             }
             packages.add(updatedPackage)
+            refreshLocalSnapshot()
             updatedPackage
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -241,6 +235,7 @@ class PackageRepositoryImpl(
             packages.removeIf {
                 it.id == deletedId
             }
+            refreshLocalSnapshot()
             deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
@@ -257,5 +252,14 @@ class PackageRepositoryImpl(
         return mapSafely(data.packageRaw.id) {
             data.toDomainModel()
         }
+    }
+    private suspend fun refreshLocalSnapshot() {
+        val rawPackages = remoteDataSource
+            .getAll()
+            .map { dto ->
+                dto.toRaw()
+            }
+
+        localDataSource.replaceAll(rawPackages)
     }
 }

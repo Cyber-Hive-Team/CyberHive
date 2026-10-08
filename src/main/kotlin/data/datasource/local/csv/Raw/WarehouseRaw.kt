@@ -6,6 +6,6 @@ data class WarehouseRaw(
     val id: String,
     val name: String,
     val regionalZone: RegionalZone,
-    val latitude: Double?,
-    val longitude: Double?
+    val latitude: Double,
+    val longitude: Double
 )
