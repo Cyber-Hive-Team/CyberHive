@@ -5,5 +5,6 @@ import org.example.data.dataholder.WarehouseRaw
 
 interface WarehouseDataSource {
     fun getWarehouses(): List<RawResult<WarehouseRaw>>
+    fun replaceAll(warehouses: List<WarehouseRaw>)
 }
 
