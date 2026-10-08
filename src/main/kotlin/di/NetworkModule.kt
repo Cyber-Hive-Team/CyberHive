@@ -12,6 +12,7 @@ import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDataSour
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDataSource
 import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
+import org.example.data.retry.RetryWithBackoff
 import org.koin.dsl.module
 
 val networkModule = module {
@@ -40,28 +41,36 @@ val networkModule = module {
     single<PackageRemoteDataSource> {
         SupabasePackageRemoteDataSource(
             client = get(),
-            baseUrl = "${get<SupabaseConfig>().url}/rest/v1"
+            baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
+            retry = get()
+
         )
     }
 
     single<RouteRemoteDataSource> {
         SupabaseRouteRemoteDataSource(
             client = get(),
-            baseUrl = "${get<SupabaseConfig>().url}/rest/v1"
+            baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
+            retry = get()
         )
     }
 
     single<VehicleRemoteDataSource> {
         SupabaseVehicleRemoteDataSource(
             client = get(),
-            baseUrl = "${get<SupabaseConfig>().url}/rest/v1"
+            baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
+            retry = get()
         )
     }
 
     single<WarehouseRemoteDataSource> {
         SupabaseWarehouseRemoteDataSource(
             client = get(),
-            baseUrl = "${get<SupabaseConfig>().url}/rest/v1"
+            baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
+            retry = get()
         )
+    }
+    single {
+        RetryWithBackoff()
     }
 }
