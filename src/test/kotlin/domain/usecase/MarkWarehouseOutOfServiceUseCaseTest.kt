@@ -3,6 +3,9 @@ package org.example.domain.usecase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlin.test.assertEquals
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
@@ -10,9 +13,6 @@ import org.example.domain.model.WarehouseStatus
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class MarkWarehouseOutOfServiceUseCaseTest {
 
@@ -28,11 +28,12 @@ class MarkWarehouseOutOfServiceUseCaseTest {
     )
 
     @Test
-    fun `successful status update returns out of service result`() = runBlocking {
+    fun `when status update succeeds should return warehouse id`() = runBlocking {
         // Given
         coEvery {
             repository.getById(warehouse.id)
         } returns Result.success(warehouse)
+
         coEvery {
             repository.updateStatus(warehouse.id, WarehouseStatus.OUT_OF_SERVICE)
         } returns Result.success(true)
@@ -41,10 +42,46 @@ class MarkWarehouseOutOfServiceUseCaseTest {
         val result = useCase(warehouse.id)
 
         // Then
-        val status = result.getOrThrow()
-        assertEquals(warehouse.id, status.warehouseId)
-        assertEquals(warehouse.name, status.warehouseName)
-        assertEquals(WarehouseStatus.OUT_OF_SERVICE, status.status)
+        assertEquals(warehouse.id, result.getOrThrow().warehouseId)
+    }
+
+    @Test
+    fun `when status update succeeds should return warehouse name`() = runBlocking {
+        // Given
+        coEvery {
+            repository.getById(warehouse.id)
+        } returns Result.success(warehouse)
+
+        coEvery {
+            repository.updateStatus(warehouse.id, WarehouseStatus.OUT_OF_SERVICE)
+        } returns Result.success(true)
+
+        // When
+        val result = useCase(warehouse.id)
+
+        // Then
+        assertEquals(warehouse.name, result.getOrThrow().warehouseName)
+    }
+
+    @Test
+    fun `when status update succeeds should return out of service status`() = runBlocking {
+        // Given
+        coEvery {
+            repository.getById(warehouse.id)
+        } returns Result.success(warehouse)
+
+        coEvery {
+            repository.updateStatus(warehouse.id, WarehouseStatus.OUT_OF_SERVICE)
+        } returns Result.success(true)
+
+        // When
+        val result = useCase(warehouse.id)
+
+        // Then
+        assertEquals(
+            WarehouseStatus.OUT_OF_SERVICE,
+            result.getOrThrow().status
+        )
 
         coVerify(exactly = 1) {
             repository.updateStatus(
@@ -53,6 +90,7 @@ class MarkWarehouseOutOfServiceUseCaseTest {
             )
         }
     }
+
 
     @Test
     fun `missing warehouse prevents status update`() = runBlocking {

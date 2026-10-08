@@ -4,20 +4,20 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.test.assertIs
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.EntityValidationException
 import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.repository.WarehouseRepository
-import org.example.domain.validator.result.ValidationResult
-import org.example.domain.validator.result.FieldViolation
-import org.example.domain.validator.result.FieldError
 import org.example.domain.validator.Validator
+import org.example.domain.validator.result.FieldError
+import org.example.domain.validator.result.FieldViolation
+import org.example.domain.validator.result.ValidationResult
 import org.junit.jupiter.api.Test
-import kotlin.test.assertIs
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class CreateWarehouseUseCaseTest {
 
@@ -69,19 +69,43 @@ class CreateWarehouseUseCaseTest {
     }
 
     @Test
-    fun `save failure is returned`() = runBlocking {
+    fun `when save fails should return failure`() = runBlocking {
         // Given
         val error = IllegalStateException("Save failed")
-        every { validator.validateCreate(warehouse) } returns
-                ValidationResult.Success
-        coEvery { repository.save(warehouse) } returns
-                Result.failure(error)
+
+        every {
+            validator.validateCreate(warehouse)
+        } returns ValidationResult.Success
+
+        coEvery {
+            repository.save(warehouse)
+        } returns Result.failure(error)
 
         // When
         val result = useCase(warehouse)
 
         // Then
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `when save fails should return same exception`() = runBlocking {
+        // Given
+        val error = IllegalStateException("Save failed")
+
+        every {
+            validator.validateCreate(warehouse)
+        } returns ValidationResult.Success
+
+        coEvery {
+            repository.save(warehouse)
+        } returns Result.failure(error)
+
+        // When
+        val result = useCase(warehouse)
+
+        // Then
         assertSame(error, result.exceptionOrNull())
     }
+
 }

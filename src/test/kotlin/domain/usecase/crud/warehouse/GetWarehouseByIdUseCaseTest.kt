@@ -3,14 +3,14 @@ package org.example.domain.usecase.crud.warehouse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.repository.WarehouseRepository
 import org.junit.jupiter.api.Test
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class GetWarehouseByIdUseCaseTest {
 
@@ -35,31 +35,66 @@ class GetWarehouseByIdUseCaseTest {
     }
 
     @Test
-    fun `missing warehouse returns failure`() = runBlocking {
+    fun `when warehouse is missing should return failure`() = runBlocking {
         // Given
         val error = WarehouseNotFoundException()
-        coEvery { repository.getById("WH-999") } returns
-                Result.failure(error)
+        coEvery {
+            repository.getById("WH-999")
+        } returns Result.failure(error)
 
         // When
         val result = useCase("WH-999")
 
         // Then
         assertTrue(result.isFailure)
-        assertSame(error, result.exceptionOrNull())
     }
 
     @Test
-    fun `repository exception becomes failure`() = runBlocking {
+    fun `when warehouse is missing should return same exception`() = runBlocking {
+        // Given
+        val error = WarehouseNotFoundException()
+        coEvery {
+            repository.getById("WH-999")
+        } returns Result.failure(error)
+
+        // When
+        val result = useCase("WH-999")
+
+        // Then
+        assertSame(error, result.exceptionOrNull())
+    }
+
+
+    @Test
+    fun `when repository throws exception should return failure`() = runBlocking {
         // Given
         val error = IllegalStateException("Repository failed")
-        coEvery { repository.getById("WH-001") } throws error
+
+        coEvery {
+            repository.getById("WH-001")
+        } throws error
 
         // When
         val result = useCase("WH-001")
 
         // Then
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `when repository throws exception should return same exception`() = runBlocking {
+        // Given
+        val error = IllegalStateException("Repository failed")
+
+        coEvery {
+            repository.getById("WH-001")
+        } throws error
+
+        // When
+        val result = useCase("WH-001")
+
+        // Then
         assertSame(error, result.exceptionOrNull())
     }
+
 }

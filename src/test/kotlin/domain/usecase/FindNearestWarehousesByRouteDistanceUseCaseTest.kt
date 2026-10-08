@@ -5,6 +5,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.example.domain.algorithm.search.Router
 import org.example.domain.model.RegionalZone
@@ -13,10 +17,6 @@ import org.example.domain.model.exception.InvalidLimitException
 import org.example.domain.model.result.RoutingResult
 import org.example.domain.repository.WarehouseRepository
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class FindNearestWarehousesByRouteDistanceUseCaseTest {
 
@@ -28,14 +28,16 @@ class FindNearestWarehousesByRouteDistanceUseCaseTest {
     private val near = warehouse("WH-002")
     private val far = warehouse("WH-003")
 
+
     @Test
-    fun `results are sorted by route distance`() = runBlocking {
+    fun `when routes have different distances should sort warehouses by distance`() = runBlocking {
         // Given
         coEvery {
             repository.getAllWarehouses()
         } returns Result.success(
             listOf(source, far, near)
         )
+
         every {
             router.findPath(source, far)
         } returns RoutingResult(listOf(source, far), 30.0)
@@ -43,13 +45,44 @@ class FindNearestWarehousesByRouteDistanceUseCaseTest {
         every {
             router.findPath(source, near)
         } returns RoutingResult(listOf(source, near), 10.0)
+
         // When
         val result = useCase(source, 10).getOrThrow()
 
         // Then
-        assertEquals(listOf(near.id, far.id), result.map { it.warehouse.id })
-        assertEquals(listOf(10.0, 30.0), result.map { it.distanceKm })
+        assertEquals(
+            listOf(near.id, far.id),
+            result.map { it.warehouse.id }
+        )
     }
+
+    @Test
+    fun `when routes have different distances should sort distances in ascending order`() = runBlocking {
+        // Given
+        coEvery {
+            repository.getAllWarehouses()
+        } returns Result.success(
+            listOf(source, far, near)
+        )
+
+        every {
+            router.findPath(source, far)
+        } returns RoutingResult(listOf(source, far), 30.0)
+
+        every {
+            router.findPath(source, near)
+        } returns RoutingResult(listOf(source, near), 10.0)
+
+        // When
+        val result = useCase(source, 10).getOrThrow()
+
+        // Then
+        assertEquals(
+            listOf(10.0, 30.0),
+            result.map { it.distanceKm }
+        )
+    }
+
 
     @Test
     fun `source warehouse is excluded from route calculation`() = runBlocking {
