@@ -1,9 +1,9 @@
-
 package org.example.domain.algorithm.knn
 
 import org.example.domain.model.Package
-import org.example.domain.model.RegionalZone
 import org.example.domain.model.PackageSectorInput
+import org.example.domain.model.RegionalZone
+import org.example.domain.model.exception.EmptyHistoricalDataException
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -16,8 +16,9 @@ class KnnSectorClassifier {
         historicalPackages: List<Package>
     ): RegionalZone {
         val records = historicalPackages.map(::toTrainingRecord)
-        require(records.isNotEmpty()) {
-            "Historical training data must not be empty"
+
+        if (records.isEmpty()) {
+            throw EmptyHistoricalDataException()
         }
 
         val query = Features(
@@ -25,8 +26,10 @@ class KnnSectorClassifier {
             input.longitude,
             input.weight
         )
+
         val ranges = buildRanges(records.map { it.features } + query)
         val normalizedQuery = normalize(query, ranges)
+
         val neighbors = findNearestNeighbors(
             normalizedQuery,
             records,
@@ -40,6 +43,7 @@ class KnnSectorClassifier {
         cargoPackage: Package
     ): TrainingRecord {
         val destination = cargoPackage.destinationWarehouse
+
         return TrainingRecord(
             features = Features(
                 destination.latitude,
@@ -58,6 +62,7 @@ class KnnSectorClassifier {
         return records
             .map { record ->
                 val normalized = normalize(record.features, ranges)
+
                 Neighbor(
                     distance = calculateDistance(query, normalized),
                     zone = record.zone
@@ -94,7 +99,7 @@ class KnnSectorClassifier {
                     .thenBy { -it.key.ordinal }
             )
             ?.key
-            ?: throw IllegalStateException("No neighbors available")
+            ?: error("No neighbors available")
     }
 
     private fun buildRanges(
@@ -130,6 +135,7 @@ class KnnSectorClassifier {
         range: Range
     ): Double {
         val difference = range.maximum - range.minimum
+
         return if (difference == 0.0) {
             0.0
         } else {
