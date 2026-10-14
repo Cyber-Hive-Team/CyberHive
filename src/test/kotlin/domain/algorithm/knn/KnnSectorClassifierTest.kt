@@ -57,50 +57,25 @@ class KnnSectorClassifierTest {
         return "WH-${number.toString().padStart(3, '0')}"
     }
 
-    private fun trainingPackages() = listOf(
-        cargoPackage(
-            "PKG-000001",
-            RegionalZone.NORTH,
-            32.0,
-            35.0,
-            10.0
-        ),
-        cargoPackage(
-            "PKG-000002",
-            RegionalZone.NORTH,
-            32.1,
-            35.1,
-            11.0
-        ),
-        cargoPackage(
-            "PKG-000003",
-            RegionalZone.NORTH,
-            32.2,
-            35.2,
-            12.0
-        ),
-        cargoPackage(
-            "PKG-000004",
-            RegionalZone.NORTH,
-            32.3,
-            35.3,
-            13.0
-        ),
-        cargoPackage(
-            "PKG-000005",
-            RegionalZone.NORTH,
-            32.4,
-            35.4,
-            14.0
-        ),
-        cargoPackage(
-            "PKG-000006",
-            RegionalZone.SOUTH,
-            28.0,
-            34.0,
-            50.0
+    private fun trainingPackages(): List<Package> {
+        return northTrainingPackages() + southTrainingPackages()
+    }
+
+    private fun northTrainingPackages(): List<Package> {
+        return listOf(
+            cargoPackage("PKG-000001", RegionalZone.NORTH, 32.0, 35.0, 10.0),
+            cargoPackage("PKG-000002", RegionalZone.NORTH, 32.1, 35.1, 11.0),
+            cargoPackage("PKG-000003", RegionalZone.NORTH, 32.2, 35.2, 12.0),
+            cargoPackage("PKG-000004", RegionalZone.NORTH, 32.3, 35.3, 13.0),
+            cargoPackage("PKG-000005", RegionalZone.NORTH, 32.4, 35.4, 14.0)
         )
-    )
+    }
+
+    private fun southTrainingPackages(): List<Package> {
+        return listOf(
+            cargoPackage("PKG-000006", RegionalZone.SOUTH, 28.0, 34.0, 50.0)
+        )
+    }
 
     private fun input() = PackageSectorInput(
         packageId = "PKG-000099",
