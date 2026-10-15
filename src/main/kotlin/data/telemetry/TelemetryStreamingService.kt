@@ -24,7 +24,14 @@ class TelemetryStreamingService(
         private const val MILLIS_PER_SECOND = 1000.0
         private const val SPEED_CHANGE_KMH_PER_SECOND = 3.0
         private const val SPEED_VARIATION_KMH = 8.0
+        private const val INITIAL_FUEL_PERCENTAGE = 50.0
+        private const val FUEL_SEED_DIVISOR = 43L
+        private const val FUEL_SEED_MODULUS = 46L
 
+        private const val HEADING_SEED_DIVISOR = 7L
+        private const val HEADING_SEED_MODULUS = 360L
+
+        private const val SPEED_SEED_MODULUS = 41L
     }
 
     init {
@@ -61,9 +68,9 @@ class TelemetryStreamingService(
             latitude = vehicle.currentHub.latitude,
             longitude = vehicle.currentHub.longitude,
             speedKmh = 0.0,
-            fuelPercentage = 50.0 + (seed / 43 % 46),
-            headingDegrees = (seed / 7 % 360).toDouble(),
-            cruisingSpeedKmh = MIN_SPEED_KMH + seed % 41
+            fuelPercentage = INITIAL_FUEL_PERCENTAGE + (seed / FUEL_SEED_DIVISOR % FUEL_SEED_MODULUS),
+            headingDegrees = (seed / HEADING_SEED_DIVISOR % HEADING_SEED_MODULUS).toDouble(),
+            cruisingSpeedKmh = MIN_SPEED_KMH + seed % SPEED_SEED_MODULUS
         )
     }
 
