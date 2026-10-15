@@ -1,6 +1,8 @@
 package org.example.domain.repository
 
+import kotlinx.coroutines.flow.Flow
 import org.example.domain.model.Vehicle
+import org.example.domain.model.VehicleTelemetry
 
 
 interface VehicleRepository {
@@ -22,6 +24,7 @@ interface VehicleRepository {
     suspend fun delete(
         id: String
     ): Result<String>
+    fun streamTelemetry(vehicleIds: List<String>): Flow<VehicleTelemetry>
 }
 
 
