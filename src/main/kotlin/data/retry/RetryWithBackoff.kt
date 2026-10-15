@@ -3,7 +3,7 @@ package org.example.data.retry
 import kotlinx.coroutines.delay
 import org.example.data.mapper.DataExceptionMapper
 import org.example.domain.model.exception.NetworkException
-
+import org.example.data.util.suspendResult
 
 class RetryWithBackoff(
     private val maxRetries: Int = DEFAULT_MAX_RETRIES,
@@ -23,8 +23,7 @@ class RetryWithBackoff(
     suspend fun <T> executeWithRetry(block: suspend () -> T): Result<T> {
         var currentDelay = initialDelayMs
             repeat(maxRetries + ATTEMPT_DISPLAY_OFFSET) { attempt ->
-                val outcome = runCatching { block() }
-
+                val outcome = suspendResult { block() }
                 if (!shouldRetry(outcome.exceptionOrNull(), attempt, maxRetries)) {
                     outcome
                         .onSuccess { logger.onSucceeded(it) }

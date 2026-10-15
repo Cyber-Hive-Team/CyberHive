@@ -6,6 +6,6 @@ import org.example.data.dataholder.RouteRaw
 
 interface RouteDataSource {
 
-    fun getRoutes(): List<RawResult<RouteLocalData>>
-    fun replaceAll(routes: List<RouteRaw>)
+    suspend fun getRoutes(): List<RawResult<RouteLocalData>>
+    suspend fun replaceAll(routes: List<RouteRaw>)
 }

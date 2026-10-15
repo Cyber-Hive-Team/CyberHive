@@ -8,6 +8,8 @@ import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.RouteRepository
 import org.example.domain.repository.VehicleRepository
 import org.example.domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 data class LoadedData(
     val warehouses: List<Warehouse>,
@@ -23,12 +25,17 @@ class DataLoader(
     private val routeRepository: RouteRepository,
 ) {
 
-    suspend fun load(): LoadedData {
+    suspend fun load(): LoadedData = coroutineScope {
 
-        val warehouses = warehouseRepository.getAllWarehouses().getOrThrow()
-        val packages = packageRepository.getAllPackages().getOrThrow()
-        val vehicles = vehicleRepository.getVehicles().getOrThrow()
-        val routes = routeRepository.getAllRoutes().getOrThrow()
+        val warehousesDeferred = async { warehouseRepository.getAllWarehouses().getOrThrow() }
+        val packagesDeferred = async { packageRepository.getAllPackages().getOrThrow() }
+        val vehiclesDeferred = async { vehicleRepository.getVehicles().getOrThrow() }
+        val routesDeferred = async { routeRepository.getAllRoutes().getOrThrow() }
+
+        val warehouses = warehousesDeferred.await()
+        val packages = packagesDeferred.await()
+        val vehicles = vehiclesDeferred.await()
+        val routes = routesDeferred.await()
 
         printLoadingResult(
             warehouses = warehouses,
@@ -36,8 +43,7 @@ class DataLoader(
             vehicles = vehicles,
             routes = routes
         )
-
-        return LoadedData(
+        LoadedData(
             warehouses = warehouses,
             packages = packages,
             vehicles = vehicles,
