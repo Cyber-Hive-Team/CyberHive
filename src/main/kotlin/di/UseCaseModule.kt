@@ -28,6 +28,7 @@ import org.example.domain.usecase.MarkWarehouseOutOfServiceUseCase
 import org.example.domain.usecase.RedistributeFleetUseCase
 import org.example.domain.usecase.ReroutePackageUseCase
 import org.example.domain.usecase.TraceHubLineageUseCase
+import org.example.domain.usecase.TrackActiveFleetUseCase
 import org.example.domain.usecase.TrackVehicleCurrentLocationUseCase
 import org.example.domain.usecase.crud.packages.CreatePackageUseCase
 import org.example.domain.usecase.crud.packages.DeletePackageUseCase
@@ -324,6 +325,12 @@ val useCaseModule = module {
     factory { (tree: WarehouseNode) ->
         TraceHubLineageUseCase(
             tree = tree
+        )
+    }
+
+    factory {
+        TrackActiveFleetUseCase(
+            vehicleRepository = get()
         )
     }
 }
