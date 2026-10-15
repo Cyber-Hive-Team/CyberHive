@@ -20,6 +20,7 @@ import org.example.data.repositoryImplementation.PackageRepositoryImpl
 import org.example.data.repositoryImplementation.RouteRepositoryImpl
 import org.example.data.repositoryImplementation.VehicleRepositoryImpl
 import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
+import org.example.data.telemetry.TelemetryStreamingService
 import org.junit.jupiter.api.Test
 
 class RepositoryConcurrencyTest {
@@ -65,7 +66,10 @@ class RepositoryConcurrencyTest {
         }
         val repository = VehicleRepositoryImpl(
             mockk<VehicleRemoteDataSource>(),
-            local
+            local,
+            telemetryStreamingService = mockk<TelemetryStreamingService>()
+
+
         )
 
         // When
