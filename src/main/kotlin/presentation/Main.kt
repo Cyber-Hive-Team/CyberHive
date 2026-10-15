@@ -1,8 +1,10 @@
 package org.example.presentation
 
+import org.example.data.sync.SyncCoordinator
 import org.example.di.dispatchModule
 import org.example.di.networkModule
 import org.example.di.repositoryModule
+import org.example.di.syncModule
 import org.example.di.useCaseModule
 import org.example.di.validatorModule
 import org.example.domain.algorithm.dynamicprogramming.KnapsackCargoOptimizer
@@ -10,11 +12,10 @@ import org.example.domain.dispatch.BaseDispatchProcessor
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
 import org.example.domain.usecase.TraceHubLineageUseCase
+import org.example.domain.usecase.TrackActiveFleetUseCase
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.parameter.parametersOf
-import org.example.di.syncModule
-import org.example.data.sync.SyncCoordinator
 
 suspend fun main() {
     println("=== Cyber Hive ===")
@@ -58,6 +59,8 @@ private suspend fun runDemos(
     runPatternDemos(koin, data)
     runCommandAndFleetDemos(koin, data)
     runEndToEndDispatch(koin, data)
+    runFleetTelemetryDemo(koin, data)
+
 }
 
 private fun runPatternDemos(
@@ -105,4 +108,16 @@ private fun runEndToEndDispatch(
     EndToEndDispatchRunner(
         optimizer = optimizer, dispatchProcessor = dispatchProcessor
     ).run(vehicles = data.vehicles, packages = data.packages)
+}
+private suspend fun runFleetTelemetryDemo(
+    koin: Koin,
+    data: LoadedData
+) {
+    val vehicleIds = data.vehicles
+        .take(2)
+        .map { it.id }
+
+    val useCase = koin.get<TrackActiveFleetUseCase>()
+
+    FleetTelemetryDemoRunner(useCase).run(vehicleIds)
 }
