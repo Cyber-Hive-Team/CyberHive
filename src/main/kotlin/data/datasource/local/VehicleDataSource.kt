@@ -5,6 +5,6 @@ import org.example.data.datasource.local.model.VehicleLocalData
 import org.example.data.dataholder.VehicleRaw
 
 interface VehicleDataSource {
-    fun getVehicles(): List<RawResult<VehicleLocalData>>
-    fun replaceAll(vehicles: List<VehicleRaw>)
+    suspend fun getVehicles(): List<RawResult<VehicleLocalData>>
+    suspend fun replaceAll(vehicles: List<VehicleRaw>)
 }
