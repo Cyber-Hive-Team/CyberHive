@@ -1,7 +1,6 @@
 package org.example.data.repositoryImplementation
 
 import kotlin.random.Random
-import org.example.data.dataholder.WarehouseRaw
 import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.csv.CsvWarehouseStatusDataSource
 import org.example.data.datasource.remote.WarehouseRemoteDataSource
@@ -12,7 +11,6 @@ import org.example.data.mapper.mapFailureToDomain
 import org.example.data.mapper.remote.toCreateRequest
 import org.example.data.mapper.remote.toDomainModel
 import org.example.data.mapper.remote.toUpdateRequest
-import org.example.data.remote.dto.response.WarehouseResponseDto
 import org.example.domain.model.Package
 import org.example.domain.model.Warehouse
 import org.example.domain.model.WarehouseServices
@@ -21,6 +19,11 @@ import org.example.domain.model.exception.WarehouseNotFoundException
 import org.example.domain.model.input.UpdateWarehouseInput
 import org.example.domain.repository.WarehouseRepository
 import org.example.data.mapper.sync.toRaw
+import org.example.data.util.suspendResult
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WarehouseRepositoryImpl(
     private val remoteDataSource: WarehouseRemoteDataSource,
@@ -28,6 +31,8 @@ class WarehouseRepositoryImpl(
     private val statusDataSource: CsvWarehouseStatusDataSource
 ) : BaseRepository(), WarehouseRepository {
 
+    private val cacheMutex = Mutex()
+    private val statusMutex = Mutex()
     private val dataExceptionMapper = DataExceptionMapper()
 
     private val warehouses =
@@ -38,67 +43,47 @@ class WarehouseRepositoryImpl(
 
 
     override suspend fun getAllWarehouses(): Result<List<Warehouse>> {
-        return runCatching {
-            if (isLoaded) {
-                return@runCatching warehouses.toList()
+        return suspendResult {
+            cacheMutex.withLock {
+                loadWarehousesIfNeeded()
+                warehouses.toList()
             }
-
-            val loadedWarehouses = localDataSource
-                .getWarehouses()
-                .mapNotNull { result ->
-                    result.rawData?.let { raw ->
-                        mapLocalWarehouseSafely(raw)
-                    }
-                }
-
-            warehouses.addAll(loadedWarehouses)
-            isLoaded = true
-
-            warehouses.toList()
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
+    private suspend fun loadWarehousesIfNeeded() {
+        if (isLoaded) return
 
-    private fun mapRemoteWarehouseSafely(
-        dto: WarehouseResponseDto
-    ): Warehouse? {
-        return mapSafely(dto.id) {
-            dto.toDomainModel()
-        }
+        val loadedWarehouses = localDataSource.getWarehouses().
+        mapNotNull { result -> result.rawData?.let { raw -> mapSafely(raw.id) { raw.toDomainModel() } }
+            }
+        warehouses.addAll(loadedWarehouses)
+        isLoaded = true
     }
-
-    private fun mapLocalWarehouseSafely(raw: WarehouseRaw): Warehouse? {
-        return mapSafely(raw.id) {
-            raw.toDomainModel()
-        }
-    }
-
 
     override suspend fun addPackageToCargoQueue(
         warehouseId: String,
         cargoPackage: Package
     ): Result<Boolean> {
-        return getById(warehouseId)
-            .mapCatching { warehouse ->
-                warehouse.addPackages(
-                    listOf(cargoPackage)
-                )
-
+        return suspendResult {
+            cacheMutex.withLock {
+                val warehouse = findWarehouseInCache(warehouseId)
+                warehouse.addPackages(listOf(cargoPackage))
                 true
-            }.mapFailureToDomain(dataExceptionMapper)
-
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
     override suspend fun sortCargoQueue(
         warehouseId: String
     ): Result<Boolean> {
-
-        return getById(warehouseId)
-            .mapCatching { warehouse ->
-                warehouse.sortCargoQueue()
+        return suspendResult {
+            cacheMutex.withLock {
+                findWarehouseInCache(warehouseId).sortCargoQueue()
                 true
-            }.mapFailureToDomain(dataExceptionMapper)
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -106,15 +91,13 @@ class WarehouseRepositoryImpl(
         warehouseId: String,
         packageId: String
     ): Result<Boolean> {
-
-        return getById(warehouseId)
-            .mapCatching { warehouse ->
-                warehouse
+        return suspendResult {
+            cacheMutex.withLock {
+                findWarehouseInCache(warehouseId)
                     .getCargoQueue()
-                    .any { cargoPackage ->
-                        cargoPackage.id == packageId
-                    }
-            }.mapFailureToDomain(dataExceptionMapper)
+                    .any { it.id == packageId }
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
     }
 
 
@@ -153,64 +136,74 @@ class WarehouseRepositoryImpl(
     override suspend fun save(
         warehouse: Warehouse
     ): Result<Warehouse> {
-        return runCatching {
+        return suspendResult  {
+            cacheMutex.withLock {
+                loadWarehousesIfNeeded()
             val requestDto = warehouse.toCreateRequest()
             val responseDto =
                 remoteDataSource
                     .save(requestDto)
-            val savedWarehouse =
-                mapRemoteWarehouseSafely(responseDto)
-                    ?: throw NullRequiredFieldException(
-                        "Warehouse '${responseDto.id}' mapping failed."
-                    )
+                val savedWarehouse = mapSafely(responseDto.id) {
+                    responseDto.toDomainModel()
+                } ?: throw NullRequiredFieldException(
+                    "Warehouse '${responseDto.id}' mapping failed."
+                )
             warehouses.add(savedWarehouse)
             refreshLocalSnapshot()
             savedWarehouse
+            }
         }.mapFailureToDomain(dataExceptionMapper)
     }
-
 
     override suspend fun update(
         input: UpdateWarehouseInput
     ): Result<Warehouse> {
-        return runCatching {
-            val requestDto = input.toUpdateRequest()
-            val responseDto =
-                remoteDataSource
-                    .update(id = input.id, request = requestDto)
-            val updatedWarehouse =
-                mapRemoteWarehouseSafely(responseDto)
-                    ?: throw NullRequiredFieldException(
-                        "Warehouse '${input.id}' update failed."
-                    )
-            warehouses.removeIf {
-                it.id == input.id
+        return suspendResult  {
+            cacheMutex.withLock {
+                loadWarehousesIfNeeded()
+                val requestDto = input.toUpdateRequest()
+                val responseDto =
+                    remoteDataSource
+                        .update(id = input.id, request = requestDto)
+                val updatedWarehouse = mapSafely(responseDto.id) {
+                    responseDto.toDomainModel()
+                } ?: throw NullRequiredFieldException(
+                    "Warehouse '${input.id}' update failed."
+                )
+                warehouses.removeIf {
+                    it.id == input.id
+                }
+                warehouses.add(updatedWarehouse)
+                refreshLocalSnapshot()
+                updatedWarehouse
             }
-            warehouses.add(updatedWarehouse)
-            refreshLocalSnapshot()
-            updatedWarehouse
         }.mapFailureToDomain(dataExceptionMapper)
     }
     override suspend fun delete(
         id: String
     ): Result<String> {
-        return runCatching {
-            val deletedId = remoteDataSource.delete(id)
-            warehouses.removeIf {
-                it.id == deletedId
-            }
-            refreshLocalSnapshot()
-            deletedId
-        }.mapFailureToDomain(dataExceptionMapper)
+        return suspendResult  {
+            cacheMutex.withLock {
+                loadWarehousesIfNeeded()
+                val deletedId = remoteDataSource.delete(id)
+                warehouses.removeIf {
+                    it.id == deletedId
+                }
+                refreshLocalSnapshot()
+                deletedId
+            } }.mapFailureToDomain(dataExceptionMapper)
+
     }
 
     override suspend fun getStatus(
         warehouseId: String
     ): Result<WarehouseStatus> {
-
-        return runCatching {
-            statusDataSource
-                .getStatus(warehouseId)
+        return suspendResult {
+            statusMutex.withLock {
+                withContext(Dispatchers.IO) {
+                    statusDataSource.getStatus(warehouseId)
+                }
+            }
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
@@ -218,8 +211,12 @@ class WarehouseRepositoryImpl(
         warehouseId: String,
         status: WarehouseStatus
     ): Result<Boolean> {
-        return runCatching {
-            statusDataSource.updateStatus(warehouseId, status)
+        return suspendResult {
+            statusMutex.withLock {
+                withContext(Dispatchers.IO) {
+                    statusDataSource.updateStatus(warehouseId, status)
+                }
+            }
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
@@ -231,5 +228,14 @@ class WarehouseRepositoryImpl(
             }
 
         localDataSource.replaceAll(rawWarehouses)
+    }
+
+    private suspend fun findWarehouseInCache(
+        warehouseId: String
+    ): Warehouse {
+        loadWarehousesIfNeeded()
+
+        return warehouses.firstOrNull { it.id == warehouseId }
+            ?: throw WarehouseNotFoundException()
     }
 }

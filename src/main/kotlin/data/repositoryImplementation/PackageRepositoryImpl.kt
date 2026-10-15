@@ -24,15 +24,9 @@ import org.example.domain.model.input.PackageDeliveryTime
 import org.example.domain.model.input.UpdatePackageInput
 import org.example.domain.repository.PackageRepository
 import org.example.data.mapper.sync.toRaw
-
-private const val MIN_WAITING_HOURS = 1L
-private const val MAX_WAITING_HOURS = 73L
-
-private const val MIN_EXPECTED_HOURS = 2L
-private const val MAX_EXPECTED_HOURS = 10L
-
-private const val MIN_ARRIVAL_OFFSET_MINUTES = -60L
-private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
+import org.example.data.util.suspendResult
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 
 class PackageRepositoryImpl(
@@ -40,35 +34,46 @@ class PackageRepositoryImpl(
     private val localDataSource: PackageDataSource,
 ) : BaseRepository(), PackageRepository {
 
+    companion object {
+        private const val MIN_WAITING_HOURS = 1L
+        private const val MAX_WAITING_HOURS = 73L
+
+        private const val MIN_EXPECTED_HOURS = 2L
+        private const val MAX_EXPECTED_HOURS = 10L
+
+        private const val MIN_ARRIVAL_OFFSET_MINUTES = -60L
+        private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
+    }
+
     private val dataExceptionMapper = DataExceptionMapper()
     private val packages = mutableListOf<Package>()
 
-
+    private val cacheMutex = Mutex()
     private var isLoaded = false
 
-
     override suspend fun getAllPackages(): Result<List<Package>> {
-        return runCatching {
-            if (isLoaded) {
-                return@runCatching packages.toList()
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                packages.toList()
             }
-
-            val loadedPackages = localDataSource
-                .getPackages()
-                .mapNotNull { result ->
-                    result.rawData?.let { data ->
-                        mapLocalPackage(data)
-                    }
-                }
-
-            packages.addAll(loadedPackages)
-            isLoaded = true
-
-            packages.toList()
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
+    private suspend fun loadPackagesIfNeeded() {
+        if (isLoaded) return
 
+        val loadedPackages = localDataSource
+            .getPackages()
+            .mapNotNull { result ->
+                result.rawData?.let { data ->
+                    mapLocalPackage(data)
+                }
+            }
+
+        packages.addAll(loadedPackages)
+        isLoaded = true
+    }
 
     override suspend fun getById(
         packageId: String
@@ -82,36 +87,17 @@ class PackageRepositoryImpl(
             .mapFailureToDomain(dataExceptionMapper)
     }
 
-
     override suspend fun getAllWarehouseStays():
-            Result<List<PackageWarehouseStay>> {
-
-        return getAllPackages()
-            .mapCatching { packages ->
-                packages.map {
-                    createWarehouseStay(it)
-                }
+    Result<List<PackageWarehouseStay>> {
+        return getAllPackages().mapCatching { packages ->
+            packages.map { cargoPackage ->
+                PackageWarehouseStay(
+                packageId = cargoPackage.id,
+                arrivedAt = LocalDateTime.now().minusHours(
+                Random.nextLong(MIN_WAITING_HOURS, MAX_WAITING_HOURS)))
             }
+        }
     }
-
-
-    private fun createWarehouseStay(
-        cargoPackage: Package
-    ): PackageWarehouseStay {
-
-        return PackageWarehouseStay(
-            packageId = cargoPackage.id,
-            arrivedAt =
-                LocalDateTime.now()
-                    .minusHours(
-                        Random.nextLong(
-                            MIN_WAITING_HOURS,
-                            MAX_WAITING_HOURS
-                        )
-                    )
-        )
-    }
-
 
     override suspend fun getAllDeliveryTimes():
             Result<List<PackageDeliveryTime>> {
@@ -186,16 +172,19 @@ class PackageRepositoryImpl(
     override suspend fun save(
         cargoPackage: Package
     ): Result<Package> {
-        return runCatching {
-            val request = cargoPackage.toCreateRequest()
-            val dto = remoteDataSource.save(request)
-            val packageModel = mapRemotePackage(dto)
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                val request = cargoPackage.toCreateRequest()
+                val dto = remoteDataSource.save(request)
+                val packageModel = mapRemotePackage(dto)
                     ?: throw NullRequiredFieldException(
                         "Saved package '${dto.id}' mapping failed."
                     )
-            packages.add(packageModel)
-            refreshLocalSnapshot()
-            packageModel
+                packages.add(packageModel)
+                refreshLocalSnapshot()
+                packageModel
+            }
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
@@ -203,26 +192,29 @@ class PackageRepositoryImpl(
     override suspend fun update(
         input: UpdatePackageInput
     ): Result<Package> {
-        return runCatching {
-            val request = input.toUpdateRequest()
-            val dto = remoteDataSource
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                val request = input.toUpdateRequest()
+                val dto = remoteDataSource
                     .update(
                         id = input.id,
                         request = request
                     )
-            val updatedPackage =
-                mapRemotePackage(dto)
-                    ?: throw NullRequiredFieldException(
-                        "Package '$input.id' update failed."
-                    )
+                val updatedPackage =
+                    mapRemotePackage(dto)
+                        ?: throw NullRequiredFieldException(
+                            "Package '$input.id' update failed."
+                        )
 
 
-            packages.removeIf {
-                it.id == input.id
+                packages.removeIf {
+                    it.id == input.id
+                }
+                packages.add(updatedPackage)
+                refreshLocalSnapshot()
+                updatedPackage
             }
-            packages.add(updatedPackage)
-            refreshLocalSnapshot()
-            updatedPackage
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
@@ -230,13 +222,16 @@ class PackageRepositoryImpl(
     override suspend fun delete(
         id: String
     ): Result<String> {
-        return runCatching {
-            val deletedId = remoteDataSource.delete(id)
-            packages.removeIf {
-                it.id == deletedId
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                val deletedId = remoteDataSource.delete(id)
+                packages.removeIf {
+                    it.id == deletedId
+                }
+                refreshLocalSnapshot()
+                deletedId
             }
-            refreshLocalSnapshot()
-            deletedId
         }.mapFailureToDomain(dataExceptionMapper)
     }
 
