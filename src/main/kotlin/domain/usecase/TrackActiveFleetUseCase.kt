@@ -43,19 +43,30 @@ class TrackActiveFleetUseCase(
         telemetry: VehicleTelemetry
     ): Boolean {
         return telemetry.vehicleId.isNotBlank() &&
-                telemetry.timestampMillis >= 0L &&
+                telemetry.timestampMillis >= MIN_TIMESTAMP_MS &&
                 telemetry.speedKmh.isFinite() &&
-                telemetry.speedKmh >= 0.0 &&
+                telemetry.speedKmh >= MIN_SPEED_KMH &&
                 telemetry.fuelPercentage.isFinite() &&
-                telemetry.fuelPercentage in 0.0..100.0 &&
+                telemetry.fuelPercentage in MIN_FUEL_PERCENTAGE..MAX_FUEL_PERCENTAGE &&
                 telemetry.latitude.isFinite() &&
-                telemetry.latitude in -90.0..90.0 &&
+                telemetry.latitude in MIN_LATITUDE..MAX_LATITUDE &&
                 telemetry.longitude.isFinite() &&
-                telemetry.longitude in -180.0..180.0
+                telemetry.longitude in MIN_LONGITUDE..MAX_LONGITUDE
     }
 
     private companion object {
         const val DELAY_THRESHOLD_MS = 10_000L
+        const val MIN_TIMESTAMP_MS = 0L
+        const val MIN_SPEED_KMH = 0.0
+
+        const val MIN_FUEL_PERCENTAGE = 0.0
+        const val MAX_FUEL_PERCENTAGE = 100.0
+
+        const val MIN_LATITUDE = -90.0
+        const val MAX_LATITUDE = 90.0
+
+        const val MIN_LONGITUDE = -180.0
+        const val MAX_LONGITUDE = 180.0
     }
 }
 
