@@ -24,7 +24,7 @@ class TrackActiveFleetUseCaseTest {
 
     @Test
     fun `should emit telemetry updated for valid reading`() = runBlocking {
-        val reading = telemetry(speed = 40.0)
+        val reading = telemetry(TelemetryTestData(speed = 40.0))
         val events = collectEvents(listOf(reading))
         assertEquals(FleetTrackingEvent.TelemetryUpdated(reading), events.single())
     }
@@ -33,9 +33,9 @@ class TrackActiveFleetUseCaseTest {
     fun `should emit update for every valid reading`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 30.0, timestamp = 0L),
-                telemetry(speed = 40.0, timestamp = 2_000L),
-                telemetry(speed = 50.0, timestamp = 4_000L)
+                telemetry(TelemetryTestData(speed = 30.0, timestamp = 0L)),
+                telemetry(TelemetryTestData(speed = 40.0, timestamp = 2_000L)),
+                telemetry(TelemetryTestData(speed = 50.0, timestamp = 4_000L))
             )
         )
         assertEquals(3, events.filterIsInstance<FleetTrackingEvent.TelemetryUpdated>().size)
@@ -50,62 +50,62 @@ class TrackActiveFleetUseCaseTest {
 
     @Test
     fun `should filter negative speed`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(speed = -10.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(speed = -10.0))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should accept zero speed`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(speed = 0.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(speed = 0.0))))
         assertEquals(1, events.size)
     }
 
     @Test
     fun `should filter fuel above one hundred`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(fuel = 120.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(fuel = 120.0))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should filter negative fuel`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(fuel = -5.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(fuel = -5.0))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should accept zero fuel`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(speed = 30.0, fuel = 0.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(speed = 30.0, fuel = 0.0))))
         assertEquals(1, events.size)
     }
 
     @Test
     fun `should accept full fuel`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(fuel = 100.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(fuel = 100.0))))
         assertEquals(1, events.size)
     }
 
     @Test
     fun `should filter invalid latitude`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(latitude = 95.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(latitude = 95.0))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should filter invalid longitude`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(longitude = 190.0)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(longitude = 190.0))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should filter NaN speed`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(speed = Double.NaN)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(speed = Double.NaN))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should filter infinite speed`() = runBlocking {
         val events = collectEvents(
-            listOf(telemetry(speed = Double.POSITIVE_INFINITY))
+            listOf(telemetry(TelemetryTestData(speed = Double.POSITIVE_INFINITY)))
         )
 
         assertTrue(events.isEmpty())
@@ -113,21 +113,21 @@ class TrackActiveFleetUseCaseTest {
 
     @Test
     fun `should filter blank vehicle id`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(vehicleId = " ")))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(vehicleId = " "))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should filter negative timestamp`() = runBlocking {
-        val events = collectEvents(listOf(telemetry(timestamp = -1L)))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(timestamp = -1L))))
         assertTrue(events.isEmpty())
     }
 
     @Test
     fun `should continue after invalid reading`() = runBlocking {
-        val validReading = telemetry(speed = 40.0, timestamp = 2_000L)
+        val validReading = telemetry(TelemetryTestData(speed = 40.0, timestamp = 2_000L))
 
-        val events = collectEvents(listOf(telemetry(speed = -10.0, timestamp = 0L), validReading))
+        val events = collectEvents(listOf(telemetry(TelemetryTestData(speed = -10.0, timestamp = 0L)), validReading))
         assertEquals(listOf(FleetTrackingEvent.TelemetryUpdated(validReading)), events)
     }
 
@@ -135,7 +135,12 @@ class TrackActiveFleetUseCaseTest {
     @Test
     fun `should not emit delay before threshold`() = runBlocking {
         val events =
-            collectEvents(listOf(telemetry(speed = 0.0, timestamp = 0L), telemetry(speed = 0.0, timestamp = 9_999L)))
+            collectEvents(
+                listOf(
+                    telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+                    telemetry(TelemetryTestData(speed = 0.0, timestamp = 9_999L))
+                )
+            )
         assertFalse(
             events.any {
                 it is FleetTrackingEvent.PotentialDelayDetected
@@ -146,7 +151,12 @@ class TrackActiveFleetUseCaseTest {
     @Test
     fun `should emit delay at exact threshold`() = runBlocking {
         val events =
-            collectEvents(listOf(telemetry(speed = 0.0, timestamp = 0L), telemetry(speed = 0.0, timestamp = 10_000L)))
+            collectEvents(
+                listOf(
+                    telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+                    telemetry(TelemetryTestData(speed = 0.0, timestamp = 10_000L))
+                )
+            )
         val delays = delayEvents(events)
         assertEquals(1, delays.size)
     }
@@ -155,9 +165,9 @@ class TrackActiveFleetUseCaseTest {
     fun `should emit delay after threshold`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 50.0, timestamp = 0L),
-                telemetry(speed = 0.0, timestamp = 2_000L),
-                telemetry(speed = 0.0, timestamp = 15_000L)
+                telemetry(TelemetryTestData(speed = 50.0, timestamp = 0L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 2_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 15_000L))
             )
         )
         val delays = delayEvents(events)
@@ -167,7 +177,12 @@ class TrackActiveFleetUseCaseTest {
     @Test
     fun `should emit correct vehicle id in delay event`() = runBlocking {
         val events =
-            collectEvents(listOf(telemetry(speed = 0.0, timestamp = 0L), telemetry(speed = 0.0, timestamp = 10_000L)))
+            collectEvents(
+                listOf(
+                    telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+                    telemetry(TelemetryTestData(speed = 0.0, timestamp = 10_000L))
+                )
+            )
         val delays = delayEvents(events)
 
         assertEquals("TRK-0001", delays.single().vehicleId)
@@ -177,8 +192,8 @@ class TrackActiveFleetUseCaseTest {
     fun `should emit correct detection timestamp`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 0.0, timestamp = 2_000L),
-                telemetry(speed = 0.0, timestamp = 12_000L)
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 2_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 12_000L))
             )
         )
         val delays = delayEvents(events)
@@ -189,10 +204,10 @@ class TrackActiveFleetUseCaseTest {
     fun `should emit delay only once during continuous stop`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 0.0, timestamp = 0L),
-                telemetry(speed = 0.0, timestamp = 10_000L),
-                telemetry(speed = 0.0, timestamp = 15_000L),
-                telemetry(speed = 0.0, timestamp = 20_000L)
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 10_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 15_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 20_000L))
             )
         )
         assertEquals(1, delayEvents(events).size)
@@ -202,10 +217,10 @@ class TrackActiveFleetUseCaseTest {
     fun `should reset stopping duration after movement`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 0.0, timestamp = 0L),
-                telemetry(speed = 40.0, timestamp = 5_000L),
-                telemetry(speed = 0.0, timestamp = 8_000L),
-                telemetry(speed = 0.0, timestamp = 12_000L)
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+                telemetry(TelemetryTestData(speed = 40.0, timestamp = 5_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 8_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 12_000L))
             )
         )
         assertTrue(delayEvents(events).isEmpty())
@@ -215,11 +230,11 @@ class TrackActiveFleetUseCaseTest {
     fun `should emit new delay after vehicle stops again`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 0.0, timestamp = 0L),
-                telemetry(speed = 0.0, timestamp = 10_000L),
-                telemetry(speed = 50.0, timestamp = 12_000L),
-                telemetry(speed = 0.0, timestamp = 14_000L),
-                telemetry(speed = 0.0, timestamp = 24_000L)
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 10_000L)),
+                telemetry(TelemetryTestData(speed = 50.0, timestamp = 12_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 14_000L)),
+                telemetry(TelemetryTestData(speed = 0.0, timestamp = 24_000L))
             )
         )
         assertEquals(2, delayEvents(events).size)
@@ -229,9 +244,9 @@ class TrackActiveFleetUseCaseTest {
     fun `should not emit delay while vehicle is moving`() = runBlocking {
         val events = collectEvents(
             listOf(
-                telemetry(speed = 40.0, timestamp = 0L),
-                telemetry(speed = 50.0, timestamp = 10_000L),
-                telemetry(speed = 60.0, timestamp = 20_000L)
+                telemetry(TelemetryTestData(speed = 40.0, timestamp = 0L)),
+                telemetry(TelemetryTestData(speed = 50.0, timestamp = 10_000L)),
+                telemetry(TelemetryTestData(speed = 60.0, timestamp = 20_000L))
             )
         )
         assertTrue(delayEvents(events).isEmpty())
@@ -243,10 +258,10 @@ class TrackActiveFleetUseCaseTest {
         val ids = listOf("TRK-0001", "TRK-0002")
         val events = collectEvents(
             updates = listOf(
-                telemetry("TRK-0001", 0.0, 0L),
-                telemetry("TRK-0002", 0.0, 5_000L),
-                telemetry("TRK-0001", 0.0, 10_000L),
-                telemetry("TRK-0002", 0.0, 10_000L)
+                telemetry(TelemetryTestData("TRK-0001", 0.0, 0L)),
+                telemetry(TelemetryTestData("TRK-0002", 0.0, 5_000L)),
+                telemetry(TelemetryTestData("TRK-0001", 0.0, 10_000L)),
+                telemetry(TelemetryTestData("TRK-0002", 0.0, 10_000L))
             ),
             ids = ids
         )
@@ -259,10 +274,10 @@ class TrackActiveFleetUseCaseTest {
 
         val events = collectEvents(
             updates = listOf(
-                telemetry("TRK-0001", 0.0, 0L),
-                telemetry("TRK-0002", 0.0, 2_000L),
-                telemetry("TRK-0001", 0.0, 10_000L),
-                telemetry("TRK-0002", 0.0, 12_000L)
+                telemetry(TelemetryTestData("TRK-0001", 0.0, 0L)),
+                telemetry(TelemetryTestData("TRK-0002", 0.0, 2_000L)),
+                telemetry(TelemetryTestData("TRK-0001", 0.0, 10_000L)),
+                telemetry(TelemetryTestData("TRK-0002", 0.0, 12_000L))
             ),
             ids = ids
         )
@@ -272,7 +287,10 @@ class TrackActiveFleetUseCaseTest {
 
     @Test
     fun `should maintain independent state for each collection`() = runBlocking {
-        val updates = flowOf(telemetry(speed = 0.0, timestamp = 0L), telemetry(speed = 0.0, timestamp = 10_000L))
+        val updates = flowOf(
+            telemetry(TelemetryTestData(speed = 0.0, timestamp = 0L)),
+            telemetry(TelemetryTestData(speed = 0.0, timestamp = 10_000L))
+        )
         every {
             vehicleRepository.streamTelemetry(vehicleIds)
         } returns updates
@@ -298,20 +316,24 @@ class TrackActiveFleetUseCaseTest {
     }
 
     private fun telemetry(
-        vehicleId: String = "TRK-0001",
-        speed: Double = 40.0,
-        timestamp: Long = 0L,
-        fuel: Double = 80.0,
-        latitude: Double = 31.5,
-        longitude: Double = 34.4
+        data: TelemetryTestData = TelemetryTestData()
     ): VehicleTelemetry {
         return VehicleTelemetry(
-            vehicleId = vehicleId,
-            latitude = latitude,
-            longitude = longitude,
-            speedKmh = speed,
-            fuelPercentage = fuel,
-            timestampMillis = timestamp
+            vehicleId = data.vehicleId,
+            latitude = data.latitude,
+            longitude = data.longitude,
+            speedKmh = data.speed,
+            fuelPercentage = data.fuel,
+            timestampMillis = data.timestamp
         )
     }
+
+    private data class TelemetryTestData(
+        val vehicleId: String = "TRK-0001",
+        val speed: Double = 40.0,
+        val timestamp: Long = 0L,
+        val fuel: Double = 80.0,
+        val latitude: Double = 31.5,
+        val longitude: Double = 34.4
+    )
 }
