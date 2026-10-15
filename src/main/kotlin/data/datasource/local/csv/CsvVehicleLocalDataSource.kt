@@ -7,21 +7,24 @@ import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.model.VehicleLocalData
 import org.example.data.dataholder.VehicleRaw
 import org.example.data.dataholder.WarehouseRaw
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CsvVehicleLocalDataSource(
     private val filePath: String,
     private val warehouseDataSource: WarehouseDataSource
 ) : VehicleDataSource {
 
-    override fun getVehicles(): List<RawResult<VehicleLocalData>> {
-        val warehousesById = loadWarehousesById()
+    override suspend fun getVehicles(): List<RawResult<VehicleLocalData>> =
+        withContext(Dispatchers.IO) {
+            val warehousesById = loadWarehousesById()
 
-        return parseVehicles(filePath).map { result ->
-            resolveVehicle(result, warehousesById)
+            parseVehicles(filePath).map { result ->
+                resolveVehicle(result, warehousesById)
+            }
         }
-    }
 
-    private fun loadWarehousesById(): Map<String, WarehouseRaw> {
+    private suspend fun loadWarehousesById(): Map<String, WarehouseRaw> {
         return warehouseDataSource.getWarehouses()
             .mapNotNull { it.rawData }
             .associateBy { it.id }
@@ -51,7 +54,8 @@ class CsvVehicleLocalDataSource(
         }
     }
 
-    override fun replaceAll(vehicles: List<VehicleRaw>) {
+    override suspend fun replaceAll(vehicles: List<VehicleRaw>) =
+        withContext(Dispatchers.IO) {
         val content = buildString {
             appendLine(
                 "vehicleId,currentHubId,maxCapacityKg,costPerKm"

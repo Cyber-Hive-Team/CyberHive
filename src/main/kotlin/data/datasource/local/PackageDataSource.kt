@@ -5,6 +5,6 @@ import org.example.data.dataholder.RawResult
 import org.example.data.dataholder.PackageRaw
 
 interface PackageDataSource {
-    fun getPackages(): List<RawResult<PackageLocalData>>
-    fun replaceAll(packages: List<PackageRaw>)
+    suspend  fun getPackages(): List<RawResult<PackageLocalData>>
+    suspend  fun replaceAll(packages: List<PackageRaw>)
 }

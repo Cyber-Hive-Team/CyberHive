@@ -7,21 +7,24 @@ import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.model.PackageLocalData
 import org.example.data.dataholder.PackageRaw
 import org.example.data.dataholder.WarehouseRaw
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CsvPackageLocalDataSource(
     private val filePath: String,
     private val warehouseDataSource: WarehouseDataSource
 ) : PackageDataSource {
 
-    override fun getPackages(): List<RawResult<PackageLocalData>> {
-        val warehousesById = loadWarehousesById()
+    override suspend fun getPackages(): List<RawResult<PackageLocalData>> =
+        withContext(Dispatchers.IO) {
+            val warehousesById = loadWarehousesById()
 
-        return parsePackages(filePath).map { result ->
-            resolvePackage(result, warehousesById)
+            parsePackages(filePath).map { result ->
+                resolvePackage(result, warehousesById)
+            }
         }
-    }
 
-    private fun loadWarehousesById(): Map<String, WarehouseRaw> {
+    private suspend  fun loadWarehousesById(): Map<String, WarehouseRaw> {
         return warehouseDataSource.getWarehouses()
             .mapNotNull { it.rawData }
             .associateBy { it.id }
@@ -58,28 +61,29 @@ class CsvPackageLocalDataSource(
         }
     }
 
-    override fun replaceAll(packages: List<PackageRaw>) {
-        val content = buildString {
-            appendLine("id,weight,originHubId,destinationHubId,priority")
+    override suspend fun replaceAll(packages: List<PackageRaw>) =
+        withContext(Dispatchers.IO) {
+            val content = buildString {
+                appendLine("id,weight,originHubId,destinationHubId,priority")
 
-            packages.forEach { packageRaw ->
-                appendLine(
-                    listOf(
-                        packageRaw.id,
-                        packageRaw.weight ?: "",
-                        packageRaw.originHubId,
-                        packageRaw.destinationHubId,
-                        packageRaw.priority.name
-                    ).joinToString(",")
-                )
+                packages.forEach { packageRaw ->
+                    appendLine(
+                        listOf(
+                            packageRaw.id,
+                            packageRaw.weight ?: "",
+                            packageRaw.originHubId,
+                            packageRaw.destinationHubId,
+                            packageRaw.priority.name
+                        ).joinToString(",")
+                    )
+                }
             }
-        }
 
-        replaceCsvFile(
-            filePath = filePath,
-            content = content
-        )
-    }
+            replaceCsvFile(
+                filePath = filePath,
+                content = content
+            )
+        }
 
 
 

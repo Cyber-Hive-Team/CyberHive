@@ -7,21 +7,24 @@ import org.example.data.datasource.WarehouseDataSource
 import org.example.data.datasource.local.model.RouteLocalData
 import org.example.data.dataholder.RouteRaw
 import org.example.data.dataholder.WarehouseRaw
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CsvRouteLocalDataSource(
     private val filePath: String,
     private val warehouseDataSource: WarehouseDataSource
 ) : RouteDataSource {
 
-    override fun getRoutes(): List<RawResult<RouteLocalData>> {
-        val warehousesById = loadWarehousesById()
+    override suspend fun getRoutes(): List<RawResult<RouteLocalData>> =
+        withContext(Dispatchers.IO) {
+            val warehousesById = loadWarehousesById()
 
-        return parseRoutes(filePath).map { result ->
-            resolveRoute(result, warehousesById)
+            parseRoutes(filePath).map { result ->
+                resolveRoute(result, warehousesById)
+            }
         }
-    }
 
-    private fun loadWarehousesById(): Map<String, WarehouseRaw> {
+    private suspend fun loadWarehousesById(): Map<String, WarehouseRaw> {
         return warehouseDataSource.getWarehouses()
             .mapNotNull { it.rawData }
             .associateBy { it.id }
@@ -58,7 +61,8 @@ class CsvRouteLocalDataSource(
         }
     }
 
-    override fun replaceAll(routes: List<RouteRaw>) {
+    override suspend fun replaceAll(routes: List<RouteRaw>) =
+        withContext(Dispatchers.IO) {
         val content = buildString {
             appendLine(
                 "routeId,originHubId,destinationHubId,distanceKm,typicalDelayMin"
