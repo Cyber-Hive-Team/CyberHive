@@ -7,7 +7,9 @@ import org.example.domain.usecase.TrackActiveFleetUseCase
 class FleetTelemetryDemoRunner(
     private val trackActiveFleetUseCase: TrackActiveFleetUseCase
 ) {
-
+    private companion object {
+        const val DEMO_EVENT_LIMIT = 12
+    }
     suspend fun run(vehicleIds: List<String>) {
         if (vehicleIds.isEmpty()) {
             println("No vehicles available.")
@@ -16,7 +18,7 @@ class FleetTelemetryDemoRunner(
 
         println("=== Fleet Telemetry Demo ===")
         trackActiveFleetUseCase(vehicleIds)
-            .take(12)
+            .take(DEMO_EVENT_LIMIT)
             .collect { event ->
                 when (event) {
                     is FleetTrackingEvent.TelemetryUpdated -> {
