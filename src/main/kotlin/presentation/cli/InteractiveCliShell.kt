@@ -1,44 +1,65 @@
 package org.example.presentation.cli
 
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import org.example.domain.usecase.FindOptimalPathUseCase
 
-class InteractiveCliShell(
+private const val ROUTE_PARTS_COUNT = 3
+private const val DOT_DELAY_MS = 300L
+
+class CliShell(
     private val input: ConsoleInput,
+    private val findOptimalPath: FindOptimalPathUseCase,
+    private val scope: CoroutineScope
 ) {
-    suspend fun run(): Unit = coroutineScope {
-        println("Welcome to Cyber Hive!")
 
-        var running = true
+    suspend fun run() {
+        scope.launch { commandLoop() }.join()
+        println("Bye!")
+    }
 
-        while (running && isActive) {
-            printMenu()
+    private suspend fun commandLoop() {
+        println("Commands: route <from> <to> | classify | telemetry | exit")
+        while (scope.isActive) {
+            print("> ")
+            val line = input.readLine() ?: return
+            val parts = line.trim().split(" ")
 
-            val command = input.readLine()?.trim() ?: "0"
-
-            when (command) {
-                "h", "help" -> {
-                    println("Enter 0 to exit the application.")
+            when (parts[0]) {
+                "route" -> handleRoute(parts)
+                "classify" -> println("Classification is not connected yet.")
+                "telemetry" -> println("Telemetry is not connected yet.")
+                "exit" -> {
+                    scope.cancel()
+                    return
                 }
+                else -> println("Unknown command.")
+            }
+        }
+    }
 
-                "0" -> {
-                    running = false
-                }
+    private suspend fun handleRoute(parts: List<String>) {
+        if (parts.size != ROUTE_PARTS_COUNT) {
+            println("Usage: route <from> <to>")
+            return
+        }
 
-                else -> {
-                    println("Unknown command. Try again.")
-                }
+        val spinner = scope.launch {
+            while (true) {
+                print(".")
+                delay(DOT_DELAY_MS)
             }
         }
 
-        println("Goodbye.")
-    }
-
-    private fun printMenu() {
+        val result = runCatching { findOptimalPath(parts[1], parts[2]) }
+        spinner.cancel()
         println()
-        println("=== Cyber Hive Menu ===")
-        println("h. Help")
-        println("0. Exit")
-        println("Choose a command:")
+
+        result
+            .onSuccess { println("Path: ${it.path.joinToString(" -> ") { w -> w.id }}, ${it.distanceKm} km") }
+            .onFailure { println("Error: ${it.message}") }
     }
 }

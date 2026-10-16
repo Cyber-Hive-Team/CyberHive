@@ -15,19 +15,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.parameter.parametersOf
 import org.example.di.syncModule
 import org.example.data.sync.SyncCoordinator
-import kotlinx.coroutines.Dispatchers
-import org.example.presentation.cli.ConsoleInput
-import org.example.presentation.cli.InteractiveCliShell
 
-suspend fun main(args: Array<String>) {
-    if ("--demos" !in args) {
-        val input = ConsoleInput(Dispatchers.IO)
-        val shell = InteractiveCliShell(input)
-
-        shell.run()
-        return
-    }
-
+suspend fun main() {
     println("=== Cyber Hive ===")
 
     val koin = startKoin {

@@ -1,13 +1,11 @@
 package org.example.presentation.cli
 
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ConsoleInput(
-    private val ioDispatcher: CoroutineDispatcher,
-) {
-    suspend fun readLine(): String? =
-        withContext(ioDispatcher) {
-            readlnOrNull()
-        }
+class ConsoleInput {
+
+    suspend fun readLine(): String? = withContext(Dispatchers.IO) {
+        readlnOrNull()
+    }
 }
