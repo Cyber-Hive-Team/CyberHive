@@ -1,5 +1,6 @@
 package org.example.presentation
 
+import kotlinx.coroutines.CancellationException
 import org.example.data.sync.SyncCoordinator
 import org.example.di.dispatchModule
 import org.example.di.networkModule
@@ -13,6 +14,8 @@ import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
 import org.example.domain.usecase.TraceHubLineageUseCase
 import org.example.domain.usecase.TrackActiveFleetUseCase
+import org.example.presentation.cli.CliShell
+import org.example.presentation.cli.ConsoleInput
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.parameter.parametersOf
@@ -20,7 +23,7 @@ import org.koin.core.parameter.parametersOf
 suspend fun main() {
     println("=== Cyber Hive ===")
 
-    val koin = startKoin {
+    val application = startKoin {
         modules(
             networkModule,
             repositoryModule,
@@ -30,13 +33,22 @@ suspend fun main() {
             syncModule
 
         )
-    }.koin
+    }
+    try {
+        runApplication(application.koin)
+    } finally {
+        application.close()
+    }
+}
+
+private suspend fun runApplication(koin: Koin) {
 
     val syncCoordinator = koin.get<SyncCoordinator>()
 
     runCatching {
         syncCoordinator.syncAll()
     }.onFailure { exception ->
+        if (exception is CancellationException) throw exception
         println(
             "Warning: Sync failed, using local CSV data. " +
                     "Reason: ${exception.message}"
@@ -50,6 +62,7 @@ suspend fun main() {
         return
     }
     runDemos(koin, data)
+    runCli(koin, data)
 }
 
 private suspend fun runDemos(
@@ -120,4 +133,16 @@ private suspend fun runFleetTelemetryDemo(
     val useCase = koin.get<TrackActiveFleetUseCase>()
 
     FleetTelemetryDemoRunner(useCase).run(vehicleIds)
+}
+private suspend fun runCli(
+    koin: Koin,
+    data: LoadedData
+) {
+    CliShell(
+        input = ConsoleInput(),
+        findOptimalPath = koin.get(),
+        classifyPackageSector = koin.get(),
+        trackActiveFleet = koin.get(),
+        vehicleIds = data.vehicles.map { it.id }
+    ).run()
 }

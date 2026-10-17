@@ -1,11 +1,11 @@
 package org.example.presentation.cli
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runInterruptible
 
 class ConsoleInput {
 
-    suspend fun readLine(): String? = withContext(Dispatchers.IO) {
+    suspend fun readLine(): String? = runInterruptible(Dispatchers.IO) {
         readlnOrNull()
     }
 }

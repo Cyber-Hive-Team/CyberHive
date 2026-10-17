@@ -14,6 +14,7 @@ import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
 import org.example.data.retry.RetryWithBackoff
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 val networkModule = module {
 
@@ -36,7 +37,7 @@ val networkModule = module {
 
     single<HttpClient> {
         get<SupabaseHttpClient>().create()
-    }
+    } onClose { client -> client?.close() }
 
     single<PackageRemoteDataSource> {
         SupabasePackageRemoteDataSource(
