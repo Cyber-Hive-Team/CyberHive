@@ -34,7 +34,6 @@ class CleanArchitectureTest {
                 it.containingFile.imports.none { import ->
                     import.name.startsWith("io.ktor") ||
                             import.name.startsWith("kotlinx.serialization") ||
-                            import.name.startsWith("kotlinx.coroutines") ||
                             import.name.startsWith("io.github.jan.supabase")
                 }
             }

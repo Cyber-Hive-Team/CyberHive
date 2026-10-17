@@ -1,6 +1,13 @@
 package org.example.data.repositoryImplementation
 
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.example.data.datasource.VehicleDataSource
+import org.example.data.datasource.local.model.VehicleLocalData
 import org.example.data.datasource.remote.VehicleRemoteDataSource
 import org.example.data.exception.NullRequiredFieldException
 import org.example.data.mapper.DataExceptionMapper
@@ -9,22 +16,21 @@ import org.example.data.mapper.mapFailureToDomain
 import org.example.data.mapper.remote.toCreateRequest
 import org.example.data.mapper.remote.toDomainModel
 import org.example.data.mapper.remote.toUpdateRequest
+import org.example.data.mapper.sync.toRaw
 import org.example.data.remote.dto.response.VehicleResponseDto
+import org.example.data.telemetry.TelemetryStreamingService
+import org.example.data.util.suspendResult
 import org.example.domain.model.Vehicle
-import org.example.data.datasource.local.model.VehicleLocalData
+import org.example.domain.model.VehicleTelemetry
 import org.example.domain.model.exception.VehicleNotFoundException
 import org.example.domain.repository.VehicleRepository
-import org.example.data.mapper.sync.toRaw
-import org.example.data.util.suspendResult
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 
 class VehicleRepositoryImpl(
     private val remoteDataSource: VehicleRemoteDataSource,
     private val localDataSource: VehicleDataSource,
+    private val telemetryStreamingService: TelemetryStreamingService
 ) : BaseRepository(), VehicleRepository {
-
     private val cacheMutex = Mutex()
     private val dataExceptionMapper = DataExceptionMapper()
 
@@ -207,5 +213,26 @@ class VehicleRepositoryImpl(
             }
 
         localDataSource.replaceAll(rawVehicles)
+    }
+
+    override fun streamTelemetry(
+        vehicleIds: List<String>
+    ): Flow<VehicleTelemetry> = flow {
+
+        val requestedIds = vehicleIds.toSet()
+
+        val vehicles = getVehicles()
+            .getOrThrow()
+            .filter { it.id in requestedIds }
+
+        val foundIds = vehicles.map { it.id }.toSet()
+
+        require(foundIds == requestedIds) {
+            "Some requested vehicles were not found"
+        }
+
+        emitAll(
+            telemetryStreamingService.stream(vehicles)
+        )
     }
 }
