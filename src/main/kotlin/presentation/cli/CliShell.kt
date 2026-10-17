@@ -1,13 +1,17 @@
 package org.example.presentation.cli
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.example.domain.usecase.FindOptimalPathUseCase
 import org.example.domain.model.PackageSectorInput
+import org.example.domain.model.result.FleetTrackingEvent
 import org.example.domain.usecase.ClassifyPackageSectorUseCase
+import org.example.domain.usecase.TrackActiveFleetUseCase
 
 private const val HELP_TEXT = """
 Commands:
@@ -27,8 +31,11 @@ class CliShell(
     private val input: ConsoleInput,
     private val findOptimalPath: FindOptimalPathUseCase,
     private val classifyPackageSector: ClassifyPackageSectorUseCase,
+    private val trackActiveFleet: TrackActiveFleetUseCase,
+    private val vehicleIds: List<String>,
     private val scope: CoroutineScope
 ) {
+    private var telemetryJob: Job? = null
 
     suspend fun run() {
         scope.launch { commandLoop() }.join()
@@ -45,6 +52,8 @@ class CliShell(
             when (parts[0]) {
                 "route" -> handleRoute(parts)
                 "classify" -> handleClassify(parts)
+                "telemetry" -> startTelemetry()
+                "stop" -> stopTelemetry()
                 "help" -> println(HELP_TEXT)
                 "exit" -> {
                     scope.cancel()
@@ -105,5 +114,46 @@ class CliShell(
         withSpinner { classifyPackageSector(sectorInput) }
             .onSuccess { zone -> println("Predicted sector: $zone") }
             .onFailure { println("Error: ${it.message}") }
+    }
+    private fun startTelemetry() {
+        if (telemetryJob?.isActive == true) {
+            println("Telemetry is already running. Type 'stop' to end it.")
+            return
+        }
+        if (vehicleIds.isEmpty()) {
+            println("No vehicles available.")
+            return
+        }
+
+        println("Telemetry started. Type 'stop' to end it.")
+        telemetryJob = scope.launch {
+            trackActiveFleet(vehicleIds)
+                .catch { println("Telemetry error: ${it.message}") }
+                .collect { event -> printEvent(event) }
+        }
+    }
+
+    private fun stopTelemetry() {
+        telemetryJob?.cancel()
+        telemetryJob = null
+        println("Telemetry stopped.")
+    }
+
+    private fun printEvent(event: FleetTrackingEvent) {
+        when (event) {
+            is FleetTrackingEvent.TelemetryUpdated -> {
+                val telemetry = event.telemetry
+                println(
+                    "[telemetry] ${telemetry.vehicleId} | " +
+                            "Speed: ${telemetry.speedKmh} km/h | " +
+                            "Fuel: ${telemetry.fuelPercentage}% | " +
+                            "GPS: ${telemetry.latitude}, ${telemetry.longitude}"
+                )
+            }
+
+            is FleetTrackingEvent.PotentialDelayDetected -> {
+                println("[delay] Potential delay detected: ${event.vehicleId}")
+            }
+        }
     }
 }
