@@ -1,0 +1,67 @@
+plugins {
+    kotlin("jvm") version "2.4.20"
+    id("io.gitlab.arturbosch.detekt") version "1.23.5"
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.androidLibrary) apply false
+    alias(libs.plugins.composeHotReload) apply false
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    kotlin("plugin.serialization") version "2.4.20"
+    id("application")
+}
+
+group = "org.example"
+version = "1.0-SNAPSHOT"
+
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    testImplementation(kotlin("test"))
+    testImplementation("com.lemonappdev:konsist:0.17.3")
+
+    implementation(
+        "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
+    )
+
+    implementation("io.ktor:ktor-client-core:3.5.2")
+    implementation("io.ktor:ktor-client-cio:3.5.2")
+    implementation("io.ktor:ktor-client-content-negotiation:3.5.2")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.2")
+    testImplementation("com.google.truth:truth:1.4.5")
+    testImplementation("io.mockk:mockk-jvm:1.14.9")
+    implementation("io.insert-koin:koin-core:4.1.1")
+    testImplementation("io.insert-koin:koin-test:4.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+}
+
+
+detekt {
+    config.setFrom("config/detekt/detekt.yml")
+    baseline = file("config/detekt/baseline.xml")
+    buildUponDefaultConfig = true
+}
+
+
+kotlin {
+    jvmToolchain(21)
+}
+
+
+application {
+    mainClass.set("org.example.presentation.MainKt")
+}
+
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+}

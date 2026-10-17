@@ -1,0 +1,260 @@
+package org.example.data.repositoryImplementation
+
+import org.example.data.datasource.remote.PackageRemoteDataSource
+import org.example.data.datasource.local.model.PackageLocalData
+import org.example.data.datasource.PackageDataSource
+import java.time.LocalDateTime
+import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import org.example.data.exception.NullRequiredFieldException
+import org.example.data.mapper.DataExceptionMapper
+import org.example.data.mapper.csv.toDomainModel
+import org.example.data.mapper.mapFailureToDomain
+import org.example.data.mapper.remote.toCreateRequest
+import org.example.data.mapper.remote.toDomainModel
+import org.example.data.mapper.remote.toUpdateRequest
+import org.example.data.remote.dto.response.PackageResponseDto
+import org.example.domain.model.Package
+import org.example.domain.model.PackageRequirements
+import org.example.domain.model.PackageWarehouseStay
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.input.PackageDeliveryTime
+import org.example.domain.model.input.UpdatePackageInput
+import org.example.domain.repository.PackageRepository
+import org.example.data.mapper.sync.toRaw
+import org.example.data.util.suspendResult
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+
+class PackageRepositoryImpl(
+    private val remoteDataSource: PackageRemoteDataSource,
+    private val localDataSource: PackageDataSource,
+) : BaseRepository(), PackageRepository {
+
+    companion object {
+        private const val MIN_WAITING_HOURS = 1L
+        private const val MAX_WAITING_HOURS = 73L
+
+        private const val MIN_EXPECTED_HOURS = 2L
+        private const val MAX_EXPECTED_HOURS = 10L
+
+        private const val MIN_ARRIVAL_OFFSET_MINUTES = -60L
+        private const val MAX_ARRIVAL_OFFSET_MINUTES = 180L
+    }
+
+    private val dataExceptionMapper = DataExceptionMapper()
+    private val packages = mutableListOf<Package>()
+
+    private val cacheMutex = Mutex()
+    private var isLoaded = false
+
+    override suspend fun getAllPackages(): Result<List<Package>> {
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                packages.toList()
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+    private suspend fun loadPackagesIfNeeded() {
+        if (isLoaded) return
+
+        val loadedPackages = localDataSource
+            .getPackages()
+            .mapNotNull { result ->
+                result.rawData?.let { data ->
+                    mapLocalPackage(data)
+                }
+            }
+
+        packages.addAll(loadedPackages)
+        isLoaded = true
+    }
+
+    override suspend fun getById(
+        packageId: String
+    ): Result<Package> {
+        return getAllPackages()
+            .mapCatching { packages ->
+                packages.firstOrNull {
+                    it.id == packageId
+                } ?: throw PackageNotFoundException()
+            }
+            .mapFailureToDomain(dataExceptionMapper)
+    }
+
+    override suspend fun getAllWarehouseStays():
+    Result<List<PackageWarehouseStay>> {
+        return getAllPackages().mapCatching { packages ->
+            packages.map { cargoPackage ->
+                PackageWarehouseStay(
+                packageId = cargoPackage.id,
+                arrivedAt = LocalDateTime.now().minusHours(
+                Random.nextLong(MIN_WAITING_HOURS, MAX_WAITING_HOURS)))
+            }
+        }
+    }
+
+    override suspend fun getAllDeliveryTimes():
+            Result<List<PackageDeliveryTime>> {
+
+        return getAllPackages()
+            .mapCatching { packages ->
+                packages.map {
+                    createDeliveryTime(it)
+                }
+            }
+    }
+
+
+    private fun createDeliveryTime(
+        cargoPackage: Package
+    ): PackageDeliveryTime {
+
+        val expectedArrival =
+            Clock.System.now() +
+                    Random.nextLong(
+                        MIN_EXPECTED_HOURS,
+                        MAX_EXPECTED_HOURS
+                    ).hours
+
+
+        val actualArrival =
+            expectedArrival +
+                    Random.nextLong(
+                        MIN_ARRIVAL_OFFSET_MINUTES,
+                        MAX_ARRIVAL_OFFSET_MINUTES
+                    ).minutes
+
+
+        return PackageDeliveryTime(
+            packageId = cargoPackage.id,
+            expectedArrivalTime = expectedArrival,
+            actualArrivalTime = actualArrival
+        )
+    }
+
+
+    override suspend fun getPackagesByWarehouseId(
+        warehouseId: String
+    ): Result<List<Package>> {
+
+        return getAllPackages()
+            .mapCatching { packages ->
+                packages.filter {
+                    it.originWarehouse.id == warehouseId
+                }
+            }
+    }
+
+
+    override suspend fun getAllPackageRequirements():
+            Result<List<PackageRequirements>> {
+
+        return getAllPackages()
+            .mapCatching { packages ->
+                packages.map {
+                PackageRequirements(
+                    packageId = it.id,
+                    isFragile = Random.nextBoolean(),
+                    requiresColdStorage = Random.nextBoolean(),
+                    requiresSpecialHandling = Random.nextBoolean()
+                )
+            }
+            }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+
+    override suspend fun save(
+        cargoPackage: Package
+    ): Result<Package> {
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                val request = cargoPackage.toCreateRequest()
+                val dto = remoteDataSource.save(request)
+                val packageModel = mapRemotePackage(dto)
+                    ?: throw NullRequiredFieldException(
+                        "Saved package '${dto.id}' mapping failed."
+                    )
+                packages.add(packageModel)
+                refreshLocalSnapshot()
+                packageModel
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+
+    override suspend fun update(
+        input: UpdatePackageInput
+    ): Result<Package> {
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                val request = input.toUpdateRequest()
+                val dto = remoteDataSource
+                    .update(
+                        id = input.id,
+                        request = request
+                    )
+                val updatedPackage =
+                    mapRemotePackage(dto)
+                        ?: throw NullRequiredFieldException(
+                            "Package '$input.id' update failed."
+                        )
+
+
+                packages.removeIf {
+                    it.id == input.id
+                }
+                packages.add(updatedPackage)
+                refreshLocalSnapshot()
+                updatedPackage
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+
+    override suspend fun delete(
+        id: String
+    ): Result<String> {
+        return suspendResult {
+            cacheMutex.withLock {
+                loadPackagesIfNeeded()
+                val deletedId = remoteDataSource.delete(id)
+                packages.removeIf {
+                    it.id == deletedId
+                }
+                refreshLocalSnapshot()
+                deletedId
+            }
+        }.mapFailureToDomain(dataExceptionMapper)
+    }
+
+    private fun mapRemotePackage(dto: PackageResponseDto): Package? {
+        return mapSafely(dto.id) {
+            dto.toDomainModel()
+        }
+    }
+
+    private fun mapLocalPackage(
+        data: PackageLocalData
+    ): Package? {
+        return mapSafely(data.packageRaw.id) {
+            data.toDomainModel()
+        }
+    }
+    private suspend fun refreshLocalSnapshot() {
+        val rawPackages = remoteDataSource
+            .getAll()
+            .map { dto ->
+                dto.toRaw()
+            }
+
+        localDataSource.replaceAll(rawPackages)
+    }
+}

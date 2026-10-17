@@ -1,0 +1,65 @@
+package org.example.domain.usecase
+
+import org.example.domain.model.Package
+import org.example.domain.model.Vehicle
+import org.example.domain.model.exception.InvalidPackageWeightException
+import org.example.domain.model.exception.InvalidVehicleCapacityException
+import org.example.domain.model.result.FleetShortageResult
+import org.example.domain.repository.PackageRepository
+import org.example.domain.repository.VehicleRepository
+import org.example.domain.repository.WarehouseRepository
+
+private const val ZERO_SHORTAGE = 0.0
+
+class FindFleetShortageUseCase(
+    private val warehouseRepository: WarehouseRepository,
+    private val packageRepository: PackageRepository,
+    private val vehicleRepository: VehicleRepository
+) {
+    suspend operator fun invoke(): List<FleetShortageResult> {
+        return warehouseRepository.getAllWarehouses().getOrThrow()
+            .mapNotNull { warehouse ->
+                calculateShortage(warehouse.id)
+            }
+            .sortedByDescending { it.shortageKg }
+
+    }
+
+    suspend fun calculateShortage(
+        warehouseId: String
+    ): FleetShortageResult? {
+        val packages = packageRepository.getPackagesByWarehouseId(warehouseId).getOrThrow()
+        val vehicles =
+            vehicleRepository
+                .getVehiclesByWarehouseId(warehouseId)
+                .getOrThrow()
+        validatePackages(packages)
+        validateVehicles(vehicles)
+
+        val shortage = packages.sumOf { it.weight } -
+                vehicles.sumOf { it.maxCapacityKg }
+
+        return shortage.takeIf { it > ZERO_SHORTAGE }
+            ?.let { FleetShortageResult(warehouseId, it) }
+
+    }
+
+    private fun validatePackages(
+        packages: List<Package>
+    ) {
+        if (packages.any { it.weight < ZERO_SHORTAGE }) {
+            throw InvalidPackageWeightException()
+        }
+
+    }
+
+    private fun validateVehicles(
+        vehicles: List<Vehicle>
+    ) {
+        if (vehicles.any { it.maxCapacityKg < ZERO_SHORTAGE }) {
+            throw InvalidVehicleCapacityException()
+        }
+    }
+
+}
+

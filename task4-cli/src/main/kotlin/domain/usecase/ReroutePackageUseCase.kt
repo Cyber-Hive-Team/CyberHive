@@ -1,0 +1,91 @@
+package org.example.domain.usecase
+
+import org.example.domain.algorithm.search.Router
+import org.example.domain.model.Package
+import org.example.domain.model.Warehouse
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.exception.RouteNotFoundException
+import org.example.domain.model.input.ReroutePackageInput
+import org.example.domain.model.result.RoutingResult
+import org.example.domain.pricing.RoutePricingEngine
+import org.example.domain.repository.PackageRepository
+import org.example.domain.repository.WarehouseRepository
+
+class ReroutePackageUseCase(
+    private val packageRepository: PackageRepository,
+    private val warehouseRepository: WarehouseRepository,
+    private val router: Router,
+    private val pricingEngine: RoutePricingEngine
+) {
+    @Suppress("ThrowsCount")
+    suspend operator fun invoke(
+        input: ReroutePackageInput
+    ): Result<RoutingResult> {
+        return runCatching {
+            val cargoPackage = fetchPackage(input.packageId)
+                ?: throw PackageNotFoundException(
+                    "Package not found with ID: ${input.packageId}"
+                )
+            val newDestination = fetchWarehouse(input.newDestinationWarehouseId)
+
+            val calculatedRoute = calculateNewRoute(cargoPackage.originWarehouse, newDestination)
+                ?: throw RouteNotFoundException(
+                    "No valid route found between ${cargoPackage.originWarehouse.id} and ${newDestination.id}"
+                )
+
+            val updatedPackage = createUpdatedPackage(
+                cargoPackage,
+                newDestination,
+                calculatedRoute
+            )
+            updateCargoQueue(newDestination.id, updatedPackage)
+            calculatedRoute
+        }
+    }
+
+    private suspend fun fetchPackage(packageId: String): Package? {
+        return packageRepository.getAllPackages().getOrThrow()
+            .firstOrNull { it.id == packageId }
+    }
+
+    private suspend fun fetchWarehouse(warehouseId: String): Warehouse {
+        return warehouseRepository.getById(warehouseId).getOrThrow()
+    }
+
+    private fun calculateNewRoute(
+        originWarehouse: Warehouse,
+        destinationWarehouse: Warehouse
+    ): RoutingResult? {
+        val routingResult = router.findPath(
+            start = originWarehouse,
+            destination = destinationWarehouse
+        )
+        return if (routingResult.path.isNotEmpty()) routingResult else null
+    }
+
+    private fun createUpdatedPackage(
+        originalPackage: Package,
+        newDestination: Warehouse,
+        routingResult: RoutingResult
+    ): Package {
+        val newPrice = pricingEngine.calculatePrice(originalPackage, routingResult.distanceKm)
+
+        return originalPackage.copy(
+            destinationWarehouse = newDestination,
+            baseRate = newPrice
+        )
+    }
+
+    private suspend fun updateCargoQueue(
+        warehouseId: String,
+        updatedPackage: Package
+    ) {
+        val isAdded = warehouseRepository.addPackageToCargoQueue(
+            warehouseId,
+            updatedPackage
+        ).getOrThrow()
+        if (isAdded) {
+            warehouseRepository.sortCargoQueue(warehouseId).getOrThrow()
+        }
+    }
+}

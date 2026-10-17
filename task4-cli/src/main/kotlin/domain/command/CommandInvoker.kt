@@ -1,0 +1,105 @@
+package org.example.domain.command
+
+import org.example.domain.model.exception.CommandExecutionException
+import java.util.*
+
+class CommandInvoker {
+
+    companion object {
+        private const val DEFAULT_STEPS = 1
+        private const val STEPS_DONE = 0
+        private const val SINGLE_ENTRY_COUNT= 1
+    }
+
+    private val undoStack = ArrayDeque<Command>()
+    private val redoStack = ArrayDeque<Command>()
+
+    val undoHistorySize: Int
+        get() = undoStack.size
+
+    val redoHistorySize: Int
+        get() = redoStack.size
+
+    suspend fun executeCommand(command: Command): Boolean {
+        val success = command.execute()
+        if (!success)  {
+            println("EXECUTE FAILED -> ${command.describe()}")
+            throw CommandExecutionException("Failed to execute command: ${command::class.simpleName}")
+        }
+
+        undoStack.push(command)
+        clearRedoHistory()
+        println("EXECUTE -> ${command.describe()}")
+        return true
+    }
+
+
+    suspend fun undo(steps: Int = DEFAULT_STEPS): Boolean {
+            var stepsDone = STEPS_DONE
+            var stopped = false
+        while (stepsDone < steps && !stopped) {
+            if (undoStack.isEmpty()) {
+                println("UNDO: nothing left to undo")
+                stopped = true
+                continue
+            }
+            val lastCommand = undoStack.pop()
+            val undone = lastCommand.undo()
+
+        if (undone) {
+                redoStack.push(lastCommand)
+                stepsDone++
+                println("UNDO SUCCESS -> ${lastCommand.describe()}")
+            }else{
+                undoStack.push(lastCommand)
+                println("UNDO FAILED -> ${lastCommand.describe()}")
+                stopped = true
+            throw CommandExecutionException(
+                "Failed to undo command: ${lastCommand::class.simpleName}")
+            }
+        }
+      return stepsDone == steps
+    }
+
+
+    suspend fun redo(steps: Int = DEFAULT_STEPS): Boolean {
+        var stepsDone = STEPS_DONE
+        var stopped = false
+
+        while (stepsDone < steps && !stopped) {
+            if (redoStack.isEmpty()) {
+                println("REDO: nothing left to redo")
+                stopped = true
+                continue
+            }
+
+            val command = redoStack.pop()
+            val redone = command.execute()
+
+            if (redone) {
+                undoStack.push(command)
+                stepsDone++
+                println("REDO SUCCESS -> ${command.describe()}")
+            } else {
+                redoStack.push(command)
+                println("REDO FAILED -> ${command.describe()}")
+                stopped = true
+            }
+        }
+
+        return stepsDone == steps
+    }
+
+    private fun clearRedoHistory() {
+        if (redoStack.isEmpty()) return
+
+        val label = if (redoStack.size == SINGLE_ENTRY_COUNT) "entry" else "entries"
+        println("HISTORY CLEARED: discarded ${redoStack.size} redo $label")
+        redoStack.clear()
+    }
+
+    fun canUndo(): Boolean = undoStack.isNotEmpty()
+
+    fun canRedo(): Boolean = redoStack.isNotEmpty()
+
+}

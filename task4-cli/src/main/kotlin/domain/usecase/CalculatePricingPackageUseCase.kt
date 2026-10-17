@@ -1,0 +1,35 @@
+package org.example.domain.usecase
+
+import org.example.domain.model.exception.PackageNotFoundException
+import org.example.domain.model.exception.RouteNotFoundException
+import org.example.domain.model.input.CalculatePricingInput
+import org.example.domain.model.result.PricingPackage
+import org.example.domain.pricing.RoutePricingEngine
+import org.example.domain.repository.PackageRepository
+import org.example.domain.repository.RouteRepository
+
+class CalculatePricingPackageUseCase(
+    private val packageRepository: PackageRepository,
+    private val routeRepository: RouteRepository,
+    private val pricingEngine: RoutePricingEngine
+) {
+    suspend operator fun invoke(
+        input : CalculatePricingInput
+    ): PricingPackage {
+
+        val cargoPackage = packageRepository.getAllPackages().getOrThrow()
+            .firstOrNull { it.id == input.packageId }
+            ?: throw PackageNotFoundException("Package not found with ID: ${input.packageId}")
+
+        val route = routeRepository.getAllRoutes().getOrThrow()
+            .firstOrNull { it.id == input.routeId }
+            ?: throw RouteNotFoundException("Route not found with ID: ${input.routeId}")
+
+        input.customStrategy?.let { strategy ->
+            pricingEngine.setStrategy(strategy)
+        }
+
+        return PricingPackage(pricingEngine.calculatePrice(cargoPackage, route.distanceKm))
+
+    }
+}

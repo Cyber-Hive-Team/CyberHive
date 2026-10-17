@@ -1,0 +1,30 @@
+* [33m4820a66[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mrefactor/domain-graph-builder[m[33m)[m refactor: improve vehicle design following SOLID principles
+* [33m94969f4[m[33m ([m[1;31morigin/refactor/apply-solid-to-vehicle[m[33m, [m[1;32mrefactor/apply-solid-to-package-and-warehouse[m[33m)[m refactor: improve package design following SOLID principles
+* [33m48556f6[m refactor: improve package design following SOLID principles
+* [33m1763cfb[m refactor: improve package design following SOLID principles
+* [33m7819831[m[33m ([m[1;31morigin/refactor/apply-solid-to-package[m[33m, [m[1;32mrefactor/apply-solid-to-package[m[33m)[m refactor: improve package design following SOLID principles
+* [33mfd34a16[m refactor: improve package design following SOLID principles
+* [33mc3983ba[m refactor: improve package design following SOLID principles
+* [33m0567c28[m refactor: improve package design following SOLID principles
+* [33m5c1fad0[m refactor: improve package design following SOLID principles
+*   [33m580d63e[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m, [m[1;32mfeature/package-csv-repository[m[33m)[m Merge pull request #75 from Cyber-Hive-Team/feature/package-csv-repository
+[32m|[m[33m\[m  
+[32m|[m * [33m14713e6[m Add Fragile and Express Insurance pricing decorators
+[32m|[m[32m/[m  
+*   [33m891274b[m Merge pull request #74 from Cyber-Hive-Team/feature/cold-chain-decorator
+[34m|[m[35m\[m  
+[34m|[m * [33m0057afd[m[33m ([m[1;31morigin/feature/cold-chain-decorator[m[33m)[m feat: add cold chain decorator with transit rate multiplier
+[34m|[m[34m/[m  
+*   [33m56a62e5[m[33m ([m[1;32mfeature/add-package-pricing-decorators[m[33m)[m Merge pull request #73 from Cyber-Hive-Team/feature/subtask2-decorator-core-
+[36m|[m[1;31m\[m  
+[36m|[m * [33mca128c0[m[33m ([m[1;31morigin/feature/subtask2-decorator-core-[m[33m)[m feat: implement core decorator structure
+* [1;31m|[m   [33m36d05ad[m Merge pull request #72 from Cyber-Hive-Team/feature/vehicle-repository
+[1;32m|[m[1;33m\[m [1;31m\[m  
+[1;32m|[m * [1;31m|[m [33m6c6c776[m[33m ([m[1;31morigin/feature/vehicle-repository[m[33m)[m refactor: use vehicle repository result in main raw data loading
+[1;32m|[m * [1;31m|[m   [33ma66ea3c[m Merge remote-tracking branch 'origin/master' into feature/vehicle-repository
+[1;32m|[m [1;34m|[m[1;32m\[m [1;31m\[m  
+[1;32m|[m [1;34m|[m[1;32m/[m [1;31m/[m  
+[1;32m|[m[1;32m/[m[1;34m|[m [1;31m|[m   
+* [1;34m|[m [1;31m|[m   [33m546b044[m Merge pull request #70 from Cyber-Hive-Team/feature/package-csv-repository
+[1;36m|[m[31m\[m [1;34m\[m [1;31m\[m  
+[1;36m|[m * [1;34m|[m [1;31m|[m [33m8ba7612[m feat: implement package CSV parsing and repository
