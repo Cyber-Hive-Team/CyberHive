@@ -36,6 +36,7 @@ open class DomainException(message: String, cause: Throwable? = null) : Exceptio
         const val INVALID_DATA = "The received data is invalid."
         const val UNKNOWN_ERROR = "An unexpected error occurred."
         const val INVALID_PACKAGE_STATE_TRANSITION = "Invalid package state transition."
+        const val EMPTY_HISTORICAL_DATA ="Historical data cannot be empty."
 
     }
 }
@@ -65,3 +66,4 @@ class InvalidDataException(message: String = INVALID_DATA, cause: Throwable? = n
 class UnknownException(message: String = UNKNOWN_ERROR, cause: Throwable? = null) : DomainException(message, cause)
 class InvalidPackageStateTransitionException(message: String = INVALID_PACKAGE_STATE_TRANSITION) :
     DomainException(message)
+class EmptyHistoricalDataException(message: String = EMPTY_HISTORICAL_DATA) : DomainException(message)

@@ -13,6 +13,7 @@ import org.example.data.repositoryImplementation.PackageRepositoryImpl
 import org.example.data.repositoryImplementation.RouteRepositoryImpl
 import org.example.data.repositoryImplementation.VehicleRepositoryImpl
 import org.example.data.repositoryImplementation.WarehouseRepositoryImpl
+import org.example.data.telemetry.TelemetryStreamingService
 import org.example.domain.repository.PackageRepository
 import org.example.domain.repository.RouteRepository
 import org.example.domain.repository.VehicleRepository
@@ -89,6 +90,7 @@ val repositoryModule = module {
         VehicleRepositoryImpl(
             remoteDataSource = get(),
             localDataSource = get(),
+            TelemetryStreamingService()
         )
     }
     single {
