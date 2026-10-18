@@ -1,5 +1,8 @@
 package org.example.presentation
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.example.data.sync.SyncCoordinator
 import org.example.di.dispatchModule
 import org.example.di.networkModule
@@ -13,6 +16,8 @@ import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
 import org.example.domain.usecase.TraceHubLineageUseCase
 import org.example.domain.usecase.TrackActiveFleetUseCase
+import org.example.presentation.cli.CliShell
+import org.example.presentation.cli.ConsoleInput
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.parameter.parametersOf
@@ -50,6 +55,7 @@ suspend fun main() {
         return
     }
     runDemos(koin, data)
+    runCli(koin, data)
 }
 
 private suspend fun runDemos(
@@ -61,6 +67,20 @@ private suspend fun runDemos(
     runEndToEndDispatch(koin, data)
     runFleetTelemetryDemo(koin, data)
 
+}
+private suspend fun runCli(
+    koin: Koin,
+    data: LoadedData
+) {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    CliShell(
+        input = ConsoleInput(),
+        findOptimalPath = koin.get(),
+        classifyPackageSector = koin.get(),
+        trackActiveFleet = koin.get(),
+        vehicleIds = data.vehicles.take(2).map { it.id },
+        scope = scope
+    ).run()
 }
 
 private fun runPatternDemos(
