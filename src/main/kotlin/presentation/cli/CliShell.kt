@@ -12,6 +12,7 @@ import org.example.domain.model.result.FleetTrackingEvent
 import org.example.domain.usecase.ClassifyPackageSectorUseCase
 import org.example.domain.usecase.FindOptimalPathUseCase
 import org.example.domain.usecase.TrackActiveFleetUseCase
+import java.lang.String.format
 
 private const val HELP_TEXT = """
 Commands:
@@ -28,6 +29,8 @@ private const val CLASSIFY_PARTS_COUNT = 4
 private const val CLASSIFY_NUMBERS_COUNT = 3
 private const val CLI_PACKAGE_ID = "CLI-QUERY"
 private const val DOT_DELAY_MS = 300L
+private const val ONE_DECIMAL = "%.1f"
+private const val FOUR_DECIMALS = "%.4f"
 
 class CliShell(
     private val input: ConsoleInput,
@@ -75,10 +78,13 @@ class CliShell(
 
         runCatching { withSpinner { findOptimalPath(parts[1], parts[2]) } }
             .onSuccess { routing ->
+                if (routing.path.isEmpty()) {
+                    println("No route found between ${parts[1]} and ${parts[2]}.")
+                    return@onSuccess
+                }
                 val names = routing.path.joinToString(" -> ") { warehouse -> warehouse.id }
                 println("Path: $names, ${routing.distanceKm} km")
             }
-            .onFailure { println("Error: ${it.message}") }
     }
 
     private suspend fun handleClassify(parts: List<String>) {
@@ -126,9 +132,10 @@ class CliShell(
                 val telemetry = event.telemetry
                 println(
                     "[telemetry] ${telemetry.vehicleId} | " +
-                            "Speed: ${telemetry.speedKmh} km/h | " +
-                            "Fuel: ${telemetry.fuelPercentage}% | " +
-                            "GPS: ${telemetry.latitude}, ${telemetry.longitude}"
+                            "Speed: ${format(ONE_DECIMAL, telemetry.speedKmh)} km/h | " +
+                            "Fuel: ${format(ONE_DECIMAL, telemetry.fuelPercentage)}% | " +
+                            "GPS: ${format(FOUR_DECIMALS, telemetry.latitude)}, " +
+                            "${format(FOUR_DECIMALS, telemetry.longitude)}"
                 )
             }
 
