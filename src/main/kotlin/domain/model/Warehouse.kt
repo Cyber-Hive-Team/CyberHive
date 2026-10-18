@@ -76,4 +76,7 @@ class Warehouse(
             throw InvalidWarehouseIdException()
         }
     }
+    override fun equals(other: Any?): Boolean = other is Warehouse && other.id == id
+
+    override fun hashCode(): Int = id.hashCode()
 }

@@ -1,6 +1,7 @@
 package org.example.di
 
 import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
+import org.example.domain.algorithm.knn.KnnSectorClassifier
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
 import org.example.domain.algorithm.search.Router
 import org.example.domain.algorithm.search.WarehouseGraph
@@ -11,6 +12,7 @@ import org.example.domain.usecase.AddVehicleToHubUseCase
 import org.example.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.example.domain.usecase.AssignPackageToCargoQueueUseCase
 import org.example.domain.usecase.CalculatePricingPackageUseCase
+import org.example.domain.usecase.ClassifyPackageSectorUseCase
 import org.example.domain.usecase.DispatchFleetGreedyUseCase
 import org.example.domain.usecase.DispatchVehicleUseCase
 import org.example.domain.usecase.FindFewestHopsRouteUseCase
@@ -331,6 +333,12 @@ val useCaseModule = module {
     factory {
         TrackActiveFleetUseCase(
             vehicleRepository = get()
+        )
+    }
+    factory {
+        ClassifyPackageSectorUseCase(
+            packageRepository = get(),
+            classifier = KnnSectorClassifier()
         )
     }
 }
