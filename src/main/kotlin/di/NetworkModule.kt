@@ -10,7 +10,7 @@ import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDataSour
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDataSource
 import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDataSource
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDataSource
-import org.example.data.datasource.remote.supabase.client.SupabaseHttpClient
+import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
 import org.example.data.retry.RetryWithBackoff
 import org.example.data.ratelimit.RateLimiter

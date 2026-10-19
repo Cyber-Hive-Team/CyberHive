@@ -1,4 +1,4 @@
-package org.example.data.datasource.remote.supabase.client
+package org.example.data.remote.client
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
