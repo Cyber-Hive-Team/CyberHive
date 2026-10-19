@@ -9,19 +9,24 @@ import io.ktor.client.request.header
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.example.data.remote.config.SupabaseConfig
-
-const val CONNECT_TIMEOUT_MS = 5_000L
-const val REQUEST_TIMEOUT_MS = 10_000L
-const val SOCKET_TIMEOUT_MS = 10_000L
+import io.ktor.client.plugins.api.createClientPlugin
+import org.example.data.ratelimit.RateLimiter
 
 class SupabaseHttpClient(
-    private val config: SupabaseConfig
+    private val config: SupabaseConfig,
+    private val rateLimiter: RateLimiter
 ) {
 
-    fun create(): HttpClient {
+    val rateLimiterPlugin = createClientPlugin("RateLimiterPlugin") {
+        onRequest { _, _ ->
+            rateLimiter.acquire()
+        }
+    }
 
+    fun create(): HttpClient {
         return HttpClient(CIO) {
             expectSuccess = true
+            install(rateLimiterPlugin)
             install(HttpTimeout) {
                 connectTimeoutMillis = CONNECT_TIMEOUT_MS
                 requestTimeoutMillis = REQUEST_TIMEOUT_MS
@@ -40,5 +45,11 @@ class SupabaseHttpClient(
                 header("Content-Type", "application/json")
             }
         }
+    }
+
+    companion object {
+        const val CONNECT_TIMEOUT_MS = 5_000L
+        const val REQUEST_TIMEOUT_MS = 10_000L
+        const val SOCKET_TIMEOUT_MS = 10_000L
     }
 }
