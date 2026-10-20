@@ -2,6 +2,9 @@ package org.example.di
 
 
 import io.ktor.client.HttpClient
+import org.example.data.circuitbreaker.CircuitBreaker
+import org.example.data.circuitbreaker.NetworkFailureClassifier
+import org.example.data.circuitbreaker.ProtectedRemoteExecutor
 import org.example.data.datasource.remote.PackageRemoteDataSource
 import org.example.data.datasource.remote.RouteRemoteDataSource
 import org.example.data.datasource.remote.VehicleRemoteDataSource
@@ -10,10 +13,10 @@ import org.example.data.datasource.remote.supabase.SupabasePackageRemoteDataSour
 import org.example.data.datasource.remote.supabase.SupabaseRouteRemoteDataSource
 import org.example.data.datasource.remote.supabase.SupabaseVehicleRemoteDataSource
 import org.example.data.datasource.remote.supabase.SupabaseWarehouseRemoteDataSource
+import org.example.data.ratelimit.RateLimiter
 import org.example.data.remote.client.SupabaseHttpClient
 import org.example.data.remote.config.SupabaseConfig
 import org.example.data.retry.RetryWithBackoff
-import org.example.data.ratelimit.RateLimiter
 import org.koin.dsl.module
 
 val networkModule = module {
@@ -51,8 +54,7 @@ val networkModule = module {
         SupabasePackageRemoteDataSource(
             client = get(),
             baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
-            retry = get()
-
+            executor = get()
         )
     }
 
@@ -60,7 +62,7 @@ val networkModule = module {
         SupabaseRouteRemoteDataSource(
             client = get(),
             baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
-            retry = get()
+            executor = get()
         )
     }
 
@@ -68,7 +70,7 @@ val networkModule = module {
         SupabaseVehicleRemoteDataSource(
             client = get(),
             baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
-            retry = get()
+            executor = get()
         )
     }
 
@@ -76,10 +78,26 @@ val networkModule = module {
         SupabaseWarehouseRemoteDataSource(
             client = get(),
             baseUrl = "${get<SupabaseConfig>().url}/rest/v1",
-            retry = get()
+            executor = get()
         )
     }
     single {
         RetryWithBackoff()
+    }
+    single {
+        NetworkFailureClassifier()
+    }
+    single {
+        CircuitBreaker(
+            failureThreshold = 5,
+            resetTimeoutMillis = 5_000L,
+            isNetworkFailure = get<NetworkFailureClassifier>()::isNetworkFailure
+        )
+    }
+    single {
+        ProtectedRemoteExecutor(
+            circuitBreaker = get(),
+            retry = get()
+        )
     }
 }
