@@ -9,13 +9,16 @@ import kotlinx.coroutines.withContext
 import org.example.data.exception.CallNotPermittedException
 
 class CircuitBreaker(
-    private val failureThreshold: Int = 5,
-    private val resetTimeoutMillis: Long = 5_000L,
+    private val failureThreshold: Int = DEFAULT_FAILURE_THRESHOLD,
+    private val resetTimeoutMillis: Long = DEFAULT_RESET_TIMEOUT_MS,
     private val isNetworkFailure: (Throwable) -> Boolean,
     private val currentTimeNanos: () -> Long = System::nanoTime
 ) {
+    companion object {
+        private const val DEFAULT_FAILURE_THRESHOLD = 5
+        private const val DEFAULT_RESET_TIMEOUT_MS = 5_000L
+    }
     private val mutex = Mutex()
-
     private var state = CircuitBreakerState.CLOSED
     private var failureCount = 0
     private var openedAtNanos = 0L

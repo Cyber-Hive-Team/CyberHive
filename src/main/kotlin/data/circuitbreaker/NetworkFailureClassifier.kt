@@ -12,10 +12,12 @@ import org.example.data.exception.CallNotPermittedException
 
 class NetworkFailureClassifier {
 
-
+    companion object {
+        private const val MAX_CAUSE_DEPTH = 10
+    }
     fun isNetworkFailure(error: Throwable): Boolean {
         return generateSequence(error) { it.cause }
-            .take(10)
+            .take(MAX_CAUSE_DEPTH)
             .any { cause ->
                 when (cause) {
                     is CancellationException,

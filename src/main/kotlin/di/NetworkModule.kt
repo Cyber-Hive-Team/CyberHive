@@ -89,8 +89,6 @@ val networkModule = module {
     }
     single {
         CircuitBreaker(
-            failureThreshold = 5,
-            resetTimeoutMillis = 5_000L,
             isNetworkFailure = get<NetworkFailureClassifier>()::isNetworkFailure
         )
     }
