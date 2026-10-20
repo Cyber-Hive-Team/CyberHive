@@ -7,16 +7,17 @@ import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import org.example.data.circuitbreaker.ProtectedRemoteExecutor
 import org.example.data.datasource.remote.PackageRemoteDataSource
 import org.example.data.remote.dto.request.CreatePackageRequestDto
 import org.example.data.remote.dto.request.UpdatePackageRequestDto
 import org.example.data.remote.dto.response.PackageResponseDto
-import org.example.data.retry.RetryWithBackoff
 
 class SupabasePackageRemoteDataSource(
     private val client: HttpClient,
     private val baseUrl: String,
-    private val retry: RetryWithBackoff
+    private val executor: ProtectedRemoteExecutor
+
 ) : PackageRemoteDataSource {
 
     private val packageSelect =
@@ -25,16 +26,16 @@ class SupabasePackageRemoteDataSource(
                 "destination_hub:warehouses!Packages_destinationHubId_fkey(*)"
 
     override suspend fun getAll(): List<PackageResponseDto> {
-        return retry.executeWithRetry {
+        return executor.execute(useRetry = true) {
             client.get("$baseUrl/packages?select=$packageSelect")
                 .body<List<PackageResponseDto>>()
-        }.getOrThrow()
+        }
     }
 
     override suspend fun getById(
         id: String
     ): PackageResponseDto? {
-        return retry.executeWithRetry {
+        return executor.execute(useRetry = true) {
             client.get(
                 "$baseUrl/packages" +
                         "?package_id=eq.$id" +
@@ -42,17 +43,18 @@ class SupabasePackageRemoteDataSource(
             )
                 .body<List<PackageResponseDto>>()
                 .firstOrNull()
-        }.getOrThrow()
+        }
     }
 
     override suspend fun save(
         request: CreatePackageRequestDto
     ): PackageResponseDto {
+        executor.execute {
 
-        client.post("$baseUrl/packages") {
-            setBody(request)
+            client.post("$baseUrl/packages") {
+                setBody(request)
+            }
         }
-
         return getById(request.id)
             ?: error(
                 "Package '${request.id}' was saved but could not be retrieved."
@@ -63,9 +65,10 @@ class SupabasePackageRemoteDataSource(
         id: String,
         request: UpdatePackageRequestDto
     ): PackageResponseDto {
-
+        executor.execute {
         client.patch("$baseUrl/packages?package_id=eq.$id") {
             setBody(request)
+        }
         }
 
         return getById(id)
@@ -77,7 +80,13 @@ class SupabasePackageRemoteDataSource(
     override suspend fun delete(
         id: String
     ): String {
-        client.delete("$baseUrl/packages?package_id=eq.$id")
-        return id
+        return executor.execute {
+            client.delete("$baseUrl/packages?package_id=eq.$id")
+            id
+        }
     }
+
+
+
+
 }

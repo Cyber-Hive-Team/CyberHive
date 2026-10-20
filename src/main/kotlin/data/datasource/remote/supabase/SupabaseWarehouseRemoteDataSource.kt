@@ -7,43 +7,44 @@ import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import org.example.data.circuitbreaker.ProtectedRemoteExecutor
 import org.example.data.datasource.remote.WarehouseRemoteDataSource
 import org.example.data.remote.dto.request.CreateWarehouseRequestDto
 import org.example.data.remote.dto.request.UpdateWarehouseRequestDto
 import org.example.data.remote.dto.response.WarehouseResponseDto
-import org.example.data.retry.RetryWithBackoff
 
 class SupabaseWarehouseRemoteDataSource(
     private val client: HttpClient,
     private val baseUrl: String,
-    private val retry: RetryWithBackoff
+    private val executor: ProtectedRemoteExecutor
 ) : WarehouseRemoteDataSource {
 
     override suspend fun getAll(): List<WarehouseResponseDto> {
-        return retry.executeWithRetry {
+        return executor.execute(useRetry = true) {
             client.get("$baseUrl/warehouses")
                 .body<List<WarehouseResponseDto>>()
-        }.getOrThrow()
+        }
     }
     override suspend fun getById(
         id: String
     ): WarehouseResponseDto? {
-        return retry.executeWithRetry {
+        return executor.execute(useRetry = true) {
             client
                 .get("$baseUrl/warehouses?warehouse_id=eq.$id")
                 .body<List<WarehouseResponseDto>>()
                 .firstOrNull()
-        }.getOrThrow()
+        }
     }
 
     override suspend fun save(
         request: CreateWarehouseRequestDto
     ): WarehouseResponseDto {
-        return client
-            .post("$baseUrl/warehouses") {
+        return executor.execute {
+            client.post("$baseUrl/warehouses") {
                 setBody(request)
             }
             .body()
+        }
     }
 
     override suspend fun update(
@@ -51,17 +52,20 @@ class SupabaseWarehouseRemoteDataSource(
         request: UpdateWarehouseRequestDto
     ): WarehouseResponseDto {
 
-        return client
-            .patch("$baseUrl/warehouses?warehouse_id=eq.$id") {
+        return executor.execute {
+            client.patch("$baseUrl/warehouses?warehouse_id=eq.$id") {
                 setBody(request)
             }
             .body()
+        }
     }
 
     override suspend fun delete(
         id: String
     ): String {
+        return executor.execute {
         client.delete("$baseUrl/warehouses?warehouse_id=eq.$id")
-        return id
+            id
+        }
     }
 }
