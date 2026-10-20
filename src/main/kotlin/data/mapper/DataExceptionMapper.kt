@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
+import org.example.data.exception.CallNotPermittedException
 import org.example.data.exception.DataException
 import org.example.data.exception.EmptyFileDataException
 import org.example.data.exception.FileNotFoundDataException
@@ -48,6 +49,8 @@ class DataExceptionMapper {
         exception: DataException
     ): DomainException {
         return when (exception) {
+            is CallNotPermittedException ->
+                NetworkException(cause = exception)
             is FileNotFoundDataException ->
                 DataAccessException(cause = exception)
 
