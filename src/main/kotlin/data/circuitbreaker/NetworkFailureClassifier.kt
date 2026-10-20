@@ -12,36 +12,30 @@ import org.example.data.exception.CallNotPermittedException
 
 class NetworkFailureClassifier {
 
+
     fun isNetworkFailure(error: Throwable): Boolean {
-        var current: Throwable? = error
-        val visited = mutableSetOf<Throwable>()
+        return generateSequence(error) { it.cause }
+            .take(10)
+            .any { cause ->
+                when (cause) {
+                    is CancellationException,
+                    is CallNotPermittedException -> false
 
-        while (current != null && visited.add(current)) {
-            if (current is CancellationException ||
-                current is CallNotPermittedException
-            ) {
-                return false
-            }
+                    is HttpRequestTimeoutException,
+                    is ConnectTimeoutException,
+                    is SocketTimeoutException,
+                    is IOException,
+                    is ServerResponseException -> true
 
-            when (current) {
-                is HttpRequestTimeoutException,
-                is ConnectTimeoutException,
-                is SocketTimeoutException,
-                is IOException,
-                is ServerResponseException -> return true
+                    is ClientRequestException ->
+                        cause.response.status ==
+                                HttpStatusCode.RequestTimeout ||
+                                cause.response.status ==
+                                HttpStatusCode.TooManyRequests
 
-                is ClientRequestException -> {
-                    return current.response.status ==
-                            HttpStatusCode.RequestTimeout ||
-                            current.response.status ==
-                            HttpStatusCode.TooManyRequests
+                    else -> false
                 }
             }
-
-            current = current.cause
-        }
-
-        return false
     }
 }
 
