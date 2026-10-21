@@ -37,6 +37,9 @@ open class DomainException(message: String, cause: Throwable? = null) : Exceptio
         const val UNKNOWN_ERROR = "An unexpected error occurred."
         const val INVALID_PACKAGE_STATE_TRANSITION = "Invalid package state transition."
         const val EMPTY_HISTORICAL_DATA ="Historical data cannot be empty."
+        const val INVALID_GEOHASH_PRECISION = "Geohash precision must be between 1 and 12."
+        const val INVALID_SEARCH_RADIUS = "Search radius must be greater than zero."
+        const val INVALID_GEOHASH = "Geohash string is invalid or empty."
 
     }
 }
@@ -67,3 +70,8 @@ class UnknownException(message: String = UNKNOWN_ERROR, cause: Throwable? = null
 class InvalidPackageStateTransitionException(message: String = INVALID_PACKAGE_STATE_TRANSITION) :
     DomainException(message)
 class EmptyHistoricalDataException(message: String = EMPTY_HISTORICAL_DATA) : DomainException(message)
+class InvalidLatitudeException(message: String = INVALID_LATITUDE) : DomainException(message)
+class InvalidLongitudeException(message: String = INVALID_LONGITUDE) : DomainException(message)
+class InvalidGeohashPrecisionException(message: String = INVALID_GEOHASH_PRECISION) : DomainException(message)
+class InvalidSearchRadiusException(message: String = INVALID_SEARCH_RADIUS) : DomainException(message)
+class InvalidGeohashException(message: String = INVALID_GEOHASH) : DomainException(message)
