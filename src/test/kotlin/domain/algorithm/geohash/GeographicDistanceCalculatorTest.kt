@@ -11,45 +11,64 @@ class GeographicDistanceCalculatorTest {
     private val calculator = GeographicDistanceCalculator()
 
     @Test
-    fun `should return zero for identical coordinates`() {
+    fun `returns zero for identical coordinates`() {
+        // Given
+        val latitude = VALID_LATITUDE
+        val longitude = VALID_LONGITUDE
+
+        // When
         val distance = calculator.calculateDistance(
-            startLatitude = VALID_LATITUDE,
-            startLongitude = VALID_LONGITUDE,
-            endLatitude = VALID_LATITUDE,
-            endLongitude = VALID_LONGITUDE
+            startLatitude = latitude,
+            startLongitude = longitude,
+            endLatitude = latitude,
+            endLongitude = longitude
         )
 
+        // Then
         assertThat(distance).isEqualTo(ZERO_DISTANCE)
     }
 
     @Test
-    fun `should calculate distance between known coordinates`() {
+    fun `calculates distance between known coordinates`() {
+        // Given
+        val startLongitude = EQUATOR_LONGITUDE
+        val endLongitude = ONE_DEGREE_LONGITUDE
+
+        // When
         val distance = calculator.calculateDistance(
             startLatitude = EQUATOR_LATITUDE,
-            startLongitude = EQUATOR_LONGITUDE,
+            startLongitude = startLongitude,
             endLatitude = EQUATOR_LATITUDE,
-            endLongitude = ONE_DEGREE_LONGITUDE
+            endLongitude = endLongitude
         )
 
+        // Then
         assertThat(distance).isWithin(DISTANCE_TOLERANCE_KM)
             .of(DISTANCE_PER_LONGITUDE_DEGREE_KM)
     }
 
     @Test
-    fun `should calculate shortest distance across antimeridian`() {
+    fun `calculates shortest distance across antimeridian`() {
+        // Given
+        val startLongitude = EAST_ANTIMERIDIAN_LONGITUDE
+        val endLongitude = WEST_ANTIMERIDIAN_LONGITUDE
+
+        // When
         val distance = calculator.calculateDistance(
             startLatitude = EQUATOR_LATITUDE,
-            startLongitude = EAST_ANTIMERIDIAN_LONGITUDE,
+            startLongitude = startLongitude,
             endLatitude = EQUATOR_LATITUDE,
-            endLongitude = WEST_ANTIMERIDIAN_LONGITUDE
+            endLongitude = endLongitude
         )
 
+        // Then
         assertThat(distance).isWithin(DISTANCE_TOLERANCE_KM)
             .of(ANTIMERIDIAN_DISTANCE_KM)
     }
 
     @Test
-    fun `should reject latitude above maximum`() {
+    fun `rejects latitude above maximum`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = INVALID_HIGH_LATITUDE,
@@ -59,12 +78,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLatitudeException::class.java)
     }
 
     @Test
-    fun `should reject latitude below minimum`() {
+    fun `rejects latitude below minimum`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = INVALID_LOW_LATITUDE,
@@ -74,12 +95,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLatitudeException::class.java)
     }
 
     @Test
-    fun `should reject longitude above maximum`() {
+    fun `rejects longitude above maximum`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = VALID_LATITUDE,
@@ -89,12 +112,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLongitudeException::class.java)
     }
 
     @Test
-    fun `should reject longitude below minimum`() {
+    fun `rejects longitude below minimum`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = VALID_LATITUDE,
@@ -104,13 +129,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLongitudeException::class.java)
     }
 
-
     @Test
-    fun `should reject NaN latitude`() {
+    fun `rejects NaN latitude`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = NON_FINITE_NAN,
@@ -120,12 +146,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLatitudeException::class.java)
     }
 
     @Test
-    fun `should reject infinite latitude`() {
+    fun `rejects infinite latitude`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = POSITIVE_INFINITY,
@@ -135,12 +163,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLatitudeException::class.java)
     }
 
     @Test
-    fun `should reject negative infinite latitude`() {
+    fun `rejects negative infinite latitude`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = NEGATIVE_INFINITY,
@@ -150,12 +180,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLatitudeException::class.java)
     }
 
     @Test
-    fun `should reject NaN longitude`() {
+    fun `rejects NaN longitude`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = VALID_LATITUDE,
@@ -165,12 +197,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLongitudeException::class.java)
     }
 
     @Test
-    fun `should reject infinite longitude`() {
+    fun `rejects infinite longitude`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = VALID_LATITUDE,
@@ -180,12 +214,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLongitudeException::class.java)
     }
 
     @Test
-    fun `should reject negative infinite longitude`() {
+    fun `rejects negative infinite longitude`() {
+        // Given / When
         val result = runCatching {
             calculator.calculateDistance(
                 startLatitude = VALID_LATITUDE,
@@ -195,12 +231,14 @@ class GeographicDistanceCalculatorTest {
             )
         }
 
+        // Then
         assertThat(result.exceptionOrNull())
             .isInstanceOf(InvalidLongitudeException::class.java)
     }
 
     @Test
-    fun `should accept minimum latitude`() {
+    fun `accepts minimum latitude`() {
+        // Given / When
         val distance = calculator.calculateDistance(
             startLatitude = MIN_LATITUDE,
             startLongitude = VALID_LONGITUDE,
@@ -208,11 +246,13 @@ class GeographicDistanceCalculatorTest {
             endLongitude = VALID_LONGITUDE
         )
 
+        // Then
         assertThat(distance).isAtLeast(ZERO_DISTANCE)
     }
 
     @Test
-    fun `should accept maximum latitude`() {
+    fun `accepts maximum latitude`() {
+        // Given / When
         val distance = calculator.calculateDistance(
             startLatitude = MAX_LATITUDE,
             startLongitude = VALID_LONGITUDE,
@@ -220,11 +260,13 @@ class GeographicDistanceCalculatorTest {
             endLongitude = VALID_LONGITUDE
         )
 
+        // Then
         assertThat(distance).isAtLeast(ZERO_DISTANCE)
     }
 
     @Test
-    fun `should accept minimum longitude`() {
+    fun `accepts minimum longitude`() {
+        // Given / When
         val distance = calculator.calculateDistance(
             startLatitude = VALID_LATITUDE,
             startLongitude = MIN_LONGITUDE,
@@ -232,11 +274,13 @@ class GeographicDistanceCalculatorTest {
             endLongitude = VALID_LONGITUDE
         )
 
+        // Then
         assertThat(distance).isAtLeast(ZERO_DISTANCE)
     }
 
     @Test
-    fun `should accept maximum longitude`() {
+    fun `accepts maximum longitude`() {
+        // Given / When
         val distance = calculator.calculateDistance(
             startLatitude = VALID_LATITUDE,
             startLongitude = MAX_LONGITUDE,
@@ -244,6 +288,7 @@ class GeographicDistanceCalculatorTest {
             endLongitude = VALID_LONGITUDE
         )
 
+        // Then
         assertThat(distance).isAtLeast(ZERO_DISTANCE)
     }
 

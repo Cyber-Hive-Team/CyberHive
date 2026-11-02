@@ -14,21 +14,27 @@ class GeohashNeighborCalculatorTest {
     private val calculator = GeohashNeighborCalculator(encoder, decoder)
 
     @Test
-    fun `should return all eight neighboring directions`() {
+    fun `returns all eight neighboring directions`() {
+        // Given
         val geohash = encoder.encode(LATITUDE, LONGITUDE, PRECISION)
 
+        // When
         val neighbors = calculator.calculateNeighbors(geohash)
 
+        // Then
         assertThat(neighbors.keys)
             .containsExactlyElementsIn(GeohashDirection.entries)
     }
 
     @Test
-    fun `should preserve the original geohash precision`() {
+    fun `preserves the original geohash precision`() {
+        // Given
         val geohash = encoder.encode(LATITUDE, LONGITUDE, PRECISION)
 
+        // When
         val neighbors = calculator.calculateNeighbors(geohash)
 
+        // Then
         assertThat(neighbors.values.map { it.length })
             .containsExactlyElementsIn(
                 GeohashDirection.entries.map { PRECISION }
@@ -36,43 +42,52 @@ class GeohashNeighborCalculatorTest {
     }
 
     @Test
-    fun `should not include the original cell among its neighbors`() {
+    fun `does not include the original cell among its neighbors`() {
+        // Given
         val geohash = encoder.encode(LATITUDE, LONGITUDE, PRECISION)
 
+        // When
         val neighbors = calculator.calculateNeighbors(geohash)
 
+        // Then
         assertThat(neighbors.values).doesNotContain(geohash)
     }
 
     @Test
-    fun `should wrap east neighbor across the longitude boundary`() {
+    fun `wraps east neighbor across the longitude boundary`() {
+        // Given
         val geohash = encoder.encode(
             EQUATOR_LATITUDE,
             DATELINE_LONGITUDE,
             PRECISION
         )
 
+        // When
         val neighbors = calculator.calculateNeighbors(geohash)
         val easternNeighbor = decoder.decode(
             neighbors.getValue(GeohashDirection.EAST)
         )
 
+        // Then
         assertThat(easternNeighbor.centerLongitude).isLessThan(0.0)
     }
 
     @Test
-    fun `should adjust longitude when northern neighbor crosses the pole`() {
+    fun `adjusts longitude when northern neighbor crosses the pole`() {
+        // Given
         val geohash = encoder.encode(
             NEAR_NORTH_POLE,
             LONGITUDE,
             PRECISION
         )
 
+        // When
         val neighbors = calculator.calculateNeighbors(geohash)
         val northernNeighbor = decoder.decode(
             neighbors.getValue(GeohashDirection.NORTH)
         )
 
+        // Then
         assertThat(kotlin.math.abs(northernNeighbor.centerLongitude))
             .isGreaterThan(90.0)
     }
