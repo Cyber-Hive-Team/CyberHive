@@ -1,8 +1,8 @@
 package org.example.test.domain.algorithm.geohash
 
 import com.google.common.truth.Truth.assertThat
-import org.example.domain.algorithm.geohash.GeohashEncoder
-import org.example.domain.algorithm.geohash.GeohashPrecision
+import org.example.domain.algorithm.geohash.encoding.GeohashEncoder
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
 import org.example.domain.model.exception.InvalidGeohashPrecisionException
 import org.example.domain.model.exception.InvalidLatitudeException
 import org.example.domain.model.exception.InvalidLongitudeException

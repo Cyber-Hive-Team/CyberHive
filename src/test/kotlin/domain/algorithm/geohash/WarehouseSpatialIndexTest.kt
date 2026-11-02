@@ -1,13 +1,13 @@
 package org.example.test.domain.algorithm.geohash
 
 import com.google.common.truth.Truth.assertThat
-import org.example.domain.algorithm.geohash.GeohashDecoder
-import org.example.domain.algorithm.geohash.GeohashDirection
-import org.example.domain.algorithm.geohash.GeohashEncoder
-import org.example.domain.algorithm.geohash.GeohashNeighborCalculator
-import org.example.domain.algorithm.geohash.GeohashPrecision
-import org.example.domain.algorithm.geohash.GeohashSearchBoundsCalculator
-import org.example.domain.algorithm.geohash.WarehouseSpatialIndex
+import org.example.domain.algorithm.geohash.encoding.GeohashDecoder
+import org.example.domain.algorithm.geohash.core.GeohashDirection
+import org.example.domain.algorithm.geohash.encoding.GeohashEncoder
+import org.example.domain.algorithm.geohash.spatial.GeohashNeighborCalculator
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
+import org.example.domain.algorithm.geohash.search.GeohashSearchBoundsCalculator
+import org.example.domain.algorithm.geohash.spatial.WarehouseSpatialIndex
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.InvalidSearchRadiusException

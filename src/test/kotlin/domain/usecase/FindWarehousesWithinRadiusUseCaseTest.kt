@@ -7,8 +7,8 @@ import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import org.example.domain.algorithm.geohash.GeographicDistanceCalculator
-import org.example.domain.algorithm.geohash.WarehouseSpatialIndex
+import org.example.domain.algorithm.geohash.spatial.GeographicDistanceCalculator
+import org.example.domain.algorithm.geohash.spatial.WarehouseSpatialIndex
 import org.example.domain.model.RegionalZone
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.InvalidLatitudeException

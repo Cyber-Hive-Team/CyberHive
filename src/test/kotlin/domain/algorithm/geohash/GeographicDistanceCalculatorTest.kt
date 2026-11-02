@@ -1,7 +1,7 @@
 package org.example.test.domain.algorithm.geohash
 
 import com.google.common.truth.Truth.assertThat
-import org.example.domain.algorithm.geohash.GeographicDistanceCalculator
+import org.example.domain.algorithm.geohash.spatial.GeographicDistanceCalculator
 import org.example.domain.model.exception.InvalidLatitudeException
 import org.example.domain.model.exception.InvalidLongitudeException
 import org.junit.jupiter.api.Test

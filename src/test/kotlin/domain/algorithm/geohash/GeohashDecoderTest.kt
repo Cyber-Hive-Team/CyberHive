@@ -1,8 +1,8 @@
 package org.example.test.domain.algorithm.geohash
 
 import com.google.common.truth.Truth.assertThat
-import org.example.domain.algorithm.geohash.GeohashDecoder
-import org.example.domain.algorithm.geohash.GeohashEncoder
+import org.example.domain.algorithm.geohash.encoding.GeohashDecoder
+import org.example.domain.algorithm.geohash.encoding.GeohashEncoder
 import org.example.domain.model.exception.InvalidGeohashException
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test

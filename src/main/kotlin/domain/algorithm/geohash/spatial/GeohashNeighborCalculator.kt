@@ -1,4 +1,8 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.spatial
+
+import org.example.domain.algorithm.geohash.core.GeohashDirection
+import org.example.domain.algorithm.geohash.encoding.GeohashDecoder
+import org.example.domain.algorithm.geohash.encoding.GeohashEncoder
 
 class GeohashNeighborCalculator(
     private val encoder: GeohashEncoder = GeohashEncoder(),
