@@ -103,7 +103,6 @@ class GeohashSearchBoundsCalculator {
     }
 
     private companion object {
-        const val EARTH_RADIUS_KILOMETERS = 6371.0088
         const val MIN_LATITUDE = -90.0
         const val MAX_LATITUDE = 90.0
         const val MIN_LONGITUDE = -180.0
