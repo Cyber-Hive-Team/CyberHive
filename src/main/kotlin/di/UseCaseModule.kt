@@ -1,5 +1,8 @@
 package org.example.di
 
+import org.example.domain.algorithm.geohash.spatial.GeographicDistanceCalculator
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
+import org.example.domain.algorithm.geohash.spatial.WarehouseSpatialIndex
 import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
 import org.example.domain.algorithm.knn.KnnSectorClassifier
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter
@@ -48,6 +51,7 @@ import org.example.domain.usecase.crud.warehouse.CreateWarehouseUseCase
 import org.example.domain.usecase.crud.warehouse.DeleteWarehouseUseCase
 import org.example.domain.usecase.crud.warehouse.GetWarehouseByIdUseCase
 import org.example.domain.usecase.crud.warehouse.UpdateWarehouseUseCase
+import org.example.domain.usecase.FindWarehousesWithinRadiusUseCase
 import org.example.domain.validator.PackageValidator
 import org.example.domain.validator.RouteValidator
 import org.example.domain.validator.VehicleValidator
@@ -339,6 +343,26 @@ val useCaseModule = module {
         ClassifyPackageSectorUseCase(
             packageRepository = get(),
             classifier = KnnSectorClassifier()
+        )
+    }
+
+    factory { GeographicDistanceCalculator() }
+
+    factory {
+        WarehouseSpatialIndex(
+            encoder = get(),
+            precision = GeohashPrecision.CITY,
+            neighborCalculator = get(),
+            boundsCalculator = get(),
+            coverageCalculator = get()
+        )
+    }
+
+    factory {
+        FindWarehousesWithinRadiusUseCase(
+            warehouseRepository = get(),
+            warehouseSpatialIndex = get(),
+            geographicDistanceCalculator = get()
         )
     }
 }
