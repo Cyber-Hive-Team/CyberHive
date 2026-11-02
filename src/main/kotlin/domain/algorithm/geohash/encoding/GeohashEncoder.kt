@@ -1,5 +1,7 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.encoding
 
+import org.example.domain.algorithm.geohash.core.CoordinateRange
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
 import org.example.domain.model.exception.InvalidGeohashPrecisionException
 import org.example.domain.model.exception.InvalidLatitudeException
 import org.example.domain.model.exception.InvalidLongitudeException

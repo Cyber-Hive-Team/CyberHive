@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.core
 
 data class CoordinateRange(
     val min: Double,

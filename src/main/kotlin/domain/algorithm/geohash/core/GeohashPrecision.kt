@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.core
 
 private const val CITY_PRECISION = 5
 private const val STREET_PRECISION = 7

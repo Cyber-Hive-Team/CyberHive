@@ -1,5 +1,7 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.search
 
+import org.example.domain.algorithm.geohash.core.CoordinateBounds
+import org.example.domain.algorithm.geohash.spatial.EARTH_RADIUS_KILOMETERS
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.max

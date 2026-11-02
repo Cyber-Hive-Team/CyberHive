@@ -1,4 +1,7 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.search
+
+import org.example.domain.algorithm.geohash.core.CoordinateBounds
+import org.example.domain.algorithm.geohash.core.GeohashCell
 
 data class GeohashSearchBounds(
     val latitudeBounds: CoordinateBounds,

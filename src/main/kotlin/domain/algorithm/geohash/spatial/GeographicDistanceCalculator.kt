@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.spatial
 
 import org.example.domain.model.exception.InvalidLatitudeException
 import org.example.domain.model.exception.InvalidLongitudeException

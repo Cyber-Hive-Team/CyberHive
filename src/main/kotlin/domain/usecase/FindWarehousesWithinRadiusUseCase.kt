@@ -1,7 +1,7 @@
 package org.example.domain.usecase
 
-import org.example.domain.algorithm.geohash.GeographicDistanceCalculator
-import org.example.domain.algorithm.geohash.WarehouseSpatialIndex
+import org.example.domain.algorithm.geohash.spatial.GeographicDistanceCalculator
+import org.example.domain.algorithm.geohash.spatial.WarehouseSpatialIndex
 import org.example.domain.model.Warehouse
 import org.example.domain.model.input.FindWarehouseWithinRadiusInput
 import org.example.domain.repository.WarehouseRepository

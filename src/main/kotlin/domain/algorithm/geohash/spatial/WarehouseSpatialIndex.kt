@@ -1,5 +1,9 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.spatial
 
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
+import org.example.domain.algorithm.geohash.encoding.GeohashEncoder
+import org.example.domain.algorithm.geohash.search.GeohashPrefixCoverageCalculator
+import org.example.domain.algorithm.geohash.search.GeohashSearchBoundsCalculator
 import org.example.domain.model.Warehouse
 import org.example.domain.model.exception.InvalidSearchRadiusException
 import kotlin.math.PI

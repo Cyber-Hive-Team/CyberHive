@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.encoding
 
 private const val LATITUDE_MIN = -90.0
 private const val LATITUDE_MAX = 90.0

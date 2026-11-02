@@ -1,8 +1,8 @@
 package org.example.di
 
-import org.example.domain.algorithm.geohash.GeographicDistanceCalculator
-import org.example.domain.algorithm.geohash.GeohashPrecision
-import org.example.domain.algorithm.geohash.WarehouseSpatialIndex
+import org.example.domain.algorithm.geohash.spatial.GeographicDistanceCalculator
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
+import org.example.domain.algorithm.geohash.spatial.WarehouseSpatialIndex
 import org.example.domain.algorithm.greedy.GreedyFleetDispatcher
 import org.example.domain.algorithm.knn.KnnSectorClassifier
 import org.example.domain.algorithm.search.BreadthFirstSearchRouter

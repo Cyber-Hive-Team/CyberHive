@@ -1,5 +1,6 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.encoding
 
+import org.example.domain.algorithm.geohash.core.GeohashCell
 import org.example.domain.model.exception.InvalidGeohashException
 
 class GeohashDecoder {

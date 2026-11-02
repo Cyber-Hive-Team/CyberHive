@@ -1,4 +1,4 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.core
 
 private const val NORTH_OFFSET = 1
 private const val SOUTH_OFFSET = -1

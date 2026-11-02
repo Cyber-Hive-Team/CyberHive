@@ -1,4 +1,7 @@
-package org.example.domain.algorithm.geohash
+package org.example.domain.algorithm.geohash.search
+
+import org.example.domain.algorithm.geohash.core.GeohashPrecision
+import org.example.domain.algorithm.geohash.encoding.GeohashDecoder
 
 class GeohashPrefixCoverageCalculator(
     private val decoder: GeohashDecoder = GeohashDecoder(),
