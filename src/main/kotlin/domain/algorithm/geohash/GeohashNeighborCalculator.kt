@@ -43,14 +43,14 @@ class GeohashNeighborCalculator(
     }
 
     private fun normalizeLatitude(latitude: Double): Double {
-        val normalized = (latitude - LATITUDE_MIN).mod(LATITUDE_RANGE)
+        val normalized = (latitude - LATITUDE_MIN).mod(LATITUDE_MODULUS)
 
         return when {
-            normalized <= HALF_LATITUDE_RANGE ->
+            normalized <= LATITUDE_MODULUS_HALF ->
                 normalized + LATITUDE_MIN
 
             else ->
-                LATITUDE_MAX - (normalized - HALF_LATITUDE_RANGE)
+                LATITUDE_MAX - (normalized - LATITUDE_MODULUS_HALF)
         }
     }
 
@@ -60,8 +60,8 @@ class GeohashNeighborCalculator(
     private companion object {
         const val LATITUDE_MIN = -90.0
         const val LATITUDE_MAX = 90.0
-        const val LATITUDE_RANGE = 360.0
-        const val HALF_LATITUDE_RANGE = 180.0
+        const val LATITUDE_MODULUS = 360.0
+        const val LATITUDE_MODULUS_HALF = 180.0
         const val LONGITUDE_MIN = -180.0
         const val LONGITUDE_RANGE = 360.0
         const val HALF_CIRCLE_LONGITUDE = 180.0
