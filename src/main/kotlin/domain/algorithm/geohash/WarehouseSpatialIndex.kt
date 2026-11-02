@@ -53,6 +53,11 @@ class WarehouseSpatialIndex(
         add(warehouse)
     }
 
+    fun clear() {
+        warehousesByPrefix.clear()
+        prefixByWarehouseId.clear()
+    }
+
     fun findByPrefix(prefix: String): List<Warehouse> =
         warehousesByPrefix[prefix]?.values?.toList().orEmpty()
 
@@ -130,7 +135,6 @@ class WarehouseSpatialIndex(
 
     private companion object {
         const val MIN_PREFIX_LENGTH = 1
-        const val EARTH_RADIUS_KILOMETERS = 6371.0088
         const val HALF_EARTH_CIRCUMFERENCE_KM =
             PI * EARTH_RADIUS_KILOMETERS
     }

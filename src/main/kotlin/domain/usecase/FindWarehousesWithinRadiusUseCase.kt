@@ -31,6 +31,7 @@ class FindWarehousesWithinRadiusUseCase(
         radiusKm: Double
     ): List<Warehouse> {
         val spatialIndex = warehouseSpatialIndex
+        spatialIndex.clear()
 
         warehouses.forEach(spatialIndex::add)
 

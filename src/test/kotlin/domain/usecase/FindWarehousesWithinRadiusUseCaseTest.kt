@@ -54,91 +54,107 @@ class FindWarehousesWithinRadiusUseCaseTest {
             warehouseLongitude = DISTANT_LONGITUDE
         )
 
+        justRun { warehouseSpatialIndex.clear() }
         justRun { warehouseSpatialIndex.add(any()) }
     }
 
     @Test
-    fun `should return warehouses within the specified radius`() = runTest {
+    fun `returns warehouses within the specified radius`() = runTest {
+        // Given
         givenWarehouses(listOf(nearbyWarehouse, distantWarehouse))
         givenCandidates(listOf(nearbyWarehouse, distantWarehouse))
         stubDistance(nearbyWarehouse, NEARBY_DISTANCE_KM)
         stubDistance(distantWarehouse, DISTANT_DISTANCE_KM)
 
+        // When
         val result = useCase(input)
 
+        // Then
         assertThat(result.getOrThrow())
             .containsExactly(nearbyWarehouse)
     }
 
     @Test
-    fun `should return an empty list when no warehouses are within radius`() =
-        runTest {
-            givenWarehouses(listOf(distantWarehouse))
-            givenCandidates(listOf(distantWarehouse))
-            stubDistance(distantWarehouse, DISTANT_DISTANCE_KM)
+    fun `returns empty list when no warehouses are within radius`() = runTest {
+        // Given
+        givenWarehouses(listOf(distantWarehouse))
+        givenCandidates(listOf(distantWarehouse))
+        stubDistance(distantWarehouse, DISTANT_DISTANCE_KM)
 
-            val result = useCase(input)
-
-            assertThat(result.getOrThrow()).isEmpty()
-        }
-
-    @Test
-    fun `should return an empty list when there are no warehouses`() = runTest {
-        givenWarehouses(emptyList())
-        givenCandidates(emptyList())
-
+        // When
         val result = useCase(input)
 
+        // Then
         assertThat(result.getOrThrow()).isEmpty()
     }
 
     @Test
-    fun `should propagate repository failure`() = runTest {
-        val exception = IllegalStateException(REPOSITORY_ERROR)
+    fun `returns empty list when there are no warehouses`() = runTest {
+        // Given
+        givenWarehouses(emptyList())
+        givenCandidates(emptyList())
 
+        // When
+        val result = useCase(input)
+
+        // Then
+        assertThat(result.getOrThrow()).isEmpty()
+    }
+
+    @Test
+    fun `propagates repository failure`() = runTest {
+        // Given
+        val exception = IllegalStateException(REPOSITORY_ERROR)
         coEvery {
             warehouseRepository.getAllWarehouses()
         } returns Result.failure(exception)
 
+        // When
         val result = useCase(input)
 
+        // Then
         assertThat(result.exceptionOrNull()).isSameInstanceAs(exception)
     }
 
     @Test
-    fun `should add repository warehouses to spatial index`() = runTest {
+    fun `adds repository warehouses to spatial index`() = runTest {
+        // Given
         givenWarehouses(listOf(nearbyWarehouse, distantWarehouse))
         givenCandidates(emptyList())
 
+        // When
         useCase(input)
 
-        verify(exactly = 1) {
-            warehouseSpatialIndex.add(nearbyWarehouse)
-        }
-        verify(exactly = 1) {
-            warehouseSpatialIndex.add(distantWarehouse)
-        }
+        // Then
+        verify(exactly = 1) { warehouseSpatialIndex.add(nearbyWarehouse) }
+        verify(exactly = 1) { warehouseSpatialIndex.add(distantWarehouse) }
     }
 
     @Test
-    fun `should include warehouse when distance equals search radius`() = runTest {
+    fun `includes warehouse when distance equals search radius`() = runTest {
+        // Given
         givenWarehouses(listOf(nearbyWarehouse))
         givenCandidates(listOf(nearbyWarehouse))
         stubDistance(nearbyWarehouse, SEARCH_RADIUS_KM)
 
+        // When
         val result = useCase(input)
 
+        // Then
         assertThat(result.getOrThrow())
             .containsExactly(nearbyWarehouse)
     }
 
     @Test
-    fun `should not calculate distances when there are no candidates`() = runTest {
+    fun `does not calculate distances when there are no candidates`() = runTest {
+        // Given
         givenWarehouses(emptyList())
         givenCandidates(emptyList())
 
+        // When
         useCase(input)
 
+        // Then
         verify(exactly = 0) {
             geographicDistanceCalculator.calculateDistance(
                 startLatitude = SEARCH_LATITUDE,
@@ -149,14 +165,12 @@ class FindWarehousesWithinRadiusUseCaseTest {
         }
     }
 
-
     @Test
-    fun `should return failure when distance calculation throws an exception`() = runTest {
+    fun `returns failure when distance calculation throws an exception`() = runTest {
+        // Given
         givenWarehouses(listOf(nearbyWarehouse))
         givenCandidates(listOf(nearbyWarehouse))
-
         val exception = InvalidLatitudeException()
-
         every {
             geographicDistanceCalculator.calculateDistance(
                 startLatitude = SEARCH_LATITUDE,
@@ -166,8 +180,10 @@ class FindWarehousesWithinRadiusUseCaseTest {
             )
         } throws exception
 
+        // When
         val result = useCase(input)
 
+        // Then
         assertThat(result.exceptionOrNull()).isSameInstanceAs(exception)
     }
 
@@ -187,10 +203,7 @@ class FindWarehousesWithinRadiusUseCaseTest {
         } returns warehouses
     }
 
-    private fun stubDistance(
-        warehouse: Warehouse,
-        distanceKm: Double
-    ) {
+    private fun stubDistance(warehouse: Warehouse, distanceKm: Double) {
         every {
             geographicDistanceCalculator.calculateDistance(
                 startLatitude = SEARCH_LATITUDE,
